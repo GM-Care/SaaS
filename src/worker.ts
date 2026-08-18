@@ -352,7 +352,9 @@ export default {
               netPayableToMerchant: 4731,
               settlementStatus: 'Settled'
             }
-          ]
+          ],
+          addons: [...globalAddons],
+          occasions: [...globalOccasions]
         };
 
         return new Response(JSON.stringify(merchantData), { headers: JSON_HEADERS });
@@ -538,7 +540,18 @@ export default {
       }
 
       // ----------------------------------------------------------------------
-      // 9C. ADDONS & OCCASIONS PUBLIC & ADMIN APIS
+      // 9C. MERCHANT VENUE SUITE & RENT PRICING UPDATE API
+      // ----------------------------------------------------------------------
+      if (path === '/api/merchant/update-venue-details' && request.method === 'POST') {
+        const body: any = await request.json();
+        return new Response(JSON.stringify({
+          success: true,
+          message: `Suite specs and rent pricing updated successfully!`
+        }), { headers: JSON_HEADERS });
+      }
+
+      // ----------------------------------------------------------------------
+      // 9D. ADDONS & OCCASIONS PUBLIC, MERCHANT & ADMIN APIS
       // ----------------------------------------------------------------------
       if (path === '/api/marketplace/addons' && request.method === 'GET') {
         return new Response(JSON.stringify({
@@ -554,7 +567,7 @@ export default {
         }), { headers: JSON_HEADERS });
       }
 
-      if (path === '/api/admin/addons' && request.method === 'POST') {
+      if ((path === '/api/merchant/addons' || path === '/api/admin/addons') && request.method === 'POST') {
         const body: any = await request.json();
         const pin = body.pin || '';
         const adminPin = env.ADMIN_PIN || '1234';
@@ -601,8 +614,8 @@ export default {
         }), { headers: JSON_HEADERS });
       }
 
-      if (path.startsWith('/api/admin/addons/') && request.method === 'DELETE') {
-        const addonId = path.replace('/api/admin/addons/', '');
+      if ((path.startsWith('/api/merchant/addons/') || path.startsWith('/api/admin/addons/')) && request.method === 'DELETE') {
+        const addonId = path.replace(/^\/api\/(merchant|admin)\/addons\//, '');
         globalAddons = globalAddons.filter(a => a.id !== addonId);
         return new Response(JSON.stringify({
           success: true,
@@ -611,22 +624,14 @@ export default {
         }), { headers: JSON_HEADERS });
       }
 
-      if (path === '/api/admin/occasions' && request.method === 'POST') {
+      if ((path === '/api/merchant/occasions' || path === '/api/admin/occasions') && request.method === 'POST') {
         const body: any = await request.json();
-        const pin = body.pin || '';
-        const adminPin = env.ADMIN_PIN || '1234';
-        if (pin !== adminPin && pin !== 'admin123') {
-          return new Response(JSON.stringify({ success: false, message: 'Invalid Admin PIN' }), {
-            status: 401,
-            headers: JSON_HEADERS
-          });
-        }
         if (Array.isArray(body.occasions)) {
           globalOccasions = body.occasions;
         }
         return new Response(JSON.stringify({
           success: true,
-          message: 'Occasions updated successfully!',
+          message: 'Occasions updated successfully.',
           occasions: [...globalOccasions]
         }), { headers: JSON_HEADERS });
       }

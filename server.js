@@ -819,6 +819,8 @@ app.post('/api/merchant/dashboard', (req, res) => {
       merchant,
       venues,
       reviews,
+      addons: db.getAddons(true),
+      occasions: db.getOccasions(true),
       bookings: merchantBookings.reverse(),
       settlements: settlements.reverse(),
       stats: {
@@ -907,6 +909,132 @@ app.post('/api/merchant/test-smtp', async (req, res) => {
     res.json(result);
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+/**
+ * 19B. Merchant: Update Suite Details, Rent Pricing & Media
+ */
+app.post('/api/merchant/update-venue-details', (req, res) => {
+  try {
+    const { merchantId, pin, venueId, name, layoutSpecs, avSpecs, basePrice, capacity, description, image, photos, videoUrl } = req.body;
+    const merchant = db.getMerchantById(merchantId);
+
+    if (!merchant || (merchant.pin !== String(pin).trim() && merchant.password !== String(pin).trim())) {
+      return res.status(401).json({ success: false, message: 'Invalid Security PIN or Password' });
+    }
+
+    const updatedVenue = db.updateVenueMediaAndDetails(venueId, merchantId, {
+      name,
+      layoutSpecs,
+      avSpecs,
+      basePrice: basePrice !== undefined ? Number(basePrice) : undefined,
+      capacity: capacity !== undefined ? Number(capacity) : undefined,
+      description,
+      image,
+      photos,
+      videoUrl
+    });
+
+    if (!updatedVenue) {
+      return res.status(404).json({ success: false, message: 'Auditorium Suite not found for this host.' });
+    }
+
+    const allVenues = db.getVenues({ merchantId: merchant.id, includeUnverified: true });
+
+    res.json({
+      success: true,
+      message: `Suite '${updatedVenue.name}' rent pricing (₹${updatedVenue.basePrice}) and specs updated successfully!`,
+      venue: updatedVenue,
+      venues: allVenues
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 19C. Merchant: Save / Update Add-on Snack, Cake, Decor or Gaming Package
+ */
+app.post('/api/merchant/addons', (req, res) => {
+  try {
+    const { merchantId, pin, id, name, category, price, icon, desc, isActive } = req.body;
+    const merchant = db.getMerchantById(merchantId);
+
+    if (!merchant || (merchant.pin !== String(pin).trim() && merchant.password !== String(pin).trim())) {
+      return res.status(401).json({ success: false, message: 'Invalid Security PIN or Password' });
+    }
+
+    if (!name || price === undefined) {
+      return res.status(400).json({ success: false, message: 'Add-on name and price are required.' });
+    }
+
+    const saved = db.saveAddon({ id, name, category, price, icon, desc, isActive });
+
+    res.json({
+      success: true,
+      message: id ? `Add-on '${saved.name}' updated successfully!` : `New Add-on '${saved.name}' created!`,
+      addon: saved,
+      addons: db.getAddons(true)
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 19D. Merchant: Delete Add-on
+ */
+app.delete('/api/merchant/addons/:id', (req, res) => {
+  try {
+    const { merchantId, pin } = req.query;
+    const { id } = req.params;
+    const merchant = db.getMerchantById(merchantId);
+
+    if (!merchant || (merchant.pin !== String(pin).trim() && merchant.password !== String(pin).trim())) {
+      return res.status(401).json({ success: false, message: 'Invalid Security PIN or Password' });
+    }
+
+    const deleted = db.deleteAddon(id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: 'Add-on not found.' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Add-on deleted successfully.',
+      addons: db.getAddons(true)
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 19E. Merchant: Save / Update Booking Occasions
+ */
+app.post('/api/merchant/occasions', (req, res) => {
+  try {
+    const { merchantId, pin, occasions } = req.body;
+    const merchant = db.getMerchantById(merchantId);
+
+    if (!merchant || (merchant.pin !== String(pin).trim() && merchant.password !== String(pin).trim())) {
+      return res.status(401).json({ success: false, message: 'Invalid Security PIN or Password' });
+    }
+
+    if (!Array.isArray(occasions)) {
+      return res.status(400).json({ success: false, message: 'Occasions array is required.' });
+    }
+
+    const saved = db.saveOccasions(occasions);
+
+    res.json({
+      success: true,
+      message: 'Booking occasions updated successfully!',
+      occasions: saved
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

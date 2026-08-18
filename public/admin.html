@@ -347,9 +347,6 @@
         <button class="admin-tab-btn" id="adminTabBtn_finance" onclick="switchAdminTab('finance')">
           <i class="fa-solid fa-money-bill-transfer"></i> Settlements & Reviews
         </button>
-        <button class="admin-tab-btn" id="adminTabBtn_addons" onclick="switchAdminTab('addons')">
-          <i class="fa-solid fa-cookie-bite"></i> Add-ons & Occasions
-        </button>
         <button class="admin-tab-btn" id="adminTabBtn_data" onclick="switchAdminTab('data')">
           <i class="fa-solid fa-database"></i> Data Science & ETL
         </button>
@@ -466,155 +463,6 @@
           <p class="card-subtitle" style="margin-bottom:14px;">Monitor real-time guest ratings on Sound & Visuals, Seating Comfort, and Hospitality across all cinema hosts.</p>
           <div id="adminReviewsContainer"></div>
         </div>
-      </div>
-
-      <!-- TAB: ADD-ONS & BOOKING OCCASIONS MANAGEMENT -->
-      <div id="adminTab_addons" class="admin-tab-pane" style="display:none;">
-        
-        <!-- TOP SUMMARY / STATS BAR -->
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px; margin-bottom:18px;">
-          <div class="stat-card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span class="card-subtitle">Active Add-on Delights</span>
-              <i class="fa-solid fa-cookie-bite fa-lg" style="color:var(--gold-main);"></i>
-            </div>
-            <div class="stat-val" id="addonsCountVal">5 Items</div>
-            <span style="font-size:0.75rem; color:var(--green-main); font-weight:600;"><i class="fa-solid fa-circle-check"></i> Available on Checkout</span>
-          </div>
-
-          <div class="stat-card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span class="card-subtitle">Booking Occasion Types</span>
-              <i class="fa-solid fa-cake-candles fa-lg" style="color:var(--gold-main);"></i>
-            </div>
-            <div class="stat-val" id="occasionsCountVal">5 Occasions</div>
-            <span style="font-size:0.75rem; color:var(--gold-dark); font-weight:600;"><i class="fa-solid fa-sparkles"></i> Filterable in Marketplace</span>
-          </div>
-
-          <div class="stat-card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span class="card-subtitle">Add-on Price Range</span>
-              <i class="fa-solid fa-indian-rupee-sign fa-lg" style="color:var(--gold-main);"></i>
-            </div>
-            <div class="stat-val" id="addonsPriceRangeVal">₹699 - ₹1299</div>
-            <span style="font-size:0.75rem; color:var(--text-muted);">Platform avg. ticket booster</span>
-          </div>
-        </div>
-
-        <div style="display:grid; grid-template-columns: 1fr; gap:18px;">
-          
-          <!-- SECTION 1: ADD-ONS TABLE & MANAGEMENT -->
-          <div class="glass-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
-              <div>
-                <h3 style="color:#0f172a; margin-bottom:2px;"><i class="fa-solid fa-popcorn" style="color:var(--gold-main);"></i> Add-on Delights, Snacks & Celebration Packages</h3>
-                <p class="card-subtitle">Manage gourmet snacks, celebration decors, birthday cakes, and gaming setups offered during customer checkout.</p>
-              </div>
-              <button class="btn-primary" onclick="openAddAddonModal()"><i class="fa-solid fa-plus"></i> + Add New Add-on Snack</button>
-            </div>
-
-            <!-- Filter & Search Bar -->
-            <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;">
-              <input type="text" class="input-control" id="addonSearchInput" placeholder="🔍 Search add-on name or package..." style="max-width:280px;" oninput="filterAdminAddonsTable()">
-              <select class="input-control" id="addonCategoryFilter" style="max-width:200px;" onchange="filterAdminAddonsTable()">
-                <option value="All">All Categories</option>
-                <option value="Snacks & Drinks">🍿 Snacks & Drinks</option>
-                <option value="Celebration Decor">🎈 Celebration Decor</option>
-                <option value="Cakes & Gourmet">🎂 Cakes & Gourmet</option>
-                <option value="Gaming & Entertainment">🎮 Gaming & Tech</option>
-                <option value="Gourmet Platters">🧀 Gourmet Platters</option>
-              </select>
-            </div>
-
-            <div class="table-responsive">
-              <table class="admin-table" id="adminAddonsTable">
-                <thead>
-                  <tr>
-                    <th>Item & Inclusions</th>
-                    <th>Category</th>
-                    <th>Price (INR)</th>
-                    <th>Status</th>
-                    <th style="text-align:center;">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="adminAddonsTableBody">
-                  <!-- Populated dynamically via renderAdminAddonsTable() -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- SECTION 2: OCCASION TYPES & LIVE PREVIEW IN 2 COLUMNS -->
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:18px;">
-            
-            <!-- OCCASIONS MANAGER -->
-            <div class="glass-card">
-              <div style="margin-bottom:12px;">
-                <h3 style="color:#0f172a; margin-bottom:2px;"><i class="fa-solid fa-masks-theater" style="color:var(--gold-main);"></i> Booking Occasions Customizer</h3>
-                <p class="card-subtitle">Configure celebration occasions listed in the booking dropdown.</p>
-              </div>
-
-              <!-- Quick Add Occasion Input Strip -->
-              <div style="display:flex; gap:8px; margin-bottom:14px;">
-                <input type="text" class="input-control" id="newOccasionIconInput" placeholder="🎉" value="🎉" style="width:50px; text-align:center; font-size:1.1rem;">
-                <input type="text" class="input-control" id="newOccasionNameInput" placeholder="e.g. Friends Reunion or Live Sports" style="flex:1;">
-                <button class="btn-primary" style="padding:6px 14px; white-space:nowrap;" onclick="addAdminOccasion()"><i class="fa-solid fa-plus"></i> Add</button>
-              </div>
-
-              <!-- Occasion Chips List -->
-              <div id="adminOccasionsListContainer" style="display:flex; flex-direction:column; gap:8px;">
-                <!-- Populated dynamically -->
-              </div>
-            </div>
-
-            <!-- LIVE BOOKING CHECKOUT SIMULATOR -->
-            <div class="glass-card" style="border-left: 4px solid var(--gold-main);">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h3 style="color:#0f172a; margin-bottom:0; font-size:0.95rem;"><i class="fa-solid fa-eye" style="color:var(--gold-main);"></i> Live Booking Modal Simulator</h3>
-                <span class="badge-gold">Live Sync</span>
-              </div>
-              <p class="card-subtitle" style="margin-bottom:12px;">Real-time rendering of Step 3, 4, & 5 on customer booking screen:</p>
-
-              <!-- Simulator Box -->
-              <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:14px; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
-                
-                <!-- 3. Occasion Dropdown -->
-                <div style="margin-bottom:10px;">
-                  <label style="font-size:0.78rem; font-weight:700; color:#475569; display:block; margin-bottom:4px;">3. Occasion:</label>
-                  <select class="input-control" id="simOccasionSelect" style="font-size:0.84rem; padding:6px 10px;" onchange="updateSimCalculation()">
-                    <!-- Rendered live -->
-                  </select>
-                </div>
-
-                <!-- 4. Number of Guests -->
-                <div style="margin-bottom:12px;">
-                  <label style="font-size:0.78rem; font-weight:700; color:#475569; display:block; margin-bottom:4px;">4. Number of Guests (Max 9):</label>
-                  <div style="display:flex; gap:8px;">
-                    <input type="number" class="input-control" value="5" readonly style="font-size:0.84rem; padding:6px 10px; background:#f8fafc;">
-                    <input type="number" class="input-control" value="0" readonly style="font-size:0.84rem; padding:6px 10px; background:#f8fafc;">
-                  </div>
-                </div>
-
-                <!-- 5. Add-on Delights & Celebrations -->
-                <div>
-                  <label style="font-size:0.78rem; font-weight:700; color:#475569; display:block; margin-bottom:6px;">5. Add-on Delights & Celebrations:</label>
-                  <div id="simAddonsList" style="display:flex; flex-direction:column; gap:6px;">
-                    <!-- Rendered live -->
-                  </div>
-                </div>
-
-                <!-- Bill breakdown simulation -->
-                <div style="background:#f8fafc; border:1px dashed #cbd5e1; border-radius:6px; padding:8px 12px; margin-top:12px; font-size:0.8rem; display:flex; justify-content:space-between; align-items:center;">
-                  <span style="color:#64748b;">Simulated Add-ons Total:</span>
-                  <strong style="color:var(--gold-dark); font-size:0.92rem;" id="simAddonsTotalVal">₹0</strong>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-
       </div>
 
       <!-- TAB 5: DATA SCIENCE MANAGEMENT & ETL PIPELINE -->
@@ -1234,7 +1082,6 @@
       'hosts': '🏛️ Cinema Host Network & Fee Control',
       'requests': '🚨 Payout & KYC Review Queue (Approval-Gated)',
       'finance': '💰 Financial Settlements & Quality Reviews',
-      'addons': '🍿 Add-ons, Delights & Booking Occasions Customizer',
       'data': '📊 Data Science Hub (ETL Import / Export)',
       'gateway': '💳 Razorpay Gateway & Webhooks Configuration',
       'contact': '🎧 Contact Us & Grievance Redressal Compliance Settings',
@@ -1242,7 +1089,7 @@
     };
 
     function switchAdminTab(tabName) {
-      var tabs = ['hosts', 'requests', 'finance', 'addons', 'data', 'gateway', 'contact', 'security'];
+      var tabs = ['hosts', 'requests', 'finance', 'data', 'gateway', 'contact', 'security'];
       tabs.forEach(function(t) {
         var btn = document.getElementById('adminTabBtn_' + t);
         var content = document.getElementById('adminTab_' + t);
