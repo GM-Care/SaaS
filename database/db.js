@@ -265,6 +265,14 @@ const DEFAULT_SEED_DATA = {
     }
   ],
 
+  adminSmtpConfig: {
+    host: 'smtp.gmail.com',
+    port: 587,
+    user: 'support@gm-care.in',
+    pass: '',
+    fromName: 'CineSpace Concierge (Gadget Media Care)'
+  },
+
   bookings: [],
   settlements: [],
   resetTokens: []
@@ -464,6 +472,31 @@ const dbService = {
     };
     saveDb();
     return db.contactSettings;
+  },
+
+  // --- PLATFORM MASTER ADMIN EMAIL & GOOGLE APP PASSWORD ---
+  getAdminSmtpConfig: () => {
+    return db.adminSmtpConfig || {
+      host: 'smtp.gmail.com',
+      port: 587,
+      user: 'support@gm-care.in',
+      pass: '',
+      fromName: 'CineSpace Concierge (Gadget Media Care)'
+    };
+  },
+
+  updateAdminSmtpConfig: (config) => {
+    const current = db.adminSmtpConfig || {};
+    db.adminSmtpConfig = {
+      host: config.host ? config.host.trim() : (current.host || 'smtp.gmail.com'),
+      port: config.port ? Number(config.port) : (current.port || 587),
+      user: config.user ? config.user.trim() : (current.user || 'support@gm-care.in'),
+      pass: (config.pass && config.pass.trim() && !config.pass.includes('••••')) ? config.pass.trim().replace(/\s+/g, '') : (current.pass || ''),
+      fromName: config.fromName ? config.fromName.trim() : (current.fromName || 'CineSpace Concierge (Gadget Media Care)'),
+      updatedAt: new Date().toISOString()
+    };
+    saveDb();
+    return db.adminSmtpConfig;
   },
 
   // --- ADDONS & SNACKS MANAGEMENT ---

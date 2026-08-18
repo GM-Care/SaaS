@@ -1089,6 +1089,13 @@ app.post('/api/admin/dashboard', (req, res) => {
       settlements: allSettlements,
       recentBookings: allBookings,
       contactSettings: db.getContactSettings(),
+      adminSmtpConfig: {
+        host: db.getAdminSmtpConfig().host || 'smtp.gmail.com',
+        port: db.getAdminSmtpConfig().port || 587,
+        user: db.getAdminSmtpConfig().user || 'support@gm-care.in',
+        pass: db.getAdminSmtpConfig().pass ? '••••••••' : '',
+        fromName: db.getAdminSmtpConfig().fromName || 'CineSpace Concierge (Gadget Media Care)'
+      },
       addons: db.getAddons(true),
       occasions: db.getOccasions(true),
       gatewaySettings: {
@@ -1298,6 +1305,77 @@ app.post('/api/admin/occasions', (req, res) => {
       message: 'Booking occasions updated successfully!',
       occasions: saved
     });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 23F. Master Admin: Update Master Email & Google App Password (SMTP)
+ */
+app.post('/api/admin/smtp', (req, res) => {
+  try {
+    const { pin, user, pass, fromName, host, port } = req.body;
+
+    if (!db.verifyAdminAuth(pin)) {
+      return res.status(401).json({ success: false, message: 'Invalid Master Admin Password or PIN' });
+    }
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'Admin Gmail Address is required.' });
+    }
+
+    const updated = db.updateAdminSmtpConfig({ user, pass, fromName, host, port });
+
+    res.json({
+      success: true,
+      message: 'Master Platform Email & Google App Password configuration saved successfully!',
+      adminSmtpConfig: {
+        host: updated.host,
+        port: updated.port,
+        user: updated.user,
+        pass: updated.pass ? '••••••••' : '',
+        fromName: updated.fromName
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 23G. Master Admin: Test SMTP Connection & Send Verification Email
+ */
+app.post('/api/admin/smtp/test', async (req, res) => {
+  try {
+    const { pin, user, pass, fromName, host, port, testRecipient } = req.body;
+
+    if (!db.verifyAdminAuth(pin)) {
+      return res.status(401).json({ success: false, message: 'Invalid Master Admin Password or PIN' });
+    }
+
+    const current = db.getAdminSmtpConfig();
+    const effectivePass = (pass && pass.trim() && !pass.includes('••••')) ? pass.trim().replace(/\s+/g, '') : current.pass;
+
+    const testConfig = {
+      host: host || current.host || 'smtp.gmail.com',
+      port: port || current.port || 587,
+      user: user || current.user || 'support@gm-care.in',
+      pass: effectivePass,
+      fromName: fromName || current.fromName || 'CineSpace Concierge (Gadget Media Care)'
+    };
+
+    if (!testConfig.user || !testConfig.pass) {
+      return res.status(400).json({ success: false, message: 'Please provide both Gmail address and 16-character Google App Password to test connection.' });
+    }
+
+    const testResult = await emailService.testSmtpConnection(testConfig, testRecipient || testConfig.user);
+
+    if (testResult.success) {
+      res.json({ success: true, message: testResult.message || 'SMTP Connection Verified Successfully!' });
+    } else {
+      res.status(400).json({ success: false, message: testResult.error || 'SMTP Connection Failed' });
+    }
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

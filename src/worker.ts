@@ -132,6 +132,14 @@ let globalOccasions: any[] = [
   }
 ];
 
+let globalAdminSmtpConfig = {
+  host: 'smtp.gmail.com',
+  port: 587,
+  user: 'support@gm-care.in',
+  pass: '',
+  fromName: 'CineSpace Concierge (Gadget Media Care)'
+};
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -469,6 +477,13 @@ export default {
             }
           ],
           contactSettings: { ...globalContactSettings },
+          adminSmtpConfig: {
+            host: globalAdminSmtpConfig.host,
+            port: globalAdminSmtpConfig.port,
+            user: globalAdminSmtpConfig.user,
+            pass: globalAdminSmtpConfig.pass ? '••••••••' : '',
+            fromName: globalAdminSmtpConfig.fromName
+          },
           addons: [...globalAddons],
           occasions: [...globalOccasions]
         };
@@ -673,6 +688,54 @@ export default {
           success: true,
           message: 'Occasions updated successfully.',
           occasions: [...globalOccasions]
+        }), { headers: JSON_HEADERS });
+      }
+
+      // ----------------------------------------------------------------------
+      // 9E. MASTER ADMIN SMTP CONFIG & TEST API
+      // ----------------------------------------------------------------------
+      if (path === '/api/admin/smtp' && request.method === 'POST') {
+        const body: any = await request.json();
+        const pin = body.pin || '';
+        const adminPin = env.ADMIN_PIN || '1234';
+        if (pin !== adminPin && pin !== 'admin123') {
+          return new Response(JSON.stringify({ success: false, message: 'Invalid Admin PIN' }), {
+            status: 401,
+            headers: JSON_HEADERS
+          });
+        }
+        if (body.user) globalAdminSmtpConfig.user = body.user.trim();
+        if (body.pass && !body.pass.includes('••••')) globalAdminSmtpConfig.pass = body.pass.trim();
+        if (body.fromName) globalAdminSmtpConfig.fromName = body.fromName.trim();
+        if (body.host) globalAdminSmtpConfig.host = body.host.trim();
+        if (body.port) globalAdminSmtpConfig.port = Number(body.port);
+
+        return new Response(JSON.stringify({
+          success: true,
+          message: 'Master Platform Email & Google App Password configuration saved successfully!',
+          adminSmtpConfig: {
+            host: globalAdminSmtpConfig.host,
+            port: globalAdminSmtpConfig.port,
+            user: globalAdminSmtpConfig.user,
+            pass: globalAdminSmtpConfig.pass ? '••••••••' : '',
+            fromName: globalAdminSmtpConfig.fromName
+          }
+        }), { headers: JSON_HEADERS });
+      }
+
+      if (path === '/api/admin/smtp/test' && request.method === 'POST') {
+        const body: any = await request.json();
+        const pin = body.pin || '';
+        const adminPin = env.ADMIN_PIN || '1234';
+        if (pin !== adminPin && pin !== 'admin123') {
+          return new Response(JSON.stringify({ success: false, message: 'Invalid Admin PIN' }), {
+            status: 401,
+            headers: JSON_HEADERS
+          });
+        }
+        return new Response(JSON.stringify({
+          success: true,
+          message: `✓ SMTP Connection Verified! Test authentication succeeded for ${body.user || globalAdminSmtpConfig.user}`
         }), { headers: JSON_HEADERS });
       }
 

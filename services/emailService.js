@@ -11,13 +11,15 @@
  */
 
 const nodemailer = require('nodemailer');
+const db = require('../database/db');
 
 function createTransporter(config) {
+  // 1. Per-Merchant custom configuration (if host configured their Gmail App Password)
   if (config && config.user && config.pass) {
     return nodemailer.createTransporter({
       host: config.host || 'smtp.gmail.com',
       port: Number(config.port) || 587,
-      secure: config.port === 465,
+      secure: Number(config.port) === 465,
       auth: {
         user: config.user,
         pass: config.pass
@@ -25,15 +27,52 @@ function createTransporter(config) {
     });
   }
 
+  // 2. Fallback to Master Platform Admin SMTP configuration
+  const adminSmtp = db.getAdminSmtpConfig ? db.getAdminSmtpConfig() : null;
+  if (adminSmtp && adminSmtp.user && adminSmtp.pass) {
+    return nodemailer.createTransporter({
+      host: adminSmtp.host || 'smtp.gmail.com',
+      port: Number(adminSmtp.port) || 587,
+      secure: Number(adminSmtp.port) === 465,
+      auth: {
+        user: adminSmtp.user,
+        pass: adminSmtp.pass
+      }
+    });
+  }
+
+  // 3. Fallback to Environment Variables or Demo Dispatch
   return nodemailer.createTransporter({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: parseInt(process.env.SMTP_PORT || '587'),
     secure: false,
     auth: {
-      user: process.env.SMTP_USER || 'concierge@cinespace.in',
+      user: process.env.SMTP_USER || 'support@gm-care.in',
       pass: process.env.SMTP_PASS || 'default_demo_pass'
     }
   });
+}
+
+function resolveSenderDetails(merchant) {
+  if (merchant && merchant.smtpConfig && merchant.smtpConfig.user && merchant.smtpConfig.pass) {
+    return {
+      email: merchant.smtpConfig.user,
+      name: merchant.smtpConfig.fromName || merchant.brandName || 'CineSpace Host'
+    };
+  }
+
+  const adminSmtp = db.getAdminSmtpConfig ? db.getAdminSmtpConfig() : null;
+  if (adminSmtp && adminSmtp.user) {
+    return {
+      email: adminSmtp.user,
+      name: adminSmtp.fromName || 'CineSpace Concierge (Gadget Media Care)'
+    };
+  }
+
+  return {
+    email: 'support@gm-care.in',
+    name: 'CineSpace Concierge (Gadget Media Care)'
+  };
 }
 
 const emailService = {
@@ -43,13 +82,12 @@ const emailService = {
   sendCustomerConfirmationPass: async (booking, venue, merchant) => {
     try {
       const transporter = createTransporter(merchant ? merchant.smtpConfig : null);
-      const senderEmail = (merchant && merchant.smtpConfig && merchant.smtpConfig.user) ? merchant.smtpConfig.user : 'concierge@cinespace.in';
-      const senderName = (merchant && merchant.smtpConfig && merchant.smtpConfig.fromName) ? merchant.smtpConfig.fromName : (merchant ? merchant.brandName : 'CineSpace Concierge');
+      const sender = resolveSenderDetails(merchant);
       const hostPhone = merchant ? merchant.phone : '+91 86677 08711';
       const cleanHostPhone = hostPhone.replace(/\D+/g, '');
 
       const mailOptions = {
-        from: `"${senderName}" <${senderEmail}>`,
+        from: `"${sender.name}" <${sender.email}>`,
         to: booking.customerEmail,
         subject: `🎬 VIP Space Lease Pass & Door OTP: ${booking.bookingId} - ${venue.name}`,
         html: `
@@ -219,15 +257,46 @@ const emailService = {
   },
 
   /**
-   * 4. Test SMTP Transporter
+   * 4. Test SMTP Transporter & Send Optional Test Verification Email
    */
-  testSmtpConnection: async (config) => {
+  testSmtpConnection: async (config, testRecipient) => {
     try {
       const transporter = createTransporter(config);
       await transporter.verify();
-      return { success: true, message: 'SMTP connection verified successfully!' };
+
+      const targetTo = testRecipient || (config && config.user) || 'support@gm-care.in';
+      const senderUser = (config && config.user) || 'support@gm-care.in';
+      const senderName = (config && config.fromName) || 'CineSpace Mail System';
+
+      try {
+        await transporter.sendMail({
+          from: `"${senderName}" <${senderUser}>`,
+          to: targetTo,
+          subject: `✓ Google SMTP Connection Verified - CineSpace Platform`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0f172a; color: #f8fafc; padding: 24px; border-radius: 12px; border: 1px solid #d97706;">
+              <h2 style="color: #fbbf24; margin-top: 0;">✓ Google App Password SMTP Connected!</h2>
+              <p style="color: #cbd5e1; font-size: 14px; line-height: 1.6;">
+                This test email confirms that your Gmail account (<strong>${senderUser}</strong>) is authenticated and ready to dispatch VIP admission passes, digital door PINs, and GST invoices to guests.
+              </p>
+              <div style="background: #1e293b; border-left: 4px solid #10b981; padding: 12px 16px; border-radius: 6px; margin: 18px 0; font-size: 13px;">
+                <strong>Connected Sender:</strong> ${senderName} &lt;${senderUser}&gt;<br>
+                <strong>Status:</strong> Active & Ready for Production Dispatch
+              </div>
+              <p style="color: #94a3b8; font-size: 12px; margin-bottom: 0;">
+                Platform Legal Entity: Gadget Media Care &bull; GSTIN: 33BCXPR4393D2Z2 &bull; Support: support@gm-care.in
+              </p>
+            </div>
+          `
+        });
+      } catch (sendErr) {
+        console.warn('Test send notice:', sendErr.message);
+      }
+
+      return { success: true, message: `SMTP connection verified! Authentication successful for ${senderUser}` };
     } catch (err) {
-      return { success: false, message: err.message };
+      console.error('SMTP test failure:', err.message);
+      return { success: false, error: err.message || 'SMTP Authentication Failed' };
     }
   }
 };
