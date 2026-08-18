@@ -162,8 +162,19 @@ app.get('/api/config', (req, res) => {
     razorpayKeyId: razorpayService.getKeyId(),
     defaultCommissionPercent: parseFloat(process.env.PLATFORM_COMMISSION_PERCENT || '10.0'),
     defaultSupportPhone: process.env.DEFAULT_SUPPORT_WHATSAPP || '+91 86677 08711',
+    contactSettings: db.getContactSettings(),
     legalDeclarations: LEGAL_DECLARATIONS,
     houseRules: db.getHouseRules()
+  });
+});
+
+/**
+ * Public Contact Us & Grievance Redressal Settings
+ */
+app.get('/api/contact-settings', (req, res) => {
+  res.json({
+    success: true,
+    contactSettings: db.getContactSettings()
   });
 });
 
@@ -920,6 +931,7 @@ app.post('/api/admin/dashboard', (req, res) => {
       reviews: allReviews,
       settlements: allSettlements,
       recentBookings: allBookings,
+      contactSettings: db.getContactSettings(),
       gatewaySettings: {
         keyId: gatewaySettings.keyId,
         keySecret: gatewaySettings.keySecret ? '••••••••' + gatewaySettings.keySecret.slice(-4) : '',
@@ -1011,6 +1023,39 @@ app.post('/api/admin/gateway-settings', (req, res) => {
         keyId: updated.keyId,
         mode: updated.mode
       }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 23B. Master Admin: Update Contact Us & Grievance Redressal Settings
+ */
+app.post('/api/admin/contact-settings', (req, res) => {
+  try {
+    const { pin, legalEntity, brandName, gstin, address, supportEmail, altSupportEmail, grievanceEmail, phone, supportHours } = req.body;
+
+    if (!db.verifyAdminAuth(pin)) {
+      return res.status(401).json({ success: false, message: 'Invalid Master Admin Password or PIN' });
+    }
+
+    const updated = db.updateContactSettings({
+      legalEntity,
+      brandName,
+      gstin,
+      address,
+      supportEmail,
+      altSupportEmail,
+      grievanceEmail,
+      phone,
+      supportHours
+    });
+
+    res.json({
+      success: true,
+      message: 'Contact Us & Grievance Redressal details updated and published live!',
+      contactSettings: updated
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

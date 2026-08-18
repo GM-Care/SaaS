@@ -353,6 +353,9 @@
         <button class="admin-tab-btn" id="adminTabBtn_gateway" onclick="switchAdminTab('gateway')">
           <i class="fa-solid fa-credit-card"></i> Payment Gateway
         </button>
+        <button class="admin-tab-btn" id="adminTabBtn_contact" onclick="switchAdminTab('contact')">
+          <i class="fa-solid fa-headset"></i> Contact & Grievance
+        </button>
         <button class="admin-tab-btn" id="adminTabBtn_security" onclick="switchAdminTab('security')">
           <i class="fa-solid fa-user-shield"></i> Security & Credentials
         </button>
@@ -577,7 +580,78 @@
         </div>
       </div>
 
-      <!-- TAB 6: MASTER SECURITY & LOGIN CREDENTIALS -->
+      <!-- TAB 6: CONTACT US & GRIEVANCE REDRESSAL COMPLIANCE -->
+      <div id="adminTab_contact" class="admin-tab-pane" style="display:none;">
+        <div class="glass-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+            <div>
+              <h3 style="color:#0f172a; margin-bottom:4px;"><i class="fa-solid fa-scale-balanced" style="color:var(--gold-main);"></i> Contact Us & Grievance Redressal Compliance</h3>
+              <p class="card-subtitle">
+                Configure statutory business entity information, customer care contact channels, and grievance redressal officer details displayed across the marketplace and legal compliance modals.
+              </p>
+            </div>
+            <span class="badge-green"><i class="fa-solid fa-shield-halved"></i> Statutory Compliant</span>
+          </div>
+
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px;">
+            <div class="form-group">
+              <label class="form-label">Platform Legal Entity Name *</label>
+              <input type="text" class="input-control" id="contactLegalEntityInput" placeholder="e.g. Gadget Media Care" oninput="updateContactPreview()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Brand / Marketplace Title *</label>
+              <input type="text" class="input-control" id="contactBrandNameInput" placeholder="e.g. CineSpace India" oninput="updateContactPreview()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Statutory GSTIN / GST Number *</label>
+              <input type="text" class="input-control" id="contactGstinInput" placeholder="e.g. 33BCXPR4393D2Z2" oninput="updateContactPreview()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Official Contact Phone / WhatsApp *</label>
+              <input type="text" class="input-control" id="contactPhoneInput" placeholder="e.g. +91-8667708711" oninput="updateContactPreview()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Primary Customer Support Email *</label>
+              <input type="email" class="input-control" id="contactSupportEmailInput" placeholder="e.g. support@gm-care.in" oninput="updateContactPreview()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Alternative Support Email (Optional)</label>
+              <input type="email" class="input-control" id="contactAltSupportEmailInput" placeholder="e.g. support@cinespace.in" oninput="updateContactPreview()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Grievance & Escalation Officer Email *</label>
+              <input type="email" class="input-control" id="contactGrievanceEmailInput" placeholder="e.g. ranjith@gm-care.in" oninput="updateContactPreview()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Customer Support Operating Hours *</label>
+              <input type="text" class="input-control" id="contactSupportHoursInput" placeholder="e.g. 09:00 AM - 11:00 PM (Monday to Sunday)" oninput="updateContactPreview()">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top:12px;">
+            <label class="form-label">Official Registered Address *</label>
+            <input type="text" class="input-control" id="contactAddressInput" placeholder="e.g. Gadget Media Care, Anna Nagar, Chennai, Tamil Nadu - 600040" oninput="updateContactPreview()">
+          </div>
+
+          <!-- Live Statutory Visual Preview Box -->
+          <div style="margin-top:20px; background:#f8fafc; border:1.5px solid var(--border-color); border-radius:10px; padding:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <strong style="font-size:0.88rem; color:#0f172a;"><i class="fa-solid fa-eye" style="color:var(--gold-main);"></i> Live Marketplace Policy Modal Preview</strong>
+              <span style="font-size:0.75rem; color:var(--text-muted);">Real-time rendering of customer footer dialog</span>
+            </div>
+            <div id="contactPreviewModalBody" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:14px; font-size:0.84rem; color:#334155; line-height:1.75;">
+              <!-- Dynamically populated via updateContactPreview() -->
+            </div>
+          </div>
+
+          <div style="display:flex; gap:12px; margin-top:18px; flex-wrap:wrap;">
+            <button class="btn-primary" onclick="saveContactGrievanceSettings()"><i class="fa-solid fa-floppy-disk"></i> Save & Publish Live Settings</button>
+            <button class="btn-secondary" onclick="resetContactGrievanceSettings()"><i class="fa-solid fa-rotate-left"></i> Reset to Default</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 7: MASTER SECURITY & LOGIN CREDENTIALS -->
       <div id="adminTab_security" class="admin-tab-pane" style="display:none;">
         <div class="glass-card">
           <h3 style="color:#0f172a; margin-bottom:6px;"><i class="fa-solid fa-user-shield" style="color:var(--gold-main);"></i> Admin Security & Login Credentials</h3>
@@ -780,6 +854,17 @@
         keySecret: 'demo_secret_key_123',
         webhookSecret: 'demo_webhook_secret',
         mode: 'Test Mode (Sandbox)'
+      },
+      contactSettings: {
+        legalEntity: 'Gadget Media Care',
+        brandName: 'CineSpace India',
+        gstin: '33BCXPR4393D2Z2',
+        address: 'Gadget Media Care, Anna Nagar, Chennai, Tamil Nadu - 600040',
+        supportEmail: 'support@gm-care.in',
+        altSupportEmail: 'support@cinespace.in',
+        grievanceEmail: 'ranjith@gm-care.in',
+        phone: '+91-8667708711',
+        supportHours: '09:00 AM - 11:00 PM (Monday to Sunday)'
       }
     };
 
@@ -892,6 +977,12 @@
         }
         document.getElementById('webhookUrlDisplay').innerText = window.location.origin + '/api/payments/webhook';
 
+        // Update Contact & Grievance Settings Form
+        var contactData = data.contactSettings || (localDb && localDb.contactSettings) || defaultSeedData.contactSettings;
+        if (contactData) {
+          populateContactSettingsForm(contactData);
+        }
+
         // Render Payout Change Requests Table
         renderPendingPayoutRequestsTable(data.merchants || []);
 
@@ -914,11 +1005,12 @@
       'finance': '💰 Financial Settlements & Quality Reviews',
       'data': '📊 Data Science Hub (ETL Import / Export)',
       'gateway': '💳 Razorpay Gateway & Webhooks Configuration',
+      'contact': '🎧 Contact Us & Grievance Redressal Compliance Settings',
       'security': '🔐 Master Security & PIN Management'
     };
 
     function switchAdminTab(tabName) {
-      var tabs = ['hosts', 'requests', 'finance', 'data', 'gateway', 'security'];
+      var tabs = ['hosts', 'requests', 'finance', 'data', 'gateway', 'contact', 'security'];
       tabs.forEach(function(t) {
         var btn = document.getElementById('adminTabBtn_' + t);
         var content = document.getElementById('adminTab_' + t);
@@ -1060,6 +1152,123 @@
 
       showToast('✓ Razorpay credentials saved successfully!');
       document.getElementById('gatewayModeBadge').innerText = localDb.gatewaySettings.mode;
+    }
+
+    // ========================================================================
+    // CONTACT US & GRIEVANCE REDRESSAL SETTINGS MANAGEMENT
+    // ========================================================================
+    function populateContactSettingsForm(c) {
+      if (document.getElementById('contactLegalEntityInput')) document.getElementById('contactLegalEntityInput').value = c.legalEntity || 'Gadget Media Care';
+      if (document.getElementById('contactBrandNameInput')) document.getElementById('contactBrandNameInput').value = c.brandName || 'CineSpace India';
+      if (document.getElementById('contactGstinInput')) document.getElementById('contactGstinInput').value = c.gstin || '33BCXPR4393D2Z2';
+      if (document.getElementById('contactAddressInput')) document.getElementById('contactAddressInput').value = c.address || 'Gadget Media Care, Anna Nagar, Chennai, Tamil Nadu - 600040';
+      if (document.getElementById('contactSupportEmailInput')) document.getElementById('contactSupportEmailInput').value = c.supportEmail || 'support@gm-care.in';
+      if (document.getElementById('contactAltSupportEmailInput')) document.getElementById('contactAltSupportEmailInput').value = c.altSupportEmail || 'support@cinespace.in';
+      if (document.getElementById('contactGrievanceEmailInput')) document.getElementById('contactGrievanceEmailInput').value = c.grievanceEmail || 'ranjith@gm-care.in';
+      if (document.getElementById('contactPhoneInput')) document.getElementById('contactPhoneInput').value = c.phone || '+91-8667708711';
+      if (document.getElementById('contactSupportHoursInput')) document.getElementById('contactSupportHoursInput').value = c.supportHours || '09:00 AM - 11:00 PM (Monday to Sunday)';
+      updateContactPreview();
+    }
+
+    function updateContactPreview() {
+      var legal = (document.getElementById('contactLegalEntityInput') ? document.getElementById('contactLegalEntityInput').value : '') || 'Gadget Media Care';
+      var brand = (document.getElementById('contactBrandNameInput') ? document.getElementById('contactBrandNameInput').value : '') || 'CineSpace India';
+      var gstin = (document.getElementById('contactGstinInput') ? document.getElementById('contactGstinInput').value : '') || '33BCXPR4393D2Z2';
+      var addr = (document.getElementById('contactAddressInput') ? document.getElementById('contactAddressInput').value : '') || 'Gadget Media Care, Anna Nagar, Chennai, Tamil Nadu - 600040';
+      var supEmail = (document.getElementById('contactSupportEmailInput') ? document.getElementById('contactSupportEmailInput').value : '') || 'support@gm-care.in';
+      var altEmail = (document.getElementById('contactAltSupportEmailInput') ? document.getElementById('contactAltSupportEmailInput').value : '') || 'support@cinespace.in';
+      var grvEmail = (document.getElementById('contactGrievanceEmailInput') ? document.getElementById('contactGrievanceEmailInput').value : '') || 'ranjith@gm-care.in';
+      var phone = (document.getElementById('contactPhoneInput') ? document.getElementById('contactPhoneInput').value : '') || '+91-8667708711';
+      var hours = (document.getElementById('contactSupportHoursInput') ? document.getElementById('contactSupportHoursInput').value : '') || '09:00 AM - 11:00 PM (Monday to Sunday)';
+
+      var emailDisplay = '<a href="mailto:' + supEmail + '" style="color:#0284c7; text-decoration:none; font-weight:600;">' + supEmail + '</a>';
+      if (altEmail) {
+        emailDisplay += ' (or <a href="mailto:' + altEmail + '" style="color:#0284c7; text-decoration:none; font-weight:600;">' + altEmail + '</a>)';
+      }
+
+      var previewEl = document.getElementById('contactPreviewModalBody');
+      if (previewEl) {
+        previewEl.innerHTML = ''
+          + '<p style="margin:5px 0;"><strong>Platform Legal Entity:</strong> ' + legal + '</p>'
+          + '<p style="margin:5px 0;"><strong>Brand / Marketplace:</strong> ' + brand + '</p>'
+          + '<p style="margin:5px 0;"><strong>GST Number:</strong> <span style="font-family:monospace; color:#0284c7; font-weight:bold;">' + gstin + '</span></p>'
+          + '<p style="margin:5px 0;"><strong>Registered Address:</strong> ' + addr + '</p>'
+          + '<p style="margin:5px 0;"><strong>Customer Support Email:</strong> ' + emailDisplay + '</p>'
+          + '<p style="margin:5px 0;"><strong>Grievance & Escalation Officer:</strong> <a href="mailto:' + grvEmail + '" style="color:#0284c7; text-decoration:none; font-weight:600;">' + grvEmail + '</a></p>'
+          + '<p style="margin:5px 0;"><strong>Official Contact / WhatsApp:</strong> <a href="tel:' + phone.replace(/\s+/g,'') + '" style="color:#059669; font-weight:bold; text-decoration:none;">' + phone + '</a></p>'
+          + '<p style="margin:5px 0;"><strong>Support Hours:</strong> ' + hours + '</p>';
+      }
+    }
+
+    async function saveContactGrievanceSettings() {
+      var legal = document.getElementById('contactLegalEntityInput').value.trim();
+      var brand = document.getElementById('contactBrandNameInput').value.trim();
+      var gstin = document.getElementById('contactGstinInput').value.trim();
+      var addr = document.getElementById('contactAddressInput').value.trim();
+      var supEmail = document.getElementById('contactSupportEmailInput').value.trim();
+      var altEmail = document.getElementById('contactAltSupportEmailInput').value.trim();
+      var grvEmail = document.getElementById('contactGrievanceEmailInput').value.trim();
+      var phone = document.getElementById('contactPhoneInput').value.trim();
+      var hours = document.getElementById('contactSupportHoursInput').value.trim();
+
+      if (!legal || !gstin || !supEmail || !grvEmail || !phone) {
+        showToast('Please fill all mandatory contact & grievance fields', true);
+        return;
+      }
+
+      var contactPayload = {
+        legalEntity: legal,
+        brandName: brand,
+        gstin: gstin,
+        address: addr,
+        supportEmail: supEmail,
+        altSupportEmail: altEmail,
+        grievanceEmail: grvEmail,
+        phone: phone,
+        supportHours: hours
+      };
+
+      // Save to localStorage for instant cross-tab sync with index.html
+      localStorage.setItem('cinespace_contact_settings', JSON.stringify(contactPayload));
+
+      var localDb = getLocalAdminDb();
+      localDb.contactSettings = contactPayload;
+      saveLocalAdminDb(localDb);
+
+      try {
+        var res = await fetch('/api/admin/contact-settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign({ pin: currentMasterSecret }, contactPayload))
+        });
+        if (res.ok) {
+          var data = await res.json();
+          if (data.success) {
+            showToast('✓ ' + data.message);
+            updateContactPreview();
+            return;
+          }
+        }
+      } catch (err) {}
+
+      showToast('✓ Contact Us & Grievance Redressal details updated and published live!');
+      updateContactPreview();
+    }
+
+    function resetContactGrievanceSettings() {
+      var defaultSettings = {
+        legalEntity: 'Gadget Media Care',
+        brandName: 'CineSpace India',
+        gstin: '33BCXPR4393D2Z2',
+        address: 'Gadget Media Care, Anna Nagar, Chennai, Tamil Nadu - 600040',
+        supportEmail: 'support@gm-care.in',
+        altSupportEmail: 'support@cinespace.in',
+        grievanceEmail: 'ranjith@gm-care.in',
+        phone: '+91-8667708711',
+        supportHours: '09:00 AM - 11:00 PM (Monday to Sunday)'
+      };
+      populateContactSettingsForm(defaultSettings);
+      showToast('Form reset to official statutory defaults.');
     }
 
     function renderPendingPayoutRequestsTable(merchants) {

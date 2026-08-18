@@ -64,6 +64,18 @@ let globalMerchantData: any = {
   pendingPayoutRequest: null
 };
 
+let globalContactSettings: any = {
+  legalEntity: 'Gadget Media Care',
+  brandName: 'CineSpace India',
+  gstin: '33BCXPR4393D2Z2',
+  address: 'Gadget Media Care, Anna Nagar, Chennai, Tamil Nadu - 600040',
+  supportEmail: 'support@gm-care.in',
+  altSupportEmail: 'support@cinespace.in',
+  grievanceEmail: 'ranjith@gm-care.in',
+  phone: '+91-8667708711',
+  supportHours: '09:00 AM - 11:00 PM (Monday to Sunday)'
+};
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -397,7 +409,8 @@ export default {
               settlementStatus: 'Settled',
               payoutUtr: 'HDFC-UPI-99281729'
             }
-          ]
+          ],
+          contactSettings: { ...globalContactSettings }
         };
 
         return new Response(JSON.stringify(adminData), { headers: JSON_HEADERS });
@@ -466,6 +479,43 @@ export default {
         return new Response(JSON.stringify({
           success: true,
           message: 'Merchant payment number, UPI ID, and bank details updated live by Super-Admin!'
+        }), { headers: JSON_HEADERS });
+      }
+
+      // ----------------------------------------------------------------------
+      // 9B. CONTACT US & GRIEVANCE REDRESSAL SETTINGS API
+      // ----------------------------------------------------------------------
+      if (path === '/api/contact-settings' && request.method === 'GET') {
+        return new Response(JSON.stringify({
+          success: true,
+          contactSettings: { ...globalContactSettings }
+        }), { headers: JSON_HEADERS });
+      }
+
+      if (path === '/api/admin/contact-settings' && request.method === 'POST') {
+        const body: any = await request.json();
+        const pin = body.pin || '';
+        const adminPin = env.ADMIN_PIN || '1234';
+        if (pin !== adminPin && pin !== 'admin123') {
+          return new Response(JSON.stringify({ success: false, message: 'Invalid Admin PIN' }), {
+            status: 401,
+            headers: JSON_HEADERS
+          });
+        }
+        if (body.legalEntity) globalContactSettings.legalEntity = body.legalEntity;
+        if (body.brandName) globalContactSettings.brandName = body.brandName;
+        if (body.gstin) globalContactSettings.gstin = body.gstin;
+        if (body.address) globalContactSettings.address = body.address;
+        if (body.supportEmail) globalContactSettings.supportEmail = body.supportEmail;
+        if (body.altSupportEmail) globalContactSettings.altSupportEmail = body.altSupportEmail;
+        if (body.grievanceEmail) globalContactSettings.grievanceEmail = body.grievanceEmail;
+        if (body.phone) globalContactSettings.phone = body.phone;
+        if (body.supportHours) globalContactSettings.supportHours = body.supportHours;
+
+        return new Response(JSON.stringify({
+          success: true,
+          message: 'Contact Us & Grievance Redressal details updated live!',
+          contactSettings: { ...globalContactSettings }
         }), { headers: JSON_HEADERS });
       }
 

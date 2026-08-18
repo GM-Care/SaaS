@@ -378,6 +378,38 @@ const dbService = {
     return db.gatewaySettings;
   },
 
+  // --- CONTACT US & GRIEVANCE REDRESSAL SETTINGS ---
+  getContactSettings: () => {
+    return db.contactSettings || {
+      legalEntity: 'Gadget Media Care',
+      brandName: 'CineSpace India',
+      gstin: '33BCXPR4393D2Z2',
+      address: 'Gadget Media Care, Anna Nagar, Chennai, Tamil Nadu - 600040',
+      supportEmail: 'support@gm-care.in',
+      altSupportEmail: 'support@cinespace.in',
+      grievanceEmail: 'ranjith@gm-care.in',
+      phone: '+91-8667708711',
+      supportHours: '09:00 AM - 11:00 PM (Monday to Sunday)'
+    };
+  },
+
+  updateContactSettings: (settings) => {
+    db.contactSettings = {
+      legalEntity: settings.legalEntity ? settings.legalEntity.trim() : 'Gadget Media Care',
+      brandName: settings.brandName ? settings.brandName.trim() : 'CineSpace India',
+      gstin: settings.gstin ? settings.gstin.trim() : '33BCXPR4393D2Z2',
+      address: settings.address ? settings.address.trim() : 'Gadget Media Care, Anna Nagar, Chennai, Tamil Nadu - 600040',
+      supportEmail: settings.supportEmail ? settings.supportEmail.trim() : 'support@gm-care.in',
+      altSupportEmail: settings.altSupportEmail ? settings.altSupportEmail.trim() : 'support@cinespace.in',
+      grievanceEmail: settings.grievanceEmail ? settings.grievanceEmail.trim() : 'ranjith@gm-care.in',
+      phone: settings.phone ? settings.phone.trim() : '+91-8667708711',
+      supportHours: settings.supportHours ? settings.supportHours.trim() : '09:00 AM - 11:00 PM (Monday to Sunday)',
+      updatedAt: new Date().toISOString()
+    };
+    saveDb();
+    return db.contactSettings;
+  },
+
   // --- MERCHANTS ---
   getMerchants: () => db.merchants || [],
   getMerchantById: (id) => (db.merchants || []).find(m => m.id === id),

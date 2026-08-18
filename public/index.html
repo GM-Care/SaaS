@@ -662,7 +662,20 @@
 
     document.addEventListener('DOMContentLoaded', function() {
       fetchVenues('All');
+      fetchContactSettings();
     });
+
+    async function fetchContactSettings() {
+      try {
+        var res = await fetch('/api/contact-settings');
+        if (res.ok) {
+          var data = await res.json();
+          if (data.success && data.contactSettings) {
+            localStorage.setItem('cinespace_contact_settings', JSON.stringify(data.contactSettings));
+          }
+        }
+      } catch (e) {}
+    }
 
     async function fetchVenues(city) {
       try {
@@ -1181,16 +1194,37 @@
           + '<p><strong>3. Cancellation < 12 Hours before Showtime:</strong> Non-refundable as the exclusive private auditorium slot cannot be re-allocated on short notice.</p>'
           + '<p><strong>4. Rescheduling:</strong> 1 free rescheduling allowed up to 6 hours prior to slot start time.</p>';
       } else if (type === 'contact') {
+        var c = {
+          legalEntity: 'Gadget Media Care',
+          brandName: 'CineSpace India',
+          gstin: '33BCXPR4393D2Z2',
+          address: 'Gadget Media Care, Anna Nagar, Chennai, Tamil Nadu - 600040',
+          supportEmail: 'support@gm-care.in',
+          altSupportEmail: 'support@cinespace.in',
+          grievanceEmail: 'ranjith@gm-care.in',
+          phone: '+91-8667708711',
+          supportHours: '09:00 AM - 11:00 PM (Monday to Sunday)'
+        };
+        try {
+          var rawC = localStorage.getItem('cinespace_contact_settings');
+          if (rawC) c = Object.assign(c, JSON.parse(rawC));
+        } catch (e) {}
+
         title.innerText = 'Contact Us & Grievance Redressal';
+        var emailDisplay = '<a href="mailto:' + c.supportEmail + '" style="color:#0284c7;">' + c.supportEmail + '</a>';
+        if (c.altSupportEmail) {
+          emailDisplay += ' (or <a href="mailto:' + c.altSupportEmail + '" style="color:#0284c7;">' + c.altSupportEmail + '</a>)';
+        }
+
         body.innerHTML = ''
-          + '<p><strong>Platform Legal Entity:</strong> Gadget Media Care</p>'
-          + '<p><strong>Brand / Marketplace:</strong> CineSpace India</p>'
-          + '<p><strong>GST Number:</strong> 33BCXPR4393D2Z2</p>'
-          + '<p><strong>Registered Address:</strong> Gadget Media Care, Anna Nagar, Chennai, Tamil Nadu - 600040</p>'
-          + '<p><strong>Customer Support Email:</strong> <a href="mailto:support@gm-care.in" style="color:#0284c7;">support@gm-care.in</a> (or <a href="mailto:support@cinespace.in" style="color:#0284c7;">support@cinespace.in</a>)</p>'
-          + '<p><strong>Grievance & Escalation Officer:</strong> <a href="mailto:ranjith@gm-care.in" style="color:#0284c7;">ranjith@gm-care.in</a></p>'
-          + '<p><strong>Official Contact / WhatsApp:</strong> <a href="tel:+918667708711" style="color:#059669; font-weight:bold;">+91-8667708711</a></p>'
-          + '<p><strong>Support Hours:</strong> 09:00 AM - 11:00 PM (Monday to Sunday)</p>';
+          + '<p><strong>Platform Legal Entity:</strong> ' + c.legalEntity + '</p>'
+          + '<p><strong>Brand / Marketplace:</strong> ' + c.brandName + '</p>'
+          + '<p><strong>GST Number:</strong> <span style="font-family:monospace; color:#0284c7; font-weight:bold;">' + c.gstin + '</span></p>'
+          + '<p><strong>Registered Address:</strong> ' + c.address + '</p>'
+          + '<p><strong>Customer Support Email:</strong> ' + emailDisplay + '</p>'
+          + '<p><strong>Grievance & Escalation Officer:</strong> <a href="mailto:' + c.grievanceEmail + '" style="color:#0284c7;">' + c.grievanceEmail + '</a></p>'
+          + '<p><strong>Official Contact / WhatsApp:</strong> <a href="tel:' + c.phone.replace(/\s+/g,'') + '" style="color:#059669; font-weight:bold;">' + c.phone + '</a></p>'
+          + '<p><strong>Support Hours:</strong> ' + c.supportHours + '</p>';
       }
 
       modal.style.display = 'flex';
