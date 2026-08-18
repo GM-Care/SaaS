@@ -1,12 +1,13 @@
 # ============================================================================
-# CLOUDFLARE PAGES / WORKERS CONFIGURATION - CINESPACE SAAS
+# CLOUDFLARE WORKERS & PAGES CONFIGURATION - SAAS
 # ============================================================================
-name = "cinespace-cinema-marketplace"
-compatibility_date = "2026-08-01"
-main = "server.js"
+name = "saas"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
 
-[site]
-bucket = "./public"
+[assets]
+directory = "./public"
+binding = "ASSETS"
 
 [vars]
 PLATFORM_NAME = "CineSpace India - Luxury Private Theaters"
