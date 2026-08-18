@@ -899,23 +899,7 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
         requestedAt: new Date().toLocaleString()
       };
 
-      try {
-        var res = await fetch('/api/merchant/request-payout-update', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-          var data = await res.json();
-          if (data.success) {
-            showToast('✓ ' + data.message);
-            loginMerchant();
-            return;
-          }
-        }
-      } catch (err) {}
-
-      // Fallback Engine: Save request locally and sync to Admin DB
+      // 1. Immediately save to local merchant & admin storage for instant multi-tab sync
       var localDb = getLocalMerchantDb();
       localDb.merchant.pendingPayoutRequest = payload;
       saveLocalMerchantDb(localDb);
@@ -931,6 +915,23 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
           }
         }
       } catch (e) {}
+
+      // 2. Dispatch to Edge Server API
+      try {
+        var res = await fetch('/api/merchant/request-payout-update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          var data = await res.json();
+          if (data.success) {
+            showToast('✓ ' + data.message);
+            loginMerchant();
+            return;
+          }
+        }
+      } catch (err) {}
 
       showToast('✓ Payout & Statutory KYC modification request submitted for Master Admin approval!');
       loginMerchant();

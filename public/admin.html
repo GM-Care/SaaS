@@ -235,9 +235,27 @@
           <div class="stat-lbl">APPROVED HOSTS</div>
           <div class="stat-val" id="approvedMerchantsVal" style="color:#38bdf8;">0</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-lbl">PENDING INSPECTION</div>
-          <div class="stat-val" id="pendingMerchantsVal" style="color:var(--gold-light);">0</div>
+        <div class="stat-card" onclick="document.getElementById('pendingPayoutRequestsCard').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;">
+          <div class="stat-lbl">PAYOUT CHANGE REQUESTS</div>
+          <div class="stat-val" id="pendingMerchantsVal" style="color:var(--gold-main);">0</div>
+        </div>
+      </div>
+
+      <!-- PROMINENT PENDING ACTIONS ALERT BANNER -->
+      <div id="adminPendingAlertBanner" style="display:none; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 2px solid #f59e0b; border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:40px; height:40px; border-radius:50%; background:#f59e0b; color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0;">
+              <i class="fa-solid fa-bell fa-shake"></i>
+            </div>
+            <div>
+              <strong style="color:#92400e; font-size:0.95rem;" id="adminPendingAlertTitle">🚨 1 Merchant Payout Modification Request Awaiting Your Approval!</strong>
+              <p style="color:#b45309; font-size:0.8rem; margin-top:2px;">A cinema host has submitted an update to their statutory UPI Payment Number / Bank Payout Account. Review and approve below.</p>
+            </div>
+          </div>
+          <button class="btn-primary" style="background:#b45309; padding:8px 16px; font-size:0.82rem;" onclick="document.getElementById('pendingPayoutRequestsCard').scrollIntoView({behavior:'smooth'})">
+            <i class="fa-solid fa-magnifying-glass"></i> Review Request Now
+          </button>
         </div>
       </div>
 
@@ -704,6 +722,20 @@
       }
 
       if (data && data.success) {
+        // Cross-check with local merchant database so multi-tab testing is 100% instant
+        try {
+          var rawLocalM = localStorage.getItem('cinespace_merchant_db');
+          if (rawLocalM) {
+            var localMDb = JSON.parse(rawLocalM);
+            if (localMDb && localMDb.merchant && localMDb.merchant.pendingPayoutRequest) {
+              var match = (data.merchants || []).find(function(m) { return m.id === localMDb.merchant.id; });
+              if (match && !match.pendingPayoutRequest) {
+                match.pendingPayoutRequest = localMDb.merchant.pendingPayoutRequest;
+              }
+            }
+          }
+        } catch (e) {}
+
         adminDataCache = data;
         document.getElementById('adminLoginBox').style.display = 'none';
         document.getElementById('adminDashboardView').style.display = 'block';
@@ -712,7 +744,6 @@
         document.getElementById('gmvVal').innerText = '₹' + data.stats.totalGmv;
         document.getElementById('commissionVal').innerText = '₹' + data.stats.totalPlatformCommission;
         document.getElementById('approvedMerchantsVal').innerText = data.stats.approvedMerchantsCount || 2;
-        document.getElementById('pendingMerchantsVal').innerText = data.stats.pendingMerchantsCount || 0;
 
         // Update Admin Details
         if (data.adminInfo) {
@@ -873,15 +904,26 @@
     function renderPendingPayoutRequestsTable(merchants) {
       var tbody = document.getElementById('pendingPayoutTableBody');
       var badge = document.getElementById('pendingPayoutCountBadge');
+      var alertBanner = document.getElementById('adminPendingAlertBanner');
+      var alertTitle = document.getElementById('adminPendingAlertTitle');
+      var pendingVal = document.getElementById('pendingMerchantsVal');
       tbody.innerHTML = '';
 
       var pendingList = merchants.filter(function(m) { return m.pendingPayoutRequest != null; });
       badge.innerText = pendingList.length + ' Requests Pending';
       badge.className = pendingList.length > 0 ? 'badge-yellow' : 'badge-green';
 
+      if (pendingVal) pendingVal.innerText = pendingList.length;
+
       if (pendingList.length === 0) {
+        if (alertBanner) alertBanner.style.display = 'none';
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:20px;">✓ All merchant payout accounts are verified and up-to-date.</td></tr>';
         return;
+      }
+
+      if (alertBanner) {
+        alertBanner.style.display = 'block';
+        if (alertTitle) alertTitle.innerText = '🚨 ' + pendingList.length + ' Merchant Payout Modification Request' + (pendingList.length > 1 ? 's' : '') + ' Awaiting Your Approval!';
       }
 
       pendingList.forEach(function(m) {

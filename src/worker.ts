@@ -33,6 +33,37 @@ const JSON_HEADERS = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization'
 };
 
+// ============================================================================
+// SHARED EDGE IN-MEMORY STATE STORE (PERSISTENT PER WORKER INSTANCE)
+// ============================================================================
+let globalMerchantData: any = {
+  id: 'MERCH-001',
+  username: 'prabhakar',
+  pin: '1234',
+  password: 'password123',
+  brandName: 'Prabhakar Home Cinema',
+  businessName: 'Prabhakar Luxury Theaters & Hospitality LLP',
+  entityType: 'Limited Liability Partnership (LLP)',
+  logo: 'https://img.icons8.com/fluency/96/movie-projector.png',
+  city: 'Chennai',
+  locality: 'Anna Nagar',
+  phone: '+91 99622 79790',
+  email: 'prabhakar@prabhakarcinema.in',
+  address: 'Prabhakar Home Cinemas, 4th Cross Street, Anna Nagar, Chennai - 600040.',
+  googleMapsUrl: 'https://maps.google.com/?q=Anna+Nagar+Chennai',
+  upiId: '8667708711@upi',
+  bankName: 'HDFC Bank Ltd',
+  bankAccountNumber: '50200012345678',
+  bankIfsc: 'HDFC0000123',
+  bankHolder: 'Prabhakar Luxury Theaters & Hospitality LLP',
+  gstin: '33AABCP1234F1Z8',
+  panNumber: 'AABCP1234F',
+  commissionRatePercent: 3.0,
+  verificationStatus: 'Approved',
+  inspectionNotes: 'Certified 9-Guest Luxury Lounge: 5 Motorized Recliners + 4 Bed VIP Lounge. 4K Laser & 9.4.6 Dolby Atmos Verified.',
+  pendingPayoutRequest: null
+};
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -120,30 +151,33 @@ export default {
       }
 
       // ----------------------------------------------------------------------
-      // 2. SLOT AVAILABILITY (D1 + DURABLE OBJECTS LOCK CHECK)
+      // 2. VENUE AVAILABILITY & LOCKING STATUS
       // ----------------------------------------------------------------------
-      if (path === '/api/slots/availability' && request.method === 'GET') {
+      if (path === '/api/marketplace/availability' && request.method === 'GET') {
         const venueId = url.searchParams.get('venueId') || 'VEN-001';
         const date = url.searchParams.get('date') || new Date().toISOString().split('T')[0];
 
         const defaultSlots = [
-          { id: 'SLT-01', name: 'Morning Matinee (10:00 AM - 01:00 PM)', isAvailable: true },
-          { id: 'SLT-02', name: 'Afternoon Screening (02:00 PM - 05:00 PM)', isAvailable: true },
-          { id: 'SLT-03', name: 'Prime Evening (06:00 PM - 09:00 PM)', isAvailable: true },
-          { id: 'SLT-04', name: 'Midnight Chill (10:00 PM - 01:00 AM)', isAvailable: true }
+          { time: '10:00 AM - 01:00 PM', label: 'Morning Delight', price: 3499, available: true },
+          { time: '02:00 PM - 05:00 PM', label: 'Matinee Special', price: 3999, available: true },
+          { time: '06:00 PM - 09:00 PM', label: 'Prime Evening', price: 4999, available: false },
+          { time: '10:00 PM - 01:00 AM', label: 'Midnight Premiere', price: 4999, available: true }
         ];
 
-        return new Response(JSON.stringify({ success: true, venueId, date, slots: defaultSlots }), {
-          headers: JSON_HEADERS
-        });
+        return new Response(JSON.stringify({
+          success: true,
+          venueId,
+          date,
+          slots: defaultSlots
+        }), { headers: JSON_HEADERS });
       }
 
       // ----------------------------------------------------------------------
-      // 3. CREATE PAYMENT ORDER (DURABLE OBJECTS 10-MIN MUTEX LOCK)
+      // 3. CREATE BOOKING & INITIATE RAZORPAY ORDER (TRANSACTIONAL)
       // ----------------------------------------------------------------------
-      if (path === '/api/payments/create-order' && request.method === 'POST') {
+      if (path === '/api/bookings/create' && request.method === 'POST') {
         const body: any = await request.json();
-        const bookingId = 'PHC-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+        const bookingId = `PHC-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
         const checkinOtp = Math.floor(1000 + Math.random() * 9000).toString();
         const totalAmount = body.totalAmount || 4999;
         const keyId = env.RAZORPAY_KEY_ID || 'rzp_test_DemoCineSpace2026';
@@ -226,10 +260,9 @@ export default {
       // ----------------------------------------------------------------------
       if (path === '/api/merchant/dashboard' && request.method === 'POST') {
         const body: any = await request.json();
-        const user = body.username || 'prabhakar';
-        const pass = body.password || '1234';
+        const pass = body.password || body.pin || '1234';
 
-        if (pass !== '1234' && pass !== 'password123') {
+        if (pass !== '1234' && pass !== 'password123' && pass !== globalMerchantData.pin) {
           return new Response(JSON.stringify({ success: false, message: 'Invalid password or PIN' }), {
             status: 401,
             headers: JSON_HEADERS
@@ -238,23 +271,7 @@ export default {
 
         const merchantData = {
           success: true,
-          merchant: {
-            id: 'MERCH-001',
-            brandName: 'Prabhakar Home Cinema',
-            businessName: 'Prabhakar Luxury Theaters & Hospitality LLP',
-            logo: 'https://img.icons8.com/fluency/96/movie-projector.png',
-            city: 'Chennai',
-            locality: 'Anna Nagar',
-            phone: '+91 99622 79790',
-            email: 'prabhakar@prabhakarcinema.in',
-            address: 'Prabhakar Home Cinemas, 4th Cross Street, Anna Nagar, Chennai - 600040.',
-            googleMapsUrl: 'https://maps.google.com/?q=Anna+Nagar+Chennai',
-            upiId: '8667708711@upi',
-            bankName: 'HDFC Bank Ltd',
-            commissionRatePercent: 3.0,
-            verificationStatus: 'Approved',
-            inspectionNotes: 'Certified 9-Guest Luxury Lounge: 5 Motorized Recliners + 4 Bed VIP Lounge. 4K Laser & 9.4.6 Dolby Atmos Verified.'
-          },
+          merchant: { ...globalMerchantData },
           stats: {
             confirmedBookings: 1,
             averageRating: '5.0',
@@ -343,7 +360,7 @@ export default {
             totalGmv: 4999,
             totalPlatformCommission: 150,
             approvedMerchantsCount: 2,
-            pendingMerchantsCount: 0
+            pendingMerchantsCount: globalMerchantData.pendingPayoutRequest ? 1 : 0
           },
           adminInfo: {
             username: 'admin',
@@ -355,19 +372,7 @@ export default {
             mode: 'Test Mode (Sandbox)'
           },
           merchants: [
-            {
-              id: 'MERCH-001',
-              brandName: 'Prabhakar Home Cinema',
-              businessName: 'Prabhakar Luxury Theaters & Hospitality LLP',
-              gstin: '33AABCP1234F1Z8',
-              panNumber: 'AABCP1234F',
-              phone: '+91 99622 79790',
-              email: 'prabhakar@prabhakarcinema.in',
-              city: 'Chennai',
-              locality: 'Anna Nagar',
-              commissionRatePercent: 3.0,
-              verificationStatus: 'Approved'
-            }
+            { ...globalMerchantData }
           ],
           venues: [
             {
@@ -412,6 +417,18 @@ export default {
       // ----------------------------------------------------------------------
       if (path === '/api/merchant/request-payout-update' && request.method === 'POST') {
         const body: any = await request.json();
+        globalMerchantData.pendingPayoutRequest = {
+          merchantId: body.merchantId || globalMerchantData.id,
+          upiId: body.upiId,
+          bankHolder: body.bankHolder,
+          bankName: body.bankName,
+          accountNumber: body.accountNumber,
+          ifsc: body.ifsc,
+          gstin: body.gstin,
+          panNumber: body.panNumber,
+          businessName: body.businessName,
+          requestedAt: body.requestedAt || new Date().toLocaleString()
+        };
         return new Response(JSON.stringify({
           success: true,
           message: 'Payout & Mandatory KYC modification request submitted for Master Admin review & approval!'
@@ -424,6 +441,18 @@ export default {
       if (path === '/api/admin/approve-payout-update' && request.method === 'POST') {
         const body: any = await request.json();
         const action = body.action || 'APPROVE';
+        if (action === 'APPROVE' && globalMerchantData.pendingPayoutRequest) {
+          const req = globalMerchantData.pendingPayoutRequest;
+          if (req.upiId) globalMerchantData.upiId = req.upiId;
+          if (req.bankName) globalMerchantData.bankName = req.bankName;
+          if (req.accountNumber) globalMerchantData.bankAccountNumber = req.accountNumber;
+          if (req.ifsc) globalMerchantData.bankIfsc = req.ifsc;
+          if (req.bankHolder) globalMerchantData.bankHolder = req.bankHolder;
+          if (req.gstin) globalMerchantData.gstin = req.gstin;
+          if (req.panNumber) globalMerchantData.panNumber = req.panNumber;
+          if (req.businessName) globalMerchantData.businessName = req.businessName;
+        }
+        globalMerchantData.pendingPayoutRequest = null;
         return new Response(JSON.stringify({
           success: true,
           message: action === 'APPROVE' 
@@ -437,6 +466,12 @@ export default {
       // ----------------------------------------------------------------------
       if (path === '/api/admin/direct-update-payout' && request.method === 'POST') {
         const body: any = await request.json();
+        if (body.upiId) globalMerchantData.upiId = body.upiId;
+        if (body.bankName) globalMerchantData.bankName = body.bankName;
+        if (body.accountNumber) globalMerchantData.bankAccountNumber = body.accountNumber;
+        if (body.ifsc) globalMerchantData.bankIfsc = body.ifsc;
+        if (body.commissionRatePercent !== undefined) globalMerchantData.commissionRatePercent = body.commissionRatePercent;
+        globalMerchantData.pendingPayoutRequest = null;
         return new Response(JSON.stringify({
           success: true,
           message: 'Merchant payment number, UPI ID, and bank details updated live by Super-Admin!'
