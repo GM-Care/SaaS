@@ -6,7 +6,6 @@
  * ============================================================================
  */
 
-import { connect } from 'cloudflare:sockets';
 import { BookingLockDO } from './lib/durable-objects/BookingLockDO';
 import { razorpayEdge } from './lib/razorpay';
 import { r2Service } from './lib/r2/r2Client';
@@ -219,10 +218,16 @@ async function sendDirectGoogleSmtp(
   }
 
   try {
-    const socket = connect(
-      { hostname: host, port: port },
-      { secureTransport: (port === 465 || isGmail) ? 'on' : 'off' }
-    );
+    let socket: any;
+    try {
+      const { connect } = await import('cloudflare:sockets');
+      socket = connect(
+        { hostname: host, port: port },
+        { secureTransport: (port === 465 || isGmail) ? 'on' : 'off' }
+      );
+    } catch (cfErr: any) {
+      return { success: false, error: 'Raw TCP sockets are not available in this edge runtime: ' + cfErr.message };
+    }
 
     const writer = socket.writable.getWriter();
     const reader = socket.readable.getReader();

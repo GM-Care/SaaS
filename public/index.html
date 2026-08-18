@@ -1281,6 +1281,18 @@
       recalculateModalBill();
     }
 
+    function recalculateModalBill() {
+      var base = appState.selectedVenue ? appState.selectedVenue.basePrice : 4999;
+      
+      var occasionCharge = 0;
+      var occSelect = document.getElementById('modalOccasionSelect');
+      if (occSelect && occSelect.selectedOptions && occSelect.selectedOptions[0]) {
+        occasionCharge = parseFloat(occSelect.selectedOptions[0].dataset.price) || 0;
+      }
+
+      var sum = 0;
+      for (var k in appState.selectedAddons) sum += appState.selectedAddons[k];
+
       var total = base + occasionCharge + sum;
       document.getElementById('billBase').innerText = '₹' + base;
       if (document.getElementById('billOccasion')) {
