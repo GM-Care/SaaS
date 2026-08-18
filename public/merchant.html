@@ -36,19 +36,30 @@
       --radius-lg: 20px;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+      font-family: Cambria, 'Hoefler Text', Georgia, 'Times New Roman', serif; 
+    }
 
     body {
       background-color: var(--bg-page);
       color: var(--text-body);
       min-height: 100vh;
+      font-family: Cambria, Georgia, serif;
       background-image: 
         radial-gradient(circle at 15% 15%, rgba(217, 119, 6, 0.06) 0%, transparent 40%),
         radial-gradient(circle at 85% 85%, rgba(245, 158, 11, 0.05) 0%, transparent 40%),
         linear-gradient(180deg, #fdfbf7 0%, #f8fafc 100%);
     }
 
-    h1, h2, h3, h4 { font-family: 'Cinzel', serif; letter-spacing: 0.5px; color: var(--text-main); font-weight: 700; }
+    h1, h2, h3, h4 { 
+      font-family: Cambria, Georgia, serif; 
+      letter-spacing: 0.2px; 
+      color: var(--text-main); 
+      font-weight: bold; 
+    }
     .container { width: 100%; max-width: 1140px; margin: 0 auto; padding: 0 16px; }
 
     header {
@@ -64,25 +75,33 @@
     .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
     .brand-logo { width: 40px; height: 40px; border-radius: 50%; background: var(--gold-gradient); padding: 2px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(217, 119, 6, 0.25); }
     .brand-logo img { width: 100%; height: 100%; border-radius: 50%; background: #ffffff; object-fit: cover; }
-    .brand-text h1 { font-size: 1.15rem; font-weight: 800; background: var(--gold-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .brand-text h1 { font-size: 1.25rem; font-weight: bold; background: var(--gold-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
     .nav-links { display: flex; gap: 10px; align-items: center; }
-    .nav-link { color: var(--text-muted); text-decoration: none; font-size: 0.84rem; font-weight: 600; padding: 6px 14px; border-radius: 20px; transition: all 0.2s ease; }
+    .nav-link { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: bold; padding: 6px 14px; border-radius: 20px; transition: all 0.2s ease; }
     .nav-link:hover, .nav-link.active { color: #ffffff; background: var(--gold-gradient); }
 
     .glass-card {
       background: var(--bg-card);
-      border: 1px solid var(--border-color);
+      border: 1.5px solid var(--border-color);
       border-radius: var(--radius-md);
       padding: 24px;
       margin-bottom: 24px;
       box-shadow: var(--shadow-luxury);
     }
 
+    .card-subtitle {
+      font-family: Cambria, Georgia, serif;
+      font-style: italic;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .stat-card { background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 18px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
-    .stat-val { font-size: 1.8rem; font-weight: 800; color: #0f172a; margin: 6px 0; }
-    .stat-lbl { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+    .stat-card { background: #ffffff; border: 1.5px solid var(--border-color); border-radius: var(--radius-sm); padding: 18px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+    .stat-val { font-size: 1.9rem; font-weight: bold; color: #0f172a; margin: 6px 0; font-family: Cambria, Georgia, serif; }
+    .stat-lbl { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; font-weight: bold; font-family: Cambria, Georgia, serif; }
 
     .input-control {
       width: 100%;
@@ -91,25 +110,26 @@
       border-radius: var(--radius-sm);
       padding: 11px 14px;
       color: #0f172a;
-      font-size: 0.9rem;
-      font-weight: 500;
+      font-size: 0.95rem;
+      font-weight: normal;
+      font-family: Cambria, Georgia, serif;
       outline: none;
       transition: all 0.2s ease;
     }
     .input-control:focus { border-color: var(--gold-main); box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15); }
 
     .form-group { margin-bottom: 16px; }
-    .form-label { display: block; font-size: 0.85rem; font-weight: 700; color: #1e293b; margin-bottom: 6px; }
+    .form-label { display: block; font-size: 0.9rem; font-weight: bold; color: #0f172a; margin-bottom: 6px; font-family: Cambria, Georgia, serif; }
 
-    .btn-primary { background: var(--gold-gradient); border: none; color: #ffffff; padding: 11px 24px; border-radius: 30px; font-size: 0.9rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 3px 12px rgba(217, 119, 6, 0.35); transition: all 0.2s ease; }
+    .btn-primary { background: var(--gold-gradient); border: none; color: #ffffff; padding: 11px 24px; border-radius: 30px; font-size: 0.92rem; font-weight: bold; font-family: Cambria, Georgia, serif; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 3px 12px rgba(217, 119, 6, 0.35); transition: all 0.2s ease; }
     .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(217, 119, 6, 0.45); }
-    .btn-secondary { background: #f1f5f9; border: 1.5px solid #e2e8f0; color: #1e293b; padding: 10px 20px; border-radius: 30px; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
+    .btn-secondary { background: #f1f5f9; border: 1.5px solid #cbd5e1; color: #0f172a; padding: 10px 20px; border-radius: 30px; font-size: 0.88rem; font-weight: bold; font-family: Cambria, Georgia, serif; cursor: pointer; transition: all 0.2s ease; }
     .btn-secondary:hover { background: #e2e8f0; }
-    .btn-checkin { background: #059669; border: none; color: #ffffff; padding: 9px 18px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3); transition: all 0.2s ease; }
+    .btn-checkin { background: #059669; border: none; color: #ffffff; padding: 9px 18px; border-radius: 20px; font-size: 0.86rem; font-weight: bold; font-family: Cambria, Georgia, serif; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3); transition: all 0.2s ease; }
     .btn-checkin:hover { background: #047857; transform: translateY(-1px); }
 
-    .badge-green { background: var(--green-bg); color: var(--green-main); border: 1px solid rgba(5, 150, 105, 0.3); padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; }
-    .badge-gold { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; }
+    .badge-green { background: var(--green-bg); color: var(--green-main); border: 1px solid rgba(5, 150, 105, 0.3); padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: bold; font-family: Cambria, Georgia, serif; display: inline-flex; align-items: center; gap: 4px; }
+    .badge-gold { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: bold; font-family: Cambria, Georgia, serif; display: inline-flex; align-items: center; gap: 4px; }
 
     .booking-row-card {
       background: #ffffff;
@@ -132,41 +152,52 @@
 
     .photos-preview-strip {
       display: flex;
+      flex-wrap: wrap;
       gap: 10px;
-      overflow-x: auto;
       padding: 10px 0;
       margin-top: 10px;
+      overflow: visible !important;
     }
     .photo-thumb {
       width: 90px;
       height: 60px;
       border-radius: 6px;
       object-fit: cover;
-      border: 1px solid var(--border-color);
+      border: 1.5px solid var(--border-color);
       flex-shrink: 0;
     }
 
-    /* High-Contrast Luxury Sub-Navigation Tabs */
+    /* Clean Multi-Tab Wrap - Zero Horizontal Scrolling */
+    .merchant-tabs-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 20px 0 16px 0;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 12px;
+      overflow: visible !important;
+    }
+
     .merchant-tab-btn {
-      padding: 12px 20px;
-      border-radius: 12px;
+      padding: 11px 20px;
+      border-radius: 10px;
       border: 1.5px solid #cbd5e1;
       background: #ffffff;
       color: #1e293b;
-      font-size: 0.88rem;
-      font-weight: 700;
+      font-size: 0.92rem;
+      font-weight: bold;
+      font-family: Cambria, Georgia, serif;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      white-space: nowrap;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
     }
     .merchant-tab-btn i {
       color: var(--gold-main);
       font-size: 1rem;
-      transition: all 0.2s ease;
+      transition: color 0.2s ease;
     }
     .merchant-tab-btn:hover {
       background: #f8fafc;
@@ -303,8 +334,8 @@
         </div>
       </div>
 
-      <!-- Navigation Tabs Strip for Merchant Portal -->
-      <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:8px; margin: 20px 0 14px 0; border-bottom: 2px solid var(--border-color); -webkit-overflow-scrolling:touch;">
+      <!-- Navigation Tabs Strip for Merchant Portal (Clean Wrap - Zero Internal Scrollbar) -->
+      <div class="merchant-tabs-wrap">
         <button class="merchant-tab-btn active" id="tabBtn_reception" onclick="switchMerchantTab('reception')">
           <i class="fa-solid fa-door-open"></i> 1. Door Reception & Bookings
         </button>
@@ -327,11 +358,11 @@
 
       <!-- Prominent Active View Breadcrumb Indicator -->
       <div id="activeTabIndicator" style="display:flex; align-items:center; justify-content:space-between; background: #ffffff; border: 1.5px solid var(--border-color); border-left: 4px solid var(--gold-main); border-radius: 8px; padding: 10px 16px; margin-bottom: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
-        <div style="font-size: 0.88rem; font-weight: 700; color: #0f172a; display:flex; align-items:center; gap: 8px;">
-          <span style="background:var(--gold-main); color:#ffffff; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; text-transform: uppercase; letter-spacing:0.5px;">ACTIVE VIEW</span>
+        <div style="font-size: 0.92rem; font-weight: bold; color: #0f172a; display:flex; align-items:center; gap: 8px; font-family: Cambria, Georgia, serif;">
+          <span style="background:var(--gold-main); color:#ffffff; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; text-transform: uppercase; letter-spacing:0.5px; font-weight:bold;">ACTIVE VIEW</span>
           <span id="activeTabNameDisplay">🚪 1. Door Reception & Bookings (Front-Desk Check-In)</span>
         </div>
-        <span style="font-size: 0.76rem; color: var(--text-muted); font-weight: 600;">Host Management Suite</span>
+        <span class="card-subtitle">Host Management Workspace</span>
       </div>
 
       <!-- TAB 1: DOOR RECEPTION & UPCOMING BOOKINGS -->
@@ -340,7 +371,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
             <div>
               <h3 style="color:#0f172a;"><i class="fa-solid fa-calendar-check" style="color:var(--gold-main);"></i> Upcoming Screening Bookings & 1-Click Door Arrival</h3>
-              <p style="color:var(--text-muted); font-size:0.82rem; margin-top:2px;">Front-desk guest roster: Simply tap 1-Click Mark Arrived when guests arrive at the lounge.</p>
+              <p class="card-subtitle" style="margin-top:2px;">Front-desk guest roster: Simply tap 1-Click Mark Arrived when guests arrive at the lounge.</p>
             </div>
             <button class="btn-secondary" onclick="loginMerchant()"><i class="fa-solid fa-rotate"></i> Refresh</button>
           </div>

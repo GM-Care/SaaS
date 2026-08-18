@@ -42,12 +42,19 @@
       --radius-lg: 20px;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+      font-family: Cambria, 'Hoefler Text', Georgia, 'Times New Roman', serif; 
+      -webkit-tap-highlight-color: transparent; 
+    }
 
     body {
       background-color: var(--bg-page);
       color: var(--text-body);
       min-height: 100vh;
+      font-family: Cambria, Georgia, serif;
       background-image: 
         radial-gradient(circle at 15% 15%, rgba(217, 119, 6, 0.05) 0%, transparent 40%),
         radial-gradient(circle at 85% 85%, rgba(245, 158, 11, 0.04) 0%, transparent 40%),
@@ -56,7 +63,12 @@
       flex-direction: column;
     }
 
-    h1, h2, h3, h4 { font-family: 'Cinzel', serif; letter-spacing: 0.5px; color: var(--text-main); }
+    h1, h2, h3, h4 { 
+      font-family: Cambria, Georgia, serif; 
+      letter-spacing: 0.2px; 
+      color: var(--text-main); 
+      font-weight: bold; 
+    }
     .container { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 16px; }
 
     /* COMPACT & RESPONSIVE LUXURY WHITE HEADER */
