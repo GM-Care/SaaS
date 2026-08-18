@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Merchant Portal | CineSpace Host Dashboard</title>
   
-  <!-- Favicon: Luxury Golden Cinema Projector -->
+  <!-- Clean Standalone Favicon (Transparent, No Circle) -->
+  <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="shortcut icon" href="/favicon.svg">
-  <link rel="apple-touch-icon" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/favicon.png">
   
   <!-- Google Fonts: Luxury Serif & Clean Modern Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -78,8 +79,8 @@
 
     .header-content { display: flex; align-items: center; justify-content: space-between; }
     .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-    .brand-logo { width: 40px; height: 40px; border-radius: 50%; background: var(--gold-gradient); padding: 2px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(217, 119, 6, 0.25); }
-    .brand-logo img { width: 100%; height: 100%; border-radius: 50%; background: #ffffff; object-fit: cover; }
+    .brand-logo { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: transparent; border: none; }
+    .brand-logo img { width: 100%; height: 100%; border-radius: 0; background: transparent; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(217, 119, 6, 0.35)); }
     .brand-text h1 { font-size: 1.25rem; font-weight: bold; background: var(--gold-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
     .nav-links { display: flex; gap: 10px; align-items: center; }
@@ -248,7 +249,7 @@
     <div class="container">
       <div class="header-content">
         <a href="/" class="brand">
-          <div class="brand-logo"><img id="headerLogoImg" src="https://img.icons8.com/fluency/96/movie-projector.png" alt="Logo"></div>
+          <div class="brand-logo"><img id="headerLogoImg" src="/favicon.png" alt="Logo"></div>
           <div class="brand-text">
             <h1 id="headerBrandTitle">CineSpace Host Portal</h1>
             <p style="color:var(--text-muted); font-size:0.7rem;">Merchant & Cinema Owner Dashboard</p>
