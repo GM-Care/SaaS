@@ -1005,8 +1005,20 @@ const dbService = {
 
     b.checkinStatus = 'Checked-In';
     b.checkinTime = new Date().toISOString();
+    b.settlementStatus = 'Settled';
+
+    let sett = (db.settlements || []).find(s => s.bookingId === bookingId);
+    if (!sett) {
+      sett = dbService.recordSettlement(b);
+    }
+    if (sett) {
+      sett.settlementStatus = 'Settled';
+      sett.payoutUtr = sett.payoutUtr || ('UTR-HDFC-' + Math.floor(1000000000 + Math.random() * 9000000000));
+      sett.settledAt = new Date().toISOString();
+    }
+
     saveDb();
-    return { success: true, booking: b };
+    return { success: true, booking: b, settlement: sett };
   },
 
   // --- SETTLEMENTS LEDGER ---

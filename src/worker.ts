@@ -144,20 +144,52 @@ let globalBookings: any[] = [
   {
     bookingId: 'CS-7842',
     checkinOtp: '8492',
+    venueId: 'VEN-001',
     venueName: 'Dolby Atmos Gold Lounge',
+    merchantId: 'MERCH-001',
     customerName: 'Ananya Deshmukh',
     customerPhone: '+91 98765 43210',
     customerEmail: 'ananya@example.com',
     bookingDate: '2026-08-18',
     timeSlot: 'Prime Evening (06:00 PM - 09:00 PM)',
     guests: 7,
+    adultsCount: 5,
+    minorsCount: 2,
     occasion: 'Birthday Celebration',
-    addonsSummary: 'Caramel Popcorn & Drinks (₹899), Birthday Decor (₹1299)',
+    occasionCharge: 499,
+    addonsTotal: 899,
+    addonsSummary: 'Caramel Popcorn & Drinks (₹899)',
+    basePrice: 4999,
+    grossTotal: 6397,
+    totalAmount: 6397,
+    commissionRatePercent: 3.0,
+    platformFee: 192,
+    pgFee: 128,
+    merchantNetPayout: 6077,
     govtIdType: 'Aadhaar Card',
     govtIdNumber: '5678',
-    merchantNetPayout: 4731,
+    paymentStatus: 'Paid',
     bookingStatus: 'Confirmed',
-    checkinStatus: 'Pending Check-In'
+    checkinStatus: 'Pending Check-In',
+    settlementStatus: 'Escrow / Pending Check-In'
+  }
+];
+
+let globalSettlements: any[] = [
+  {
+    settlementId: 'SETT-8921',
+    bookingId: 'CS-7842',
+    merchantId: 'MERCH-001',
+    showDate: '2026-08-18',
+    grossTotal: 4999,
+    commissionRate: 3.0,
+    platformFeeDeducted: 150,
+    pgFeeDeducted: 118,
+    netPayableToMerchant: 4731,
+    settlementStatus: 'Settled',
+    payoutAccount: '8667708711@upi',
+    utrNumber: 'UTR-HDFC-99482103847',
+    settledAt: '2026-08-18T12:00:00.000Z'
   }
 ];
 
@@ -404,23 +436,47 @@ export default {
           });
         }
 
+        const basePrice = Number(body.basePrice) || 4999;
+        const occasionCharge = Number(body.occasionCharge) || 0;
+        const addonsTotal = Number(body.addonsTotal) || 0;
+        const grossTotal = Number(body.grossTotal) || Number(body.totalAmount) || (basePrice + occasionCharge + addonsTotal);
+        const commissionRatePercent = Number(body.commissionRatePercent) || (globalMerchantData.commissionRatePercent || 3.0);
+        const platformFee = Number(body.platformFee) || Math.round(grossTotal * (commissionRatePercent / 100));
+        const pgFee = Number(body.pgFee) || Math.round(grossTotal * 0.02);
+        const merchantNetPayout = Number(body.merchantNetPayout) || (grossTotal - platformFee - pgFee);
+
         const newBooking = {
           bookingId: body.bookingId || `CS-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
           checkinOtp: body.checkinOtp || Math.floor(1000 + Math.random() * 9000).toString(),
           venueId: body.venueId || 'VEN-001',
           venueName: body.venueName || 'Dolby Atmos Gold Lounge',
+          merchantId: body.merchantId || 'MERCH-001',
           customerName: body.customerName || 'VIP Guest',
           customerPhone: body.customerPhone || '+91 86677 08711',
           customerEmail: body.customerEmail || 'support@gm-care.in',
           bookingDate: body.bookingDate || new Date().toISOString().split('T')[0],
           timeSlot: body.timeSlot || 'Prime Evening (06:00 PM - 09:00 PM)',
           guests: body.guests || 2,
+          adultsCount: body.adultsCount || 2,
+          minorsCount: body.minorsCount || 0,
           occasion: body.occasion || 'Movie Screening',
+          occasionCharge: occasionCharge,
+          occasionInclusions: body.occasionInclusions || '',
+          addonsTotal: addonsTotal,
           addonsSummary: body.addonsSummary || 'None',
-          totalAmount: body.totalAmount || 4999,
-          merchantNetPayout: body.merchantNetPayout || 4731,
+          basePrice: basePrice,
+          grossTotal: grossTotal,
+          totalAmount: grossTotal,
+          commissionRatePercent: commissionRatePercent,
+          platformFee: platformFee,
+          pgFee: pgFee,
+          merchantNetPayout: merchantNetPayout,
+          paymentStatus: 'Paid',
           bookingStatus: 'Confirmed',
-          checkinStatus: 'Pending Check-In'
+          checkinStatus: 'Pending Check-In',
+          checkinTime: null,
+          settlementStatus: 'Escrow / Pending Check-In',
+          createdAt: new Date().toISOString()
         };
 
         const existIdx = globalBookings.findIndex(b => b.bookingId === newBooking.bookingId);
@@ -500,7 +556,8 @@ export default {
               <p><strong>Check-In OTP:</strong> <span style="font-size: 18px; font-weight: bold; color: #fbbf24;">${newBooking.checkinOtp}</span></p>
               <p><strong>Guest:</strong> ${newBooking.customerName} (${newBooking.customerPhone})</p>
               <p><strong>Date & Slot:</strong> ${newBooking.bookingDate} | ${newBooking.timeSlot}</p>
-              <p><strong>Net Payout Payable:</strong> ₹${newBooking.merchantNetPayout || 4731}</p>
+              <p><strong>Gross Amount:</strong> ₹${newBooking.grossTotal}</p>
+              <p><strong>Net Payout Payable:</strong> ₹${newBooking.merchantNetPayout} (after platform fee & PG fee)</p>
             </div>
           `;
           ctx.waitUntil(sendEdgeEmail(globalMerchantData.email, `🔔 New Booking Confirmed: ${newBooking.bookingId} - ${newBooking.customerName}`, hostHtml));
@@ -527,6 +584,14 @@ export default {
           });
         }
 
+        const totalNetEarnings = globalBookings
+          .filter(x => x.checkinStatus === 'Checked-In' || x.settlementStatus === 'Settled')
+          .reduce((sum, x) => sum + (x.merchantNetPayout || 4731), 0);
+
+        const pendingPayouts = globalBookings
+          .filter(x => x.checkinStatus !== 'Checked-In' && x.bookingStatus === 'Confirmed')
+          .reduce((sum, x) => sum + (x.merchantNetPayout || 4731), 0);
+
         const merchantData = {
           success: true,
           merchant: { ...globalMerchantData },
@@ -534,8 +599,8 @@ export default {
             confirmedBookings: globalBookings.length,
             averageRating: '5.0',
             totalReviewsCount: 48,
-            totalNetEarnings: globalBookings.reduce((sum, b) => sum + (b.merchantNetPayout || 4731), 0),
-            pendingPayouts: 0
+            totalNetEarnings: totalNetEarnings,
+            pendingPayouts: pendingPayouts
           },
           venues: [
             {
@@ -562,21 +627,7 @@ export default {
               createdAt: '2026-08-10'
             }
           ],
-          settlements: [
-            {
-              settlementId: 'SETT-001',
-              bookingId: 'CS-7842',
-              showDate: '2026-08-18',
-              grossAmount: 4999,
-              commissionRate: 5.0,
-              commissionDeducted: 250,
-              pgFeeDeducted: 118,
-              netPayable: 4731,
-              settlementStatus: 'Settled',
-              payoutAccount: globalMerchantData.upiId || '8667708711@upi',
-              utrNumber: 'UTR-HDFC-99482103847'
-            }
-          ],
+          settlements: [...globalSettlements],
           addons: [...globalAddons],
           occasions: [...globalOccasions]
         };
@@ -591,14 +642,57 @@ export default {
         const body: any = await request.json();
         const bookingId = body.bookingId;
         const b = globalBookings.find(x => x.bookingId === bookingId);
+        let settlementObj: any = null;
+
         if (b) {
           b.checkinStatus = 'Checked-In';
           b.checkinTime = new Date().toISOString();
+          b.settlementStatus = 'Settled';
+
+          const existSett = globalSettlements.find(s => s.bookingId === bookingId);
+          if (!existSett) {
+            settlementObj = {
+              settlementId: `SETT-${Math.floor(1000 + Math.random() * 9000)}`,
+              bookingId: b.bookingId,
+              merchantId: b.merchantId || 'MERCH-001',
+              showDate: b.bookingDate,
+              grossTotal: b.grossTotal || b.totalAmount || 4999,
+              commissionRate: b.commissionRatePercent || 3.0,
+              platformFeeDeducted: b.platformFee || Math.round((b.grossTotal || 4999) * 0.03),
+              pgFeeDeducted: b.pgFee || Math.round((b.grossTotal || 4999) * 0.02),
+              netPayableToMerchant: b.merchantNetPayout || (b.grossTotal - b.platformFee - b.pgFee),
+              settlementStatus: 'Settled',
+              payoutAccount: globalMerchantData.upiId || globalMerchantData.bankAccountNumber || '8667708711@upi',
+              utrNumber: `UTR-HDFC-${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+              settledAt: new Date().toISOString()
+            };
+            globalSettlements.unshift(settlementObj);
+          } else {
+            existSett.settlementStatus = 'Settled';
+            settlementObj = existSett;
+          }
         }
+
+        const totalNetEarnings = globalBookings
+          .filter(x => x.checkinStatus === 'Checked-In' || x.settlementStatus === 'Settled')
+          .reduce((sum, x) => sum + (x.merchantNetPayout || 4731), 0);
+
+        const pendingPayouts = globalBookings
+          .filter(x => x.checkinStatus !== 'Checked-In' && x.bookingStatus === 'Confirmed')
+          .reduce((sum, x) => sum + (x.merchantNetPayout || 4731), 0);
+
         return new Response(JSON.stringify({
           success: true,
-          message: 'Guest checked in successfully! Door PIN verified.',
-          booking: b || { bookingId, checkinStatus: 'Checked-In' }
+          message: 'Guest checked in successfully! Door PIN verified & Net Payout added to Total Net Earnings.',
+          booking: b || { bookingId, checkinStatus: 'Checked-In' },
+          settlement: settlementObj,
+          stats: {
+            totalNetEarnings,
+            pendingPayouts,
+            confirmedBookings: globalBookings.length
+          },
+          settlements: [...globalSettlements],
+          bookings: [...globalBookings]
         }), { headers: JSON_HEADERS });
       }
 
@@ -617,11 +711,14 @@ export default {
           });
         }
 
+        const totalGmv = globalBookings.reduce((sum, b) => sum + (b.grossTotal || b.totalAmount || 4999), 0);
+        const totalPlatformCommission = globalBookings.reduce((sum, b) => sum + (b.platformFee || Math.round((b.grossTotal || b.totalAmount || 4999) * 0.03)), 0);
+
         const adminData = {
           success: true,
           stats: {
-            totalGmv: 4999,
-            totalPlatformCommission: 150,
+            totalGmv: totalGmv,
+            totalPlatformCommission: totalPlatformCommission,
             approvedMerchantsCount: 2,
             pendingMerchantsCount: globalMerchantData.pendingPayoutRequest ? 1 : 0
           },
@@ -657,19 +754,8 @@ export default {
               venueId: 'VEN-001'
             }
           ],
-          settlements: [
-            {
-              settlementId: 'SETT-8921',
-              bookingId: 'CS-7842',
-              merchantId: 'MERCH-001',
-              showDate: '2026-08-18',
-              grossTotal: 4999,
-              platformFeeDeducted: 150,
-              netPayableToMerchant: 4731,
-              settlementStatus: 'Settled',
-              payoutUtr: 'HDFC-UPI-99281729'
-            }
-          ],
+          settlements: [...globalSettlements],
+          bookings: [...globalBookings],
           contactSettings: { ...globalContactSettings },
           adminSmtpConfig: {
             host: globalAdminSmtpConfig.host,

@@ -1282,6 +1282,13 @@
             bookingId = orderData.bookingId;
             checkinOtp = orderData.checkinOtp;
 
+            // Calculate exact platform commission (3%) and payment gateway fee (2%)
+            var grossTotal = totalAmount;
+            var commissionPercent = 3.0;
+            var platformFee = Math.round(grossTotal * (commissionPercent / 100));
+            var pgFee = Math.round(grossTotal * 0.02);
+            var merchantNetPayout = grossTotal - platformFee - pgFee;
+
             // Auto-verify / bypass payment for instant VIP pass creation & email dispatch
             try {
               await fetch('/api/payments/verify', {
@@ -1295,16 +1302,31 @@
                   razorpaySignature: 'sig_demo_valid',
                   venueId: appState.selectedVenue ? appState.selectedVenue.id : 'VEN-001',
                   venueName: appState.selectedVenue ? appState.selectedVenue.name : 'Dolby Atmos Gold Lounge',
+                  merchantId: 'MERCH-001',
                   customerName: name,
                   customerPhone: phone,
                   customerEmail: email,
                   bookingDate: appState.selectedDate,
                   timeSlot: appState.selectedSlot.name,
                   guests: parseInt(adults) + parseInt(minors),
+                  adultsCount: adults,
+                  minorsCount: minors,
                   occasion: occasion,
+                  occasionCharge: occasionCharge,
+                  occasionInclusions: occasionInclusions,
+                  addonsTotal: addonsSum,
                   addonsSummary: selectedAddonsList.join(', ') || 'None',
-                  totalAmount: totalAmount,
-                  merchantNetPayout: totalAmount - Math.round(totalAmount * 0.1)
+                  basePrice: basePrice,
+                  grossTotal: grossTotal,
+                  totalAmount: grossTotal,
+                  commissionRatePercent: commissionPercent,
+                  platformFee: platformFee,
+                  pgFee: pgFee,
+                  merchantNetPayout: merchantNetPayout,
+                  paymentStatus: 'Paid',
+                  bookingStatus: 'Confirmed',
+                  checkinStatus: 'Pending Check-In',
+                  settlementStatus: 'Escrow / Pending Check-In'
                 })
               });
             } catch (verErr) {}
@@ -1312,24 +1334,38 @@
         }
       } catch (err) {}
 
-      // Save locally to history
+      // Save locally to history with full financial data
       var newBookingRecord = {
         bookingId: bookingId,
         checkinOtp: checkinOtp,
-        venueName: appState.selectedVenue.name,
+        venueId: appState.selectedVenue ? appState.selectedVenue.id : 'VEN-001',
+        venueName: appState.selectedVenue ? appState.selectedVenue.name : 'Dolby Atmos Gold Lounge',
+        merchantId: 'MERCH-001',
         customerName: name,
         customerPhone: phone,
         customerEmail: email,
         bookingDate: appState.selectedDate,
         timeSlot: appState.selectedSlot.name,
         guests: parseInt(adults) + parseInt(minors),
+        adultsCount: adults,
+        minorsCount: minors,
         occasion: occasion,
         occasionCharge: occasionCharge,
         occasionInclusions: occasionInclusions,
         addonsTotal: addonsSum,
-        totalAmount: totalAmount,
+        addonsSummary: selectedAddonsList.join(', ') || 'None',
+        basePrice: basePrice,
+        grossTotal: grossTotal,
+        totalAmount: grossTotal,
+        commissionRatePercent: commissionPercent,
+        platformFee: platformFee,
+        pgFee: pgFee,
+        merchantNetPayout: merchantNetPayout,
         paymentStatus: 'Paid',
-        checkinStatus: 'Pending Check-In'
+        bookingStatus: 'Confirmed',
+        checkinStatus: 'Pending Check-In',
+        settlementStatus: 'Escrow / Pending Check-In',
+        createdAt: new Date().toISOString()
       };
 
       try {

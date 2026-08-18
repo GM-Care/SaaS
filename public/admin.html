@@ -1122,13 +1122,37 @@
           }
         } catch (e) {}
 
+        // Sync all bookings with local storage
+        var allAdminBookings = (data.bookings && data.bookings.length > 0) ? [...data.bookings] : [];
+        try {
+          var rawB = localStorage.getItem('cinespace_bookings');
+          if (rawB) {
+            var localB = JSON.parse(rawB);
+            localB.forEach(function(lb) {
+              if (!allAdminBookings.some(function(x) { return x.bookingId === lb.bookingId; })) {
+                allAdminBookings.unshift(lb);
+              }
+            });
+          }
+        } catch (e) {}
+
+        // Calculate dynamic platform commission and GMV
+        var totalGmv = 0;
+        var totalCommission = 0;
+        allAdminBookings.forEach(function(b) {
+          var gross = Number(b.grossTotal) || Number(b.totalAmount) || 4999;
+          var comm = (b.platformFee !== undefined) ? Number(b.platformFee) : Math.round(gross * 0.03);
+          totalGmv += gross;
+          totalCommission += comm;
+        });
+
         adminDataCache = data;
         document.getElementById('adminLoginBox').style.display = 'none';
         document.getElementById('adminDashboardView').style.display = 'block';
 
         // Update Stats
-        document.getElementById('gmvVal').innerText = '₹' + data.stats.totalGmv;
-        document.getElementById('commissionVal').innerText = '₹' + data.stats.totalPlatformCommission;
+        document.getElementById('gmvVal').innerText = '₹' + totalGmv.toLocaleString('en-IN');
+        document.getElementById('commissionVal').innerText = '₹' + totalCommission.toLocaleString('en-IN');
         document.getElementById('approvedMerchantsVal').innerText = data.stats.approvedMerchantsCount || 2;
 
         // Update Admin Details

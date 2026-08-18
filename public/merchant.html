@@ -1270,13 +1270,59 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
             });
           }
         } catch (e) {}
+
+        // Calculate dynamic financial metrics (Gross Total - Platform Fee - PG Fee = Net Payout)
+        var totalNetEarnings = 0;
+        var pendingPayouts = 0;
+        var allSettlements = (data.settlements && data.settlements.length > 0) ? [...data.settlements] : [];
+
+        allBookings.forEach(function(b) {
+          var gross = Number(b.grossTotal) || Number(b.totalAmount) || 4999;
+          var commRate = Number(b.commissionRatePercent) || (data.merchant ? Number(data.merchant.commissionRatePercent) : 3.0) || 3.0;
+          var platFee = (b.platformFee !== undefined) ? Number(b.platformFee) : Math.round(gross * (commRate / 100));
+          var pgFee = (b.pgFee !== undefined) ? Number(b.pgFee) : Math.round(gross * 0.02);
+          var net = (b.merchantNetPayout !== undefined) ? Number(b.merchantNetPayout) : (gross - platFee - pgFee);
+
+          b.grossTotal = gross;
+          b.platformFee = platFee;
+          b.pgFee = pgFee;
+          b.merchantNetPayout = net;
+
+          if (b.checkinStatus === 'Checked-In') {
+            totalNetEarnings += net;
+            var foundSett = allSettlements.find(function(s) { return s.bookingId === b.bookingId; });
+            if (!foundSett) {
+              allSettlements.unshift({
+                settlementId: 'SETT-' + Math.floor(1000 + Math.random() * 9000),
+                bookingId: b.bookingId,
+                showDate: b.bookingDate,
+                grossTotal: gross,
+                commissionRate: commRate,
+                platformFeeDeducted: platFee,
+                pgFeeDeducted: pgFee,
+                netPayableToMerchant: net,
+                settlementStatus: 'Settled',
+                payoutAccount: (data.merchant ? data.merchant.upiId : '') || '8667708711@upi',
+                utrNumber: 'UTR-HDFC-' + Math.floor(1000000000 + Math.random() * 9000000000)
+              });
+            }
+          } else {
+            pendingPayouts += net;
+          }
+        });
+
+        // Update KPI cards
+        document.getElementById('confirmedBookingsVal').innerText = allBookings.length;
+        document.getElementById('totalNetEarningsVal').innerText = '₹' + totalNetEarnings.toLocaleString('en-IN');
+        document.getElementById('pendingPayoutsVal').innerText = '₹' + pendingPayouts.toLocaleString('en-IN');
+
         renderMerchantBookings(allBookings);
 
         // Render Reviews
         renderMerchantReviews(data.reviews || []);
 
         // Render Settlements
-        renderMerchantSettlements(data.settlements || []);
+        renderMerchantSettlements(allSettlements);
 
         // Render Snacks & Addons and Occasions
         renderHostAddonsTable();
