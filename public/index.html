@@ -663,6 +663,7 @@
     document.addEventListener('DOMContentLoaded', function() {
       fetchVenues('All');
       fetchContactSettings();
+      fetchMarketplaceAddonsAndOccasions();
     });
 
     async function fetchContactSettings() {
@@ -672,6 +673,28 @@
           var data = await res.json();
           if (data.success && data.contactSettings) {
             localStorage.setItem('cinespace_contact_settings', JSON.stringify(data.contactSettings));
+          }
+        }
+      } catch (e) {}
+    }
+
+    async function fetchMarketplaceAddonsAndOccasions() {
+      try {
+        var resA = await fetch('/api/marketplace/addons');
+        if (resA.ok) {
+          var dataA = await resA.json();
+          if (dataA.success && dataA.addons) {
+            localStorage.setItem('cinespace_addons', JSON.stringify(dataA.addons));
+          }
+        }
+      } catch (e) {}
+
+      try {
+        var resO = await fetch('/api/marketplace/occasions');
+        if (resO.ok) {
+          var dataO = await resO.json();
+          if (dataO.success && dataO.occasions) {
+            localStorage.setItem('cinespace_occasions', JSON.stringify(dataO.occasions));
           }
         }
       } catch (e) {}
@@ -948,6 +971,7 @@
       buildDatePillStrip(today);
       selectBookingDate(today);
 
+      loadModalOccasions();
       loadModalAddons();
       recalculateModalBill();
 
@@ -1011,22 +1035,83 @@
       });
     }
 
-    async function loadModalAddons() {
-      var container = document.getElementById('modalAddonsList');
-      container.innerHTML = '';
+    async function loadModalOccasions() {
+      var select = document.getElementById('modalOccasionSelect');
+      if (!select) return;
 
-      var sampleAddons = [
-        { id: 'ADD-01', name: 'Caramel Popcorn & Artisanal Drinks Tub', price: 899 },
-        { id: 'ADD-02', name: 'Loaded Cheese Nachos & Sliders Platter', price: 699 },
-        { id: 'ADD-03', name: 'VIP Celebration Decor (Balloons & Banner)', price: 1299 },
-        { id: 'ADD-04', name: 'Celebration Cake (1 Kg Truffle)', price: 999 },
-        { id: 'ADD-05', name: 'PlayStation 5 Gaming Setup (3 Hours)', price: 799 }
+      var occasions = [
+        { id: 'OCC-01', name: 'Movie Screening', label: '🎬 Movie Screening', icon: '🎬' },
+        { id: 'OCC-02', name: 'Birthday Celebration', label: '🎂 Birthday Celebration', icon: '🎂' },
+        { id: 'OCC-03', name: 'Anniversary Surprise', label: '💍 Anniversary Surprise', icon: '💍' },
+        { id: 'OCC-04', name: 'Romantic Couple Date', label: '✨ Romantic Date', icon: '✨' },
+        { id: 'OCC-05', name: 'PS5 4K Gaming Session', label: '🎮 PS5 Gaming', icon: '🎮' }
       ];
 
-      sampleAddons.forEach(function(ad) {
+      try {
+        var cached = localStorage.getItem('cinespace_occasions');
+        if (cached) occasions = JSON.parse(cached);
+      } catch (e) {}
+
+      try {
+        var res = await fetch('/api/marketplace/occasions');
+        if (res.ok) {
+          var data = await res.json();
+          if (data.success && data.occasions && data.occasions.length > 0) {
+            occasions = data.occasions;
+            localStorage.setItem('cinespace_occasions', JSON.stringify(occasions));
+          }
+        }
+      } catch (e) {}
+
+      select.innerHTML = '';
+      occasions.forEach(function(occ) {
+        if (occ.isActive === false) return;
+        var opt = document.createElement('option');
+        opt.value = occ.name;
+        opt.innerText = occ.label || (occ.icon ? occ.icon + ' ' + occ.name : occ.name);
+        select.appendChild(opt);
+      });
+    }
+
+    async function loadModalAddons() {
+      var container = document.getElementById('modalAddonsList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      var addons = [
+        { id: 'ADD-01', name: 'Caramel Popcorn & Artisanal Drinks Tub', price: 899, icon: '🍿' },
+        { id: 'ADD-02', name: 'Loaded Cheese Nachos & Sliders Platter', price: 699, icon: '🧀' },
+        { id: 'ADD-03', name: 'VIP Celebration Decor (Balloons & Banner)', price: 1299, icon: '🎈' },
+        { id: 'ADD-04', name: 'Celebration Cake (1 Kg Truffle)', price: 999, icon: '🎂' },
+        { id: 'ADD-05', name: 'PlayStation 5 Gaming Setup (3 Hours)', price: 799, icon: '🎮' }
+      ];
+
+      try {
+        var cached = localStorage.getItem('cinespace_addons');
+        if (cached) addons = JSON.parse(cached);
+      } catch (e) {}
+
+      try {
+        var res = await fetch('/api/marketplace/addons');
+        if (res.ok) {
+          var data = await res.json();
+          if (data.success && data.addons && data.addons.length > 0) {
+            addons = data.addons;
+            localStorage.setItem('cinespace_addons', JSON.stringify(addons));
+          }
+        }
+      } catch (e) {}
+
+      addons.forEach(function(ad) {
+        if (ad.isActive === false) return;
         var row = document.createElement('div');
         row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid #e2e8f0; padding:9px 12px; border-radius:8px; font-size:0.84rem;';
-        row.innerHTML = '<label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; color:#334155;"><input type="checkbox" style="accent-color:var(--gold-main);" onchange="toggleModalAddon(\'' + ad.id + '\', ' + ad.price + ', this.checked)"><span>' + ad.name + '</span></label><span style="color:var(--gold-main); font-weight:800;">+ ₹' + ad.price + '</span>';
+        row.innerHTML = ''
+          + '<label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; color:#334155;">'
+          + '  <input type="checkbox" style="accent-color:var(--gold-main);" onchange="toggleModalAddon(\'' + ad.id + '\', ' + ad.price + ', this.checked)">'
+          + '  <span>' + (ad.icon ? ad.icon + ' ' : '') + ad.name + '</span>'
+          + '</label>'
+          + '<span style="color:var(--gold-main); font-weight:800;">+ ₹' + ad.price + '</span>';
         container.appendChild(row);
       });
     }

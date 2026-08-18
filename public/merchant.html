@@ -355,6 +355,9 @@
         <button class="merchant-tab-btn" id="tabBtn_settlements" onclick="switchMerchantTab('settlements')">
           <i class="fa-solid fa-money-bill-transfer"></i> Settlements & Reviews
         </button>
+        <button class="merchant-tab-btn" id="tabBtn_addons" onclick="switchMerchantTab('addons')">
+          <i class="fa-solid fa-cookie-bite"></i> Snacks & Add-ons
+        </button>
         <button class="merchant-tab-btn" id="tabBtn_analytics" onclick="switchMerchantTab('analytics')">
           <i class="fa-solid fa-file-export"></i> Data & Accounting
         </button>
@@ -537,6 +540,23 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
         <div class="glass-card">
           <h3 style="color:#0f172a; margin-bottom:12px;"><i class="fa-solid fa-star" style="color:var(--gold-main);"></i> Guest Ratings & Screening Feedback</h3>
           <div id="merchantReviewsContainer"></div>
+        </div>
+      </div>
+
+      <!-- TAB: HOST SNACKS & ADD-ONS OVERVIEW -->
+      <div id="mTab_addons" class="merchant-tab-pane" style="display:none;">
+        <div class="glass-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+            <div>
+              <h3 style="color:#0f172a; margin-bottom:2px;"><i class="fa-solid fa-popcorn" style="color:var(--gold-main);"></i> Gourmet Add-ons & Celebration Delights Offered</h3>
+              <p class="card-subtitle">These gourmet snacks, celebration decors, birthday cakes, and gaming setups are offered to guests booking your private screening suites.</p>
+            </div>
+            <span class="compliance-pill"><i class="fa-solid fa-sparkles"></i> 100% Host Revenue Boost</span>
+          </div>
+
+          <div id="merchantAddonsGrid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px; margin-top:10px;">
+            <!-- Populated dynamically via renderMerchantAddonsView() -->
+          </div>
         </div>
       </div>
 
@@ -891,6 +911,9 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
 
         // Render Settlements
         renderMerchantSettlements(data.settlements || []);
+
+        // Render Snacks & Addons View
+        renderMerchantAddonsView();
       } else {
         showToast('Invalid Username or Password (Default: host / 1234)', true);
       }
@@ -1196,12 +1219,13 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
       'profile': '🏢 Space Profile, Media & Location Details',
       'payouts': '💳 Bank Settlement & Mandatory KYC Details',
       'settlements': '💰 Payout Settlements Ledger & Guest Reviews',
+      'addons': '🍿 Gourmet Snacks, Delights & Celebration Add-ons',
       'analytics': '📊 Data Export & CA Accounting Hub',
       'settings': '⚙️ Security Credentials & Host Gmail SMTP Setup'
     };
 
     function switchMerchantTab(tabName) {
-      var tabs = ['reception', 'profile', 'payouts', 'settlements', 'analytics', 'settings'];
+      var tabs = ['reception', 'profile', 'payouts', 'settlements', 'addons', 'analytics', 'settings'];
       tabs.forEach(function(t) {
         var btn = document.getElementById('tabBtn_' + t);
         var content = document.getElementById('mTab_' + t);
@@ -1217,6 +1241,47 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
       if (indicator && tabTitlesMap[tabName]) {
         indicator.innerText = tabTitlesMap[tabName];
       }
+      if (tabName === 'addons') {
+        renderMerchantAddonsView();
+      }
+    }
+
+    function renderMerchantAddonsView() {
+      var container = document.getElementById('merchantAddonsGrid');
+      if (!container) return;
+      var addons = [
+        { id: 'ADD-01', name: 'Caramel Popcorn & Artisanal Drinks Tub', category: 'Snacks & Drinks', price: 899, icon: '🍿', desc: 'Jumbo warm caramel popcorn tub + 4 artisanal chilled beverages' },
+        { id: 'ADD-02', name: 'Loaded Cheese Nachos & Sliders Platter', category: 'Snacks & Drinks', price: 699, icon: '🧀', desc: 'Crispy gourmet nachos with salsa, melted cheese & 4 mini sliders' },
+        { id: 'ADD-03', name: 'VIP Celebration Decor (Balloons & Banner)', category: 'Celebration Decor', price: 1299, icon: '🎈', desc: 'Customized metallic balloons, celebration banner & ambient lighting setup' },
+        { id: 'ADD-04', name: 'Celebration Cake (1 Kg Truffle)', category: 'Cakes & Gourmet', price: 999, icon: '🎂', desc: 'Fresh 1 Kg rich Belgian chocolate truffle cake with candle sparklers' },
+        { id: 'ADD-05', name: 'PlayStation 5 Gaming Setup (3 Hours)', category: 'Gaming & Entertainment', price: 799, icon: '🎮', desc: 'Dual DualSense wireless controllers with pre-loaded FIFA 24 & Mortal Kombat' }
+      ];
+
+      try {
+        var raw = localStorage.getItem('cinespace_addons');
+        if (raw) addons = JSON.parse(raw);
+      } catch (e) {}
+
+      container.innerHTML = '';
+      addons.forEach(function(ad) {
+        if (ad.isActive === false) return;
+        var card = document.createElement('div');
+        card.style.cssText = 'background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:14px; box-shadow:0 2px 6px rgba(0,0,0,0.02); display:flex; flex-direction:column; justify-content:space-between;';
+        card.innerHTML = ''
+          + '<div>'
+          + '  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">'
+          + '    <span style="font-size:1.8rem; background:#fffbeb; border-radius:8px; padding:4px 8px;">' + (ad.icon || '🍿') + '</span>'
+          + '    <span class="compliance-pill">' + (ad.category || 'Snacks & Drinks') + '</span>'
+          + '  </div>'
+          + '  <h4 style="font-size:0.92rem; color:#0f172a; margin-bottom:4px;">' + ad.name + '</h4>'
+          + (ad.desc ? '  <p style="font-size:0.78rem; color:#64748b; margin-bottom:10px; line-height:1.4;">' + ad.desc + '</p>' : '')
+          + '</div>'
+          + '<div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:8px; margin-top:8px;">'
+          + '  <span style="font-size:0.75rem; color:#64748b;">Add-on Price:</span>'
+          + '  <strong style="color:var(--gold-dark); font-size:1.05rem;">₹' + ad.price + '</strong>'
+          + '</div>';
+        container.appendChild(card);
+      });
     }
 
     function renderMerchantBookings(bookings) {

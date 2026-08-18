@@ -179,6 +179,23 @@ app.get('/api/contact-settings', (req, res) => {
 });
 
 /**
+ * Public Add-ons & Occasions List for Marketplace Booking
+ */
+app.get('/api/marketplace/addons', (req, res) => {
+  res.json({
+    success: true,
+    addons: db.getAddons(false)
+  });
+});
+
+app.get('/api/marketplace/occasions', (req, res) => {
+  res.json({
+    success: true,
+    occasions: db.getOccasions(false)
+  });
+});
+
+/**
  * 2. Get All Verified Venues with Multi-city, Capacity, and Rating Filters
  */
 app.get('/api/marketplace/venues', (req, res) => {
@@ -932,6 +949,8 @@ app.post('/api/admin/dashboard', (req, res) => {
       settlements: allSettlements,
       recentBookings: allBookings,
       contactSettings: db.getContactSettings(),
+      addons: db.getAddons(true),
+      occasions: db.getOccasions(true),
       gatewaySettings: {
         keyId: gatewaySettings.keyId,
         keySecret: gatewaySettings.keySecret ? '••••••••' + gatewaySettings.keySecret.slice(-4) : '',
@@ -1056,6 +1075,88 @@ app.post('/api/admin/contact-settings', (req, res) => {
       success: true,
       message: 'Contact Us & Grievance Redressal details updated and published live!',
       contactSettings: updated
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 23C. Master Admin: Save / Update Add-on (Snacks, Drinks, Cakes, Decor, Gaming)
+ */
+app.post('/api/admin/addons', (req, res) => {
+  try {
+    const { pin, id, name, category, price, icon, desc, isActive } = req.body;
+
+    if (!db.verifyAdminAuth(pin)) {
+      return res.status(401).json({ success: false, message: 'Invalid Master Admin Password or PIN' });
+    }
+
+    if (!name || price === undefined) {
+      return res.status(400).json({ success: false, message: 'Add-on name and price are required.' });
+    }
+
+    const saved = db.saveAddon({ id, name, category, price, icon, desc, isActive });
+
+    res.json({
+      success: true,
+      message: id ? `Add-on '${saved.name}' updated successfully!` : `New Add-on '${saved.name}' created!`,
+      addon: saved,
+      addons: db.getAddons(true)
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 23D. Master Admin: Delete Add-on
+ */
+app.delete('/api/admin/addons/:id', (req, res) => {
+  try {
+    const { pin } = req.query;
+    const { id } = req.params;
+
+    if (!db.verifyAdminAuth(pin)) {
+      return res.status(401).json({ success: false, message: 'Invalid Master Admin Password or PIN' });
+    }
+
+    const deleted = db.deleteAddon(id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: 'Add-on not found.' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Add-on deleted successfully.',
+      addons: db.getAddons(true)
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 23E. Master Admin: Save / Update Booking Occasions List
+ */
+app.post('/api/admin/occasions', (req, res) => {
+  try {
+    const { pin, occasions } = req.body;
+
+    if (!db.verifyAdminAuth(pin)) {
+      return res.status(401).json({ success: false, message: 'Invalid Master Admin Password or PIN' });
+    }
+
+    if (!Array.isArray(occasions)) {
+      return res.status(400).json({ success: false, message: 'Occasions array is required.' });
+    }
+
+    const saved = db.saveOccasions(occasions);
+
+    res.json({
+      success: true,
+      message: 'Booking occasions updated successfully!',
+      occasions: saved
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

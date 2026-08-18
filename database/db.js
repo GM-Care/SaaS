@@ -209,6 +209,22 @@ const DEFAULT_SEED_DATA = {
     }
   ],
 
+  addons: [
+    { id: 'ADD-01', name: 'Caramel Popcorn & Artisanal Drinks Tub', category: 'Snacks & Drinks', price: 899, icon: '🍿', desc: 'Jumbo warm caramel popcorn tub + 4 artisanal chilled beverages', isActive: true },
+    { id: 'ADD-02', name: 'Loaded Cheese Nachos & Sliders Platter', category: 'Snacks & Drinks', price: 699, icon: '🧀', desc: 'Crispy gourmet nachos with salsa, melted cheese & 4 mini sliders', isActive: true },
+    { id: 'ADD-03', name: 'VIP Celebration Decor (Balloons & Banner)', category: 'Celebration Decor', price: 1299, icon: '🎈', desc: 'Customized metallic balloons, celebration banner & ambient lighting setup', isActive: true },
+    { id: 'ADD-04', name: 'Celebration Cake (1 Kg Truffle)', category: 'Cakes & Gourmet', price: 999, icon: '🎂', desc: 'Fresh 1 Kg rich Belgian chocolate truffle cake with candle sparklers', isActive: true },
+    { id: 'ADD-05', name: 'PlayStation 5 Gaming Setup (3 Hours)', category: 'Gaming & Entertainment', price: 799, icon: '🎮', desc: 'Dual DualSense wireless controllers with pre-loaded FIFA 24 & Mortal Kombat', isActive: true }
+  ],
+
+  occasions: [
+    { id: 'OCC-01', name: 'Movie Screening', label: '🎬 Movie Screening', icon: '🎬', isActive: true },
+    { id: 'OCC-02', name: 'Birthday Celebration', label: '🎂 Birthday Celebration', icon: '🎂', isActive: true },
+    { id: 'OCC-03', name: 'Anniversary Surprise', label: '💍 Anniversary Surprise', icon: '💍', isActive: true },
+    { id: 'OCC-04', name: 'Romantic Couple Date', label: '✨ Romantic Date', icon: '✨', isActive: true },
+    { id: 'OCC-05', name: 'PS5 4K Gaming Session', label: '🎮 PS5 Gaming', icon: '🎮', isActive: true }
+  ],
+
   bookings: [],
   settlements: [],
   resetTokens: []
@@ -408,6 +424,84 @@ const dbService = {
     };
     saveDb();
     return db.contactSettings;
+  },
+
+  // --- ADDONS & SNACKS MANAGEMENT ---
+  getAddons: (includeInactive = false) => {
+    const list = db.addons || DEFAULT_SEED_DATA.addons;
+    if (includeInactive) return list;
+    return list.filter(a => a.isActive !== false);
+  },
+
+  getAddonById: (id) => {
+    return (db.addons || DEFAULT_SEED_DATA.addons).find(a => a.id === id);
+  },
+
+  saveAddon: (data) => {
+    if (!db.addons) db.addons = [...DEFAULT_SEED_DATA.addons];
+    let addon = null;
+    if (data.id) {
+      const idx = db.addons.findIndex(a => a.id === data.id);
+      if (idx >= 0) {
+        db.addons[idx] = {
+          ...db.addons[idx],
+          name: data.name || db.addons[idx].name,
+          category: data.category || db.addons[idx].category || 'Snacks & Drinks',
+          price: data.price !== undefined ? parseFloat(data.price) : db.addons[idx].price,
+          icon: data.icon || db.addons[idx].icon || '🍿',
+          desc: data.desc !== undefined ? data.desc : db.addons[idx].desc,
+          isActive: data.isActive !== undefined ? Boolean(data.isActive) : db.addons[idx].isActive,
+          updatedAt: new Date().toISOString()
+        };
+        addon = db.addons[idx];
+      }
+    }
+    if (!addon) {
+      const newId = 'ADD-' + ('00' + ((db.addons.length || 0) + 1)).slice(-2);
+      addon = {
+        id: newId,
+        name: data.name || 'New Snack / Addon',
+        category: data.category || 'Snacks & Drinks',
+        price: data.price !== undefined ? parseFloat(data.price) : 499,
+        icon: data.icon || '🍿',
+        desc: data.desc || '',
+        isActive: data.isActive !== undefined ? Boolean(data.isActive) : true,
+        createdAt: new Date().toISOString()
+      };
+      db.addons.push(addon);
+    }
+    saveDb();
+    return addon;
+  },
+
+  deleteAddon: (id) => {
+    if (!db.addons) db.addons = [...DEFAULT_SEED_DATA.addons];
+    const initialLen = db.addons.length;
+    db.addons = db.addons.filter(a => a.id !== id);
+    saveDb();
+    return db.addons.length < initialLen;
+  },
+
+  // --- OCCASIONS MANAGEMENT ---
+  getOccasions: (includeInactive = false) => {
+    const list = db.occasions || DEFAULT_SEED_DATA.occasions;
+    if (includeInactive) return list;
+    return list.filter(o => o.isActive !== false);
+  },
+
+  saveOccasions: (occasionsList) => {
+    if (Array.isArray(occasionsList)) {
+      db.occasions = occasionsList.map((o, idx) => ({
+        id: o.id || ('OCC-' + ('00' + (idx + 1)).slice(-2)),
+        name: o.name || 'Occasion',
+        label: o.label || o.name || 'Occasion',
+        icon: o.icon || '🎉',
+        isActive: o.isActive !== undefined ? Boolean(o.isActive) : true
+      }));
+      saveDb();
+      return db.occasions;
+    }
+    return db.occasions || DEFAULT_SEED_DATA.occasions;
   },
 
   // --- MERCHANTS ---

@@ -347,6 +347,9 @@
         <button class="admin-tab-btn" id="adminTabBtn_finance" onclick="switchAdminTab('finance')">
           <i class="fa-solid fa-money-bill-transfer"></i> Settlements & Reviews
         </button>
+        <button class="admin-tab-btn" id="adminTabBtn_addons" onclick="switchAdminTab('addons')">
+          <i class="fa-solid fa-cookie-bite"></i> Add-ons & Occasions
+        </button>
         <button class="admin-tab-btn" id="adminTabBtn_data" onclick="switchAdminTab('data')">
           <i class="fa-solid fa-database"></i> Data Science & ETL
         </button>
@@ -465,7 +468,156 @@
         </div>
       </div>
 
-      <!-- TAB 4: DATA SCIENCE MANAGEMENT & ETL PIPELINE -->
+      <!-- TAB: ADD-ONS & BOOKING OCCASIONS MANAGEMENT -->
+      <div id="adminTab_addons" class="admin-tab-pane" style="display:none;">
+        
+        <!-- TOP SUMMARY / STATS BAR -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px; margin-bottom:18px;">
+          <div class="stat-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="card-subtitle">Active Add-on Delights</span>
+              <i class="fa-solid fa-cookie-bite fa-lg" style="color:var(--gold-main);"></i>
+            </div>
+            <div class="stat-val" id="addonsCountVal">5 Items</div>
+            <span style="font-size:0.75rem; color:var(--green-main); font-weight:600;"><i class="fa-solid fa-circle-check"></i> Available on Checkout</span>
+          </div>
+
+          <div class="stat-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="card-subtitle">Booking Occasion Types</span>
+              <i class="fa-solid fa-cake-candles fa-lg" style="color:var(--gold-main);"></i>
+            </div>
+            <div class="stat-val" id="occasionsCountVal">5 Occasions</div>
+            <span style="font-size:0.75rem; color:var(--gold-dark); font-weight:600;"><i class="fa-solid fa-sparkles"></i> Filterable in Marketplace</span>
+          </div>
+
+          <div class="stat-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="card-subtitle">Add-on Price Range</span>
+              <i class="fa-solid fa-indian-rupee-sign fa-lg" style="color:var(--gold-main);"></i>
+            </div>
+            <div class="stat-val" id="addonsPriceRangeVal">₹699 - ₹1299</div>
+            <span style="font-size:0.75rem; color:var(--text-muted);">Platform avg. ticket booster</span>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr; gap:18px;">
+          
+          <!-- SECTION 1: ADD-ONS TABLE & MANAGEMENT -->
+          <div class="glass-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+              <div>
+                <h3 style="color:#0f172a; margin-bottom:2px;"><i class="fa-solid fa-popcorn" style="color:var(--gold-main);"></i> Add-on Delights, Snacks & Celebration Packages</h3>
+                <p class="card-subtitle">Manage gourmet snacks, celebration decors, birthday cakes, and gaming setups offered during customer checkout.</p>
+              </div>
+              <button class="btn-primary" onclick="openAddAddonModal()"><i class="fa-solid fa-plus"></i> + Add New Add-on Snack</button>
+            </div>
+
+            <!-- Filter & Search Bar -->
+            <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;">
+              <input type="text" class="input-control" id="addonSearchInput" placeholder="🔍 Search add-on name or package..." style="max-width:280px;" oninput="filterAdminAddonsTable()">
+              <select class="input-control" id="addonCategoryFilter" style="max-width:200px;" onchange="filterAdminAddonsTable()">
+                <option value="All">All Categories</option>
+                <option value="Snacks & Drinks">🍿 Snacks & Drinks</option>
+                <option value="Celebration Decor">🎈 Celebration Decor</option>
+                <option value="Cakes & Gourmet">🎂 Cakes & Gourmet</option>
+                <option value="Gaming & Entertainment">🎮 Gaming & Tech</option>
+                <option value="Gourmet Platters">🧀 Gourmet Platters</option>
+              </select>
+            </div>
+
+            <div class="table-responsive">
+              <table class="admin-table" id="adminAddonsTable">
+                <thead>
+                  <tr>
+                    <th>Item & Inclusions</th>
+                    <th>Category</th>
+                    <th>Price (INR)</th>
+                    <th>Status</th>
+                    <th style="text-align:center;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="adminAddonsTableBody">
+                  <!-- Populated dynamically via renderAdminAddonsTable() -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SECTION 2: OCCASION TYPES & LIVE PREVIEW IN 2 COLUMNS -->
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:18px;">
+            
+            <!-- OCCASIONS MANAGER -->
+            <div class="glass-card">
+              <div style="margin-bottom:12px;">
+                <h3 style="color:#0f172a; margin-bottom:2px;"><i class="fa-solid fa-masks-theater" style="color:var(--gold-main);"></i> Booking Occasions Customizer</h3>
+                <p class="card-subtitle">Configure celebration occasions listed in the booking dropdown.</p>
+              </div>
+
+              <!-- Quick Add Occasion Input Strip -->
+              <div style="display:flex; gap:8px; margin-bottom:14px;">
+                <input type="text" class="input-control" id="newOccasionIconInput" placeholder="🎉" value="🎉" style="width:50px; text-align:center; font-size:1.1rem;">
+                <input type="text" class="input-control" id="newOccasionNameInput" placeholder="e.g. Friends Reunion or Live Sports" style="flex:1;">
+                <button class="btn-primary" style="padding:6px 14px; white-space:nowrap;" onclick="addAdminOccasion()"><i class="fa-solid fa-plus"></i> Add</button>
+              </div>
+
+              <!-- Occasion Chips List -->
+              <div id="adminOccasionsListContainer" style="display:flex; flex-direction:column; gap:8px;">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+            <!-- LIVE BOOKING CHECKOUT SIMULATOR -->
+            <div class="glass-card" style="border-left: 4px solid var(--gold-main);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 style="color:#0f172a; margin-bottom:0; font-size:0.95rem;"><i class="fa-solid fa-eye" style="color:var(--gold-main);"></i> Live Booking Modal Simulator</h3>
+                <span class="badge-gold">Live Sync</span>
+              </div>
+              <p class="card-subtitle" style="margin-bottom:12px;">Real-time rendering of Step 3, 4, & 5 on customer booking screen:</p>
+
+              <!-- Simulator Box -->
+              <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:14px; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+                
+                <!-- 3. Occasion Dropdown -->
+                <div style="margin-bottom:10px;">
+                  <label style="font-size:0.78rem; font-weight:700; color:#475569; display:block; margin-bottom:4px;">3. Occasion:</label>
+                  <select class="input-control" id="simOccasionSelect" style="font-size:0.84rem; padding:6px 10px;" onchange="updateSimCalculation()">
+                    <!-- Rendered live -->
+                  </select>
+                </div>
+
+                <!-- 4. Number of Guests -->
+                <div style="margin-bottom:12px;">
+                  <label style="font-size:0.78rem; font-weight:700; color:#475569; display:block; margin-bottom:4px;">4. Number of Guests (Max 9):</label>
+                  <div style="display:flex; gap:8px;">
+                    <input type="number" class="input-control" value="5" readonly style="font-size:0.84rem; padding:6px 10px; background:#f8fafc;">
+                    <input type="number" class="input-control" value="0" readonly style="font-size:0.84rem; padding:6px 10px; background:#f8fafc;">
+                  </div>
+                </div>
+
+                <!-- 5. Add-on Delights & Celebrations -->
+                <div>
+                  <label style="font-size:0.78rem; font-weight:700; color:#475569; display:block; margin-bottom:6px;">5. Add-on Delights & Celebrations:</label>
+                  <div id="simAddonsList" style="display:flex; flex-direction:column; gap:6px;">
+                    <!-- Rendered live -->
+                  </div>
+                </div>
+
+                <!-- Bill breakdown simulation -->
+                <div style="background:#f8fafc; border:1px dashed #cbd5e1; border-radius:6px; padding:8px 12px; margin-top:12px; font-size:0.8rem; display:flex; justify-content:space-between; align-items:center;">
+                  <span style="color:#64748b;">Simulated Add-ons Total:</span>
+                  <strong style="color:var(--gold-dark); font-size:0.92rem;" id="simAddonsTotalVal">₹0</strong>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- TAB 5: DATA SCIENCE MANAGEMENT & ETL PIPELINE -->
       <div id="adminTab_data" class="admin-tab-pane" style="display:none;">
         <div class="glass-card" style="border: 2px solid rgba(217, 119, 6, 0.4);">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -686,6 +838,64 @@
 
   </main>
 
+  <!-- ADD-ON CREATE / EDIT MODAL -->
+  <div class="modal-overlay" id="addonEditModal">
+    <div class="modal-card" style="max-width: 540px;">
+      <button class="close-modal-btn" onclick="closeAddAddonModal()"><i class="fa-solid fa-xmark"></i></button>
+      <div style="margin-bottom:16px;">
+        <h3 style="color:#0f172a;" id="addonModalTitle"><i class="fa-solid fa-cookie-bite" style="color:var(--gold-main);"></i> Add New Add-on Snack / Delight</h3>
+        <p style="color:var(--text-muted); font-size:0.8rem; margin-top:2px;">Configure add-on delight items, pricing, and visual emojis offered during private cinema checkout.</p>
+      </div>
+
+      <input type="hidden" id="addonEditId" value="">
+
+      <div style="display:grid; grid-template-columns: 80px 1fr; gap:12px; margin-bottom:12px;">
+        <div class="form-group">
+          <label class="form-label">Emoji *</label>
+          <input type="text" class="input-control" id="addonEditIcon" placeholder="🍿" value="🍿" style="text-align:center; font-size:1.2rem;">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Add-on Item Title *</label>
+          <input type="text" class="input-control" id="addonEditName" placeholder="e.g. Caramel Popcorn & Artisanal Drinks Tub" required>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:12px;">
+        <div class="form-group">
+          <label class="form-label">Category *</label>
+          <select class="input-control" id="addonEditCategory">
+            <option value="Snacks & Drinks">🍿 Snacks & Drinks</option>
+            <option value="Celebration Decor">🎈 Celebration Decor</option>
+            <option value="Cakes & Gourmet">🎂 Cakes & Gourmet</option>
+            <option value="Gaming & Entertainment">🎮 Gaming & Tech</option>
+            <option value="Gourmet Platters">🧀 Gourmet Platters</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Price in ₹ (INR) *</label>
+          <input type="number" min="0" step="1" class="input-control" id="addonEditPrice" placeholder="e.g. 899" required>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:12px;">
+        <label class="form-label">Description / Inclusions (Optional)</label>
+        <textarea class="input-control" id="addonEditDesc" rows="2" placeholder="e.g. Jumbo warm caramel popcorn tub + 4 artisanal chilled beverages" style="resize:none; font-size:0.84rem;"></textarea>
+      </div>
+
+      <div class="form-group" style="margin-bottom:18px;">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem; color:#1e293b;">
+          <input type="checkbox" id="addonEditIsActive" checked style="accent-color:var(--gold-main); width:16px; height:16px;">
+          <strong>Active (Offer in Marketplace Booking Checkout)</strong>
+        </label>
+      </div>
+
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button class="btn-secondary" onclick="closeAddAddonModal()">Cancel</button>
+        <button class="btn-primary" onclick="saveAdminAddon()"><i class="fa-solid fa-floppy-disk"></i> Save Add-on</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ADMIN FORGOT PIN / PASSWORD MODAL -->
   <div class="modal-overlay" id="adminForgotModal">
     <div class="modal-card">
@@ -865,7 +1075,21 @@
         grievanceEmail: 'ranjith@gm-care.in',
         phone: '+91-8667708711',
         supportHours: '09:00 AM - 11:00 PM (Monday to Sunday)'
-      }
+      },
+      addons: [
+        { id: 'ADD-01', name: 'Caramel Popcorn & Artisanal Drinks Tub', category: 'Snacks & Drinks', price: 899, icon: '🍿', desc: 'Jumbo warm caramel popcorn tub + 4 artisanal chilled beverages', isActive: true },
+        { id: 'ADD-02', name: 'Loaded Cheese Nachos & Sliders Platter', category: 'Snacks & Drinks', price: 699, icon: '🧀', desc: 'Crispy gourmet nachos with salsa, melted cheese & 4 mini sliders', isActive: true },
+        { id: 'ADD-03', name: 'VIP Celebration Decor (Balloons & Banner)', category: 'Celebration Decor', price: 1299, icon: '🎈', desc: 'Customized metallic balloons, celebration banner & ambient lighting setup', isActive: true },
+        { id: 'ADD-04', name: 'Celebration Cake (1 Kg Truffle)', category: 'Cakes & Gourmet', price: 999, icon: '🎂', desc: 'Fresh 1 Kg rich Belgian chocolate truffle cake with candle sparklers', isActive: true },
+        { id: 'ADD-05', name: 'PlayStation 5 Gaming Setup (3 Hours)', category: 'Gaming & Entertainment', price: 799, icon: '🎮', desc: 'Dual DualSense wireless controllers with pre-loaded FIFA 24 & Mortal Kombat', isActive: true }
+      ],
+      occasions: [
+        { id: 'OCC-01', name: 'Movie Screening', label: '🎬 Movie Screening', icon: '🎬', isActive: true },
+        { id: 'OCC-02', name: 'Birthday Celebration', label: '🎂 Birthday Celebration', icon: '🎂', isActive: true },
+        { id: 'OCC-03', name: 'Anniversary Surprise', label: '💍 Anniversary Surprise', icon: '💍', isActive: true },
+        { id: 'OCC-04', name: 'Romantic Couple Date', label: '✨ Romantic Date', icon: '✨', isActive: true },
+        { id: 'OCC-05', name: 'PS5 4K Gaming Session', label: '🎮 PS5 Gaming', icon: '🎮', isActive: true }
+      ]
     };
 
     function getLocalAdminDb() {
@@ -983,6 +1207,13 @@
           populateContactSettingsForm(contactData);
         }
 
+        // Update Add-ons & Occasions
+        currentAdminAddons = data.addons || (localDb && localDb.addons) || defaultSeedData.addons;
+        currentAdminOccasions = data.occasions || (localDb && localDb.occasions) || defaultSeedData.occasions;
+        renderAdminAddonsTable(currentAdminAddons);
+        renderAdminOccasionsList(currentAdminOccasions);
+        updateAddonOccasionPreview();
+
         // Render Payout Change Requests Table
         renderPendingPayoutRequestsTable(data.merchants || []);
 
@@ -1003,6 +1234,7 @@
       'hosts': '🏛️ Cinema Host Network & Fee Control',
       'requests': '🚨 Payout & KYC Review Queue (Approval-Gated)',
       'finance': '💰 Financial Settlements & Quality Reviews',
+      'addons': '🍿 Add-ons, Delights & Booking Occasions Customizer',
       'data': '📊 Data Science Hub (ETL Import / Export)',
       'gateway': '💳 Razorpay Gateway & Webhooks Configuration',
       'contact': '🎧 Contact Us & Grievance Redressal Compliance Settings',
@@ -1010,7 +1242,7 @@
     };
 
     function switchAdminTab(tabName) {
-      var tabs = ['hosts', 'requests', 'finance', 'data', 'gateway', 'contact', 'security'];
+      var tabs = ['hosts', 'requests', 'finance', 'addons', 'data', 'gateway', 'contact', 'security'];
       tabs.forEach(function(t) {
         var btn = document.getElementById('adminTabBtn_' + t);
         var content = document.getElementById('adminTab_' + t);
@@ -1269,6 +1501,365 @@
       };
       populateContactSettingsForm(defaultSettings);
       showToast('Form reset to official statutory defaults.');
+    }
+
+    // ========================================================================
+    // ADD-ONS & SNACKS MANAGEMENT
+    // ========================================================================
+    var currentAdminAddons = [];
+    var currentAdminOccasions = [];
+    var simSelectedAddonIds = {};
+
+    function renderAdminAddonsTable(list) {
+      if (!list) list = currentAdminAddons || [];
+      var tbody = document.getElementById('adminAddonsTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      var activeCount = 0;
+      var prices = [];
+
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:24px; color:var(--text-muted);">No add-on packages found. Click "+ Add New Add-on Snack" to create one.</td></tr>';
+      }
+
+      list.forEach(function(ad) {
+        if (ad.isActive !== false) {
+          activeCount++;
+          prices.push(ad.price || 0);
+        }
+
+        var tr = document.createElement('tr');
+        tr.innerHTML = ''
+          + '<td>'
+          + '  <div style="display:flex; align-items:center; gap:10px;">'
+          + '    <span style="font-size:1.5rem; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center;">' + (ad.icon || '🍿') + '</span>'
+          + '    <div>'
+          + '      <strong style="color:#0f172a; font-size:0.9rem;">' + ad.name + '</strong>'
+          + (ad.desc ? '<div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">' + ad.desc + '</div>' : '')
+          + '    </div>'
+          + '  </div>'
+          + '</td>'
+          + '<td><span class="compliance-pill">' + (ad.category || 'Snacks & Drinks') + '</span></td>'
+          + '<td><strong style="color:var(--gold-dark); font-size:0.94rem;">₹' + (ad.price || 0) + '</strong></td>'
+          + '<td>'
+          + (ad.isActive !== false 
+              ? '<span class="badge-green"><i class="fa-solid fa-circle-check"></i> Active</span>' 
+              : '<span class="badge-yellow"><i class="fa-solid fa-ban"></i> Disabled</span>')
+          + '</td>'
+          + '<td style="text-align:center;">'
+          + '  <div style="display:inline-flex; gap:6px;">'
+          + '    <button class="btn-book" style="padding:4px 10px; font-size:0.75rem;" onclick="openAddAddonModal(\'' + ad.id + '\')"><i class="fa-solid fa-pen-to-square"></i> Edit</button>'
+          + '    <button class="btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="toggleAddonStatus(\'' + ad.id + '\', ' + (ad.isActive === false ? 'true' : 'false') + ')">' + (ad.isActive === false ? 'Enable' : 'Disable') + '</button>'
+          + '    <button class="btn-reject" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteAdminAddon(\'' + ad.id + '\')"><i class="fa-solid fa-trash"></i></button>'
+          + '  </div>'
+          + '</td>';
+        tbody.appendChild(tr);
+      });
+
+      // Update stat cards
+      if (document.getElementById('addonsCountVal')) document.getElementById('addonsCountVal').innerText = activeCount + ' Items';
+      if (prices.length > 0) {
+        var minP = Math.min.apply(null, prices);
+        var maxP = Math.max.apply(null, prices);
+        if (document.getElementById('addonsPriceRangeVal')) document.getElementById('addonsPriceRangeVal').innerText = '₹' + minP + ' - ₹' + maxP;
+      }
+    }
+
+    function filterAdminAddonsTable() {
+      var q = (document.getElementById('addonSearchInput') ? document.getElementById('addonSearchInput').value : '').toLowerCase().trim();
+      var cat = document.getElementById('addonCategoryFilter') ? document.getElementById('addonCategoryFilter').value : 'All';
+
+      var filtered = (currentAdminAddons || []).filter(function(ad) {
+        var matchQ = !q || (ad.name && ad.name.toLowerCase().includes(q)) || (ad.desc && ad.desc.toLowerCase().includes(q));
+        var matchCat = (cat === 'All') || (ad.category === cat);
+        return matchQ && matchCat;
+      });
+
+      renderAdminAddonsTable(filtered);
+    }
+
+    function openAddAddonModal(id) {
+      var modal = document.getElementById('addonEditModal');
+      var title = document.getElementById('addonModalTitle');
+      var idField = document.getElementById('addonEditId');
+      var nameField = document.getElementById('addonEditName');
+      var catField = document.getElementById('addonEditCategory');
+      var priceField = document.getElementById('addonEditPrice');
+      var iconField = document.getElementById('addonEditIcon');
+      var descField = document.getElementById('addonEditDesc');
+      var activeField = document.getElementById('addonEditIsActive');
+
+      if (id) {
+        var ad = currentAdminAddons.find(function(x) { return x.id === id; });
+        if (ad) {
+          title.innerHTML = '<i class="fa-solid fa-pen-to-square" style="color:var(--gold-main);"></i> Edit Add-on: ' + ad.name;
+          idField.value = ad.id;
+          nameField.value = ad.name;
+          catField.value = ad.category || 'Snacks & Drinks';
+          priceField.value = ad.price;
+          iconField.value = ad.icon || '🍿';
+          descField.value = ad.desc || '';
+          activeField.checked = ad.isActive !== false;
+          modal.style.display = 'flex';
+          return;
+        }
+      }
+
+      title.innerHTML = '<i class="fa-solid fa-cookie-bite" style="color:var(--gold-main);"></i> Add New Add-on Snack / Delight';
+      idField.value = '';
+      nameField.value = '';
+      catField.value = 'Snacks & Drinks';
+      priceField.value = '';
+      iconField.value = '🍿';
+      descField.value = '';
+      activeField.checked = true;
+      modal.style.display = 'flex';
+    }
+
+    function closeAddAddonModal() {
+      document.getElementById('addonEditModal').style.display = 'none';
+    }
+
+    async function saveAdminAddon() {
+      var id = document.getElementById('addonEditId').value.trim();
+      var name = document.getElementById('addonEditName').value.trim();
+      var category = document.getElementById('addonEditCategory').value;
+      var price = parseFloat(document.getElementById('addonEditPrice').value);
+      var icon = document.getElementById('addonEditIcon').value.trim() || '🍿';
+      var desc = document.getElementById('addonEditDesc').value.trim();
+      var isActive = document.getElementById('addonEditIsActive').checked;
+
+      if (!name || isNaN(price) || price < 0) {
+        showToast('Please provide a valid Add-on Name and Price', true);
+        return;
+      }
+
+      var payload = {
+        id: id || undefined,
+        name: name,
+        category: category,
+        price: price,
+        icon: icon,
+        desc: desc,
+        isActive: isActive
+      };
+
+      // Local save & sync
+      if (id) {
+        var idx = currentAdminAddons.findIndex(function(x) { return x.id === id; });
+        if (idx >= 0) currentAdminAddons[idx] = Object.assign({}, currentAdminAddons[idx], payload);
+      } else {
+        payload.id = 'ADD-' + ('00' + (currentAdminAddons.length + 1)).slice(-2);
+        currentAdminAddons.push(payload);
+      }
+
+      localStorage.setItem('cinespace_addons', JSON.stringify(currentAdminAddons));
+      var localDb = getLocalAdminDb();
+      localDb.addons = currentAdminAddons;
+      saveLocalAdminDb(localDb);
+
+      try {
+        var res = await fetch('/api/admin/addons', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign({ pin: currentMasterSecret }, payload))
+        });
+        if (res.ok) {
+          var data = await res.json();
+          if (data.success && data.addons) {
+            currentAdminAddons = data.addons;
+          }
+        }
+      } catch (e) {}
+
+      closeAddAddonModal();
+      renderAdminAddonsTable(currentAdminAddons);
+      updateAddonOccasionPreview();
+      showToast('✓ Add-on package saved and synchronized live!');
+    }
+
+    async function toggleAddonStatus(id, active) {
+      var ad = currentAdminAddons.find(function(x) { return x.id === id; });
+      if (!ad) return;
+      ad.isActive = active;
+
+      localStorage.setItem('cinespace_addons', JSON.stringify(currentAdminAddons));
+      var localDb = getLocalAdminDb();
+      localDb.addons = currentAdminAddons;
+      saveLocalAdminDb(localDb);
+
+      try {
+        await fetch('/api/admin/addons', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign({ pin: currentMasterSecret }, ad))
+        });
+      } catch (e) {}
+
+      renderAdminAddonsTable(currentAdminAddons);
+      updateAddonOccasionPreview();
+      showToast('✓ Add-on status updated.');
+    }
+
+    async function deleteAdminAddon(id) {
+      if (!confirm('Are you sure you want to delete this Add-on package?')) return;
+      currentAdminAddons = currentAdminAddons.filter(function(x) { return x.id !== id; });
+
+      localStorage.setItem('cinespace_addons', JSON.stringify(currentAdminAddons));
+      var localDb = getLocalAdminDb();
+      localDb.addons = currentAdminAddons;
+      saveLocalAdminDb(localDb);
+
+      try {
+        await fetch('/api/admin/addons/' + id + '?pin=' + encodeURIComponent(currentMasterSecret), {
+          method: 'DELETE'
+        });
+      } catch (e) {}
+
+      renderAdminAddonsTable(currentAdminAddons);
+      updateAddonOccasionPreview();
+      showToast('✓ Add-on deleted.');
+    }
+
+    // ========================================================================
+    // OCCASIONS MANAGEMENT
+    // ========================================================================
+    function renderAdminOccasionsList(list) {
+      if (!list) list = currentAdminOccasions || [];
+      var container = document.getElementById('adminOccasionsListContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (document.getElementById('occasionsCountVal')) {
+        document.getElementById('occasionsCountVal').innerText = list.length + ' Occasions';
+      }
+
+      list.forEach(function(occ) {
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; background:#ffffff; border:1px solid #e2e8f0; padding:8px 12px; border-radius:8px; font-size:0.86rem;';
+        row.innerHTML = ''
+          + '<div style="display:flex; align-items:center; gap:8px;">'
+          + '  <span style="font-size:1.1rem;">' + (occ.icon || '🎉') + '</span>'
+          + '  <strong style="color:#1e293b;">' + (occ.label || occ.name) + '</strong>'
+          + '</div>'
+          + '<button class="btn-reject" style="padding:2px 8px; font-size:0.72rem;" onclick="deleteAdminOccasion(\'' + occ.id + '\')"><i class="fa-solid fa-trash"></i></button>';
+        container.appendChild(row);
+      });
+    }
+
+    async function addAdminOccasion() {
+      var icon = document.getElementById('newOccasionIconInput').value.trim() || '🎉';
+      var name = document.getElementById('newOccasionNameInput').value.trim();
+
+      if (!name) {
+        showToast('Please enter an occasion name (e.g. Friends Reunion)', true);
+        return;
+      }
+
+      var newOcc = {
+        id: 'OCC-' + ('00' + (currentAdminOccasions.length + 1)).slice(-2),
+        name: name,
+        label: icon + ' ' + name,
+        icon: icon,
+        isActive: true
+      };
+
+      currentAdminOccasions.push(newOcc);
+      document.getElementById('newOccasionNameInput').value = '';
+
+      localStorage.setItem('cinespace_occasions', JSON.stringify(currentAdminOccasions));
+      var localDb = getLocalAdminDb();
+      localDb.occasions = currentAdminOccasions;
+      saveLocalAdminDb(localDb);
+
+      try {
+        await fetch('/api/admin/occasions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin: currentMasterSecret, occasions: currentAdminOccasions })
+        });
+      } catch (e) {}
+
+      renderAdminOccasionsList(currentAdminOccasions);
+      updateAddonOccasionPreview();
+      showToast('✓ New occasion type added!');
+    }
+
+    async function deleteAdminOccasion(id) {
+      if (currentAdminOccasions.length <= 1) {
+        showToast('At least one occasion must remain active.', true);
+        return;
+      }
+      currentAdminOccasions = currentAdminOccasions.filter(function(x) { return x.id !== id; });
+
+      localStorage.setItem('cinespace_occasions', JSON.stringify(currentAdminOccasions));
+      var localDb = getLocalAdminDb();
+      localDb.occasions = currentAdminOccasions;
+      saveLocalAdminDb(localDb);
+
+      try {
+        await fetch('/api/admin/occasions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin: currentMasterSecret, occasions: currentAdminOccasions })
+        });
+      } catch (e) {}
+
+      renderAdminOccasionsList(currentAdminOccasions);
+      updateAddonOccasionPreview();
+      showToast('✓ Occasion removed.');
+    }
+
+    // ========================================================================
+    // LIVE MARKETPLACE BOOKING SIMULATOR
+    // ========================================================================
+    function updateAddonOccasionPreview() {
+      // 1. Render Occasions Dropdown
+      var occSelect = document.getElementById('simOccasionSelect');
+      if (occSelect) {
+        occSelect.innerHTML = '';
+        (currentAdminOccasions || []).forEach(function(occ) {
+          var opt = document.createElement('option');
+          opt.value = occ.name;
+          opt.innerText = occ.label || (occ.icon + ' ' + occ.name);
+          occSelect.appendChild(opt);
+        });
+      }
+
+      // 2. Render Add-ons Checkboxes
+      var addonsContainer = document.getElementById('simAddonsList');
+      if (addonsContainer) {
+        addonsContainer.innerHTML = '';
+        var activeAddons = (currentAdminAddons || []).filter(function(a) { return a.isActive !== false; });
+        activeAddons.forEach(function(ad) {
+          var row = document.createElement('div');
+          row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid #e2e8f0; padding:7px 10px; border-radius:6px; font-size:0.8rem;';
+          var isChecked = Boolean(simSelectedAddonIds[ad.id]);
+          row.innerHTML = ''
+            + '<label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-weight:600; color:#334155;">'
+            + '  <input type="checkbox" style="accent-color:var(--gold-main);" ' + (isChecked ? 'checked' : '') + ' onchange="toggleSimAddon(\'' + ad.id + '\', ' + ad.price + ', this.checked)">'
+            + '  <span>' + (ad.icon ? ad.icon + ' ' : '') + ad.name + '</span>'
+            + '</label>'
+            + '<span style="color:var(--gold-main); font-weight:800; font-size:0.82rem;">+ ₹' + ad.price + '</span>';
+          addonsContainer.appendChild(row);
+        });
+      }
+
+      updateSimCalculation();
+    }
+
+    function toggleSimAddon(id, price, isChecked) {
+      if (isChecked) simSelectedAddonIds[id] = price;
+      else delete simSelectedAddonIds[id];
+      updateSimCalculation();
+    }
+
+    function updateSimCalculation() {
+      var sum = 0;
+      for (var k in simSelectedAddonIds) sum += simSelectedAddonIds[k];
+      var totalEl = document.getElementById('simAddonsTotalVal');
+      if (totalEl) totalEl.innerText = '₹' + sum;
     }
 
     function renderPendingPayoutRequestsTable(merchants) {

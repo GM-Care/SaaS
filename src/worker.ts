@@ -76,6 +76,22 @@ let globalContactSettings: any = {
   supportHours: '09:00 AM - 11:00 PM (Monday to Sunday)'
 };
 
+let globalAddons: any[] = [
+  { id: 'ADD-01', name: 'Caramel Popcorn & Artisanal Drinks Tub', category: 'Snacks & Drinks', price: 899, icon: '🍿', desc: 'Jumbo warm caramel popcorn tub + 4 artisanal chilled beverages', isActive: true },
+  { id: 'ADD-02', name: 'Loaded Cheese Nachos & Sliders Platter', category: 'Snacks & Drinks', price: 699, icon: '🧀', desc: 'Crispy gourmet nachos with salsa, melted cheese & 4 mini sliders', isActive: true },
+  { id: 'ADD-03', name: 'VIP Celebration Decor (Balloons & Banner)', category: 'Celebration Decor', price: 1299, icon: '🎈', desc: 'Customized metallic balloons, celebration banner & ambient lighting setup', isActive: true },
+  { id: 'ADD-04', name: 'Celebration Cake (1 Kg Truffle)', category: 'Cakes & Gourmet', price: 999, icon: '🎂', desc: 'Fresh 1 Kg rich Belgian chocolate truffle cake with candle sparklers', isActive: true },
+  { id: 'ADD-05', name: 'PlayStation 5 Gaming Setup (3 Hours)', category: 'Gaming & Entertainment', price: 799, icon: '🎮', desc: 'Dual DualSense wireless controllers with pre-loaded FIFA 24 & Mortal Kombat', isActive: true }
+];
+
+let globalOccasions: any[] = [
+  { id: 'OCC-01', name: 'Movie Screening', label: '🎬 Movie Screening', icon: '🎬', isActive: true },
+  { id: 'OCC-02', name: 'Birthday Celebration', label: '🎂 Birthday Celebration', icon: '🎂', isActive: true },
+  { id: 'OCC-03', name: 'Anniversary Surprise', label: '💍 Anniversary Surprise', icon: '💍', isActive: true },
+  { id: 'OCC-04', name: 'Romantic Couple Date', label: '✨ Romantic Date', icon: '✨', isActive: true },
+  { id: 'OCC-05', name: 'PS5 4K Gaming Session', label: '🎮 PS5 Gaming', icon: '🎮', isActive: true }
+];
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -410,7 +426,9 @@ export default {
               payoutUtr: 'HDFC-UPI-99281729'
             }
           ],
-          contactSettings: { ...globalContactSettings }
+          contactSettings: { ...globalContactSettings },
+          addons: [...globalAddons],
+          occasions: [...globalOccasions]
         };
 
         return new Response(JSON.stringify(adminData), { headers: JSON_HEADERS });
@@ -516,6 +534,100 @@ export default {
           success: true,
           message: 'Contact Us & Grievance Redressal details updated live!',
           contactSettings: { ...globalContactSettings }
+        }), { headers: JSON_HEADERS });
+      }
+
+      // ----------------------------------------------------------------------
+      // 9C. ADDONS & OCCASIONS PUBLIC & ADMIN APIS
+      // ----------------------------------------------------------------------
+      if (path === '/api/marketplace/addons' && request.method === 'GET') {
+        return new Response(JSON.stringify({
+          success: true,
+          addons: globalAddons.filter(a => a.isActive !== false)
+        }), { headers: JSON_HEADERS });
+      }
+
+      if (path === '/api/marketplace/occasions' && request.method === 'GET') {
+        return new Response(JSON.stringify({
+          success: true,
+          occasions: globalOccasions.filter(o => o.isActive !== false)
+        }), { headers: JSON_HEADERS });
+      }
+
+      if (path === '/api/admin/addons' && request.method === 'POST') {
+        const body: any = await request.json();
+        const pin = body.pin || '';
+        const adminPin = env.ADMIN_PIN || '1234';
+        if (pin !== adminPin && pin !== 'admin123') {
+          return new Response(JSON.stringify({ success: false, message: 'Invalid Admin PIN' }), {
+            status: 401,
+            headers: JSON_HEADERS
+          });
+        }
+        let addon: any = null;
+        if (body.id) {
+          const idx = globalAddons.findIndex(a => a.id === body.id);
+          if (idx >= 0) {
+            globalAddons[idx] = {
+              ...globalAddons[idx],
+              name: body.name || globalAddons[idx].name,
+              category: body.category || globalAddons[idx].category,
+              price: body.price !== undefined ? parseFloat(body.price) : globalAddons[idx].price,
+              icon: body.icon || globalAddons[idx].icon,
+              desc: body.desc !== undefined ? body.desc : globalAddons[idx].desc,
+              isActive: body.isActive !== undefined ? Boolean(body.isActive) : globalAddons[idx].isActive
+            };
+            addon = globalAddons[idx];
+          }
+        }
+        if (!addon) {
+          const newId = 'ADD-' + ('00' + (globalAddons.length + 1)).slice(-2);
+          addon = {
+            id: newId,
+            name: body.name || 'New Addon',
+            category: body.category || 'Snacks & Drinks',
+            price: body.price !== undefined ? parseFloat(body.price) : 499,
+            icon: body.icon || '🍿',
+            desc: body.desc || '',
+            isActive: body.isActive !== undefined ? Boolean(body.isActive) : true
+          };
+          globalAddons.push(addon);
+        }
+        return new Response(JSON.stringify({
+          success: true,
+          message: 'Add-on saved successfully!',
+          addon,
+          addons: [...globalAddons]
+        }), { headers: JSON_HEADERS });
+      }
+
+      if (path.startsWith('/api/admin/addons/') && request.method === 'DELETE') {
+        const addonId = path.replace('/api/admin/addons/', '');
+        globalAddons = globalAddons.filter(a => a.id !== addonId);
+        return new Response(JSON.stringify({
+          success: true,
+          message: 'Add-on deleted successfully.',
+          addons: [...globalAddons]
+        }), { headers: JSON_HEADERS });
+      }
+
+      if (path === '/api/admin/occasions' && request.method === 'POST') {
+        const body: any = await request.json();
+        const pin = body.pin || '';
+        const adminPin = env.ADMIN_PIN || '1234';
+        if (pin !== adminPin && pin !== 'admin123') {
+          return new Response(JSON.stringify({ success: false, message: 'Invalid Admin PIN' }), {
+            status: 401,
+            headers: JSON_HEADERS
+          });
+        }
+        if (Array.isArray(body.occasions)) {
+          globalOccasions = body.occasions;
+        }
+        return new Response(JSON.stringify({
+          success: true,
+          message: 'Occasions updated successfully!',
+          occasions: [...globalOccasions]
         }), { headers: JSON_HEADERS });
       }
 
