@@ -139,6 +139,35 @@
       flex-shrink: 0;
     }
 
+    /* Merchant Sub-Navigation Tabs */
+    .merchant-tab-btn {
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background: #ffffff;
+      color: var(--text-muted);
+      font-size: 0.86rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    .merchant-tab-btn:hover {
+      background: #f8fafc;
+      color: #0f172a;
+      border-color: #cbd5e1;
+    }
+    .merchant-tab-btn.active {
+      background: linear-gradient(135deg, var(--gold-main) 0%, var(--gold-dark) 100%);
+      color: #ffffff;
+      border-color: var(--gold-main);
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.25);
+    }
+
     /* Modal */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 16px; }
     .modal-card { background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-md); max-width: 440px; width: 100%; padding: 26px; box-shadow: 0 15px 40px rgba(0,0,0,0.15); position: relative; }
@@ -257,244 +286,281 @@
         </div>
       </div>
 
-      <!-- 1. BRAND PROFILE, LOGO, LOCATION & GOOGLE MAPS MANAGER -->
-      <div class="glass-card">
-        <h3 style="color:#ffffff; margin-bottom:6px;"><i class="fa-solid fa-id-badge" style="color:var(--gold-main);"></i> Brand Profile, Logo & Location Manager</h3>
-        <p style="color:var(--text-muted); font-size:0.82rem; margin-bottom:16px;">
-          Update your theater's public brand name, logo image, contact phone, and exact Google Maps location for guest directions.
-        </p>
-
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
-          <div class="form-group">
-            <label class="form-label">Brand Display Name *</label>
-            <input type="text" class="input-control" id="profBrandName" placeholder="e.g. Prabhakar Home Cinema">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Brand Logo Image URL *</label>
-            <input type="url" class="input-control" id="profLogoUrl" placeholder="https://.../logo.png">
-          </div>
-          <div class="form-group">
-            <label class="form-label">City *</label>
-            <input type="text" class="input-control" id="profCity" placeholder="Chennai">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Locality / Area *</label>
-            <input type="text" class="input-control" id="profLocality" placeholder="Anna Nagar">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Contact Mobile / WhatsApp *</label>
-            <input type="tel" class="input-control" id="profPhone" placeholder="+91 99622 79790">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Official Email *</label>
-            <input type="email" class="input-control" id="profEmail" placeholder="prabhakar@prabhakarcinema.in">
-          </div>
-          <div class="form-group" style="grid-column: 1 / -1;">
-            <label class="form-label">Full Physical Address *</label>
-            <input type="text" class="input-control" id="profAddress" placeholder="Prabhakar Home Cinemas, 4th Cross Street, Anna Nagar, Chennai - 600040">
-          </div>
-          <div class="form-group" style="grid-column: 1 / -1;">
-            <label class="form-label">Google Maps Location Link (for 1-Tap Guest Navigation) *</label>
-            <input type="url" class="input-control" id="profMapsUrl" placeholder="https://maps.app.goo.gl/... or https://maps.google.com/?q=...">
-          </div>
-        </div>
-
-        <button class="btn-primary" onclick="saveHostProfile()"><i class="fa-solid fa-floppy-disk"></i> Save Profile & Location</button>
+      <!-- Navigation Tabs Strip for Merchant Portal -->
+      <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:8px; margin: 20px 0 16px 0; border-bottom: 2px solid var(--border-color); -webkit-overflow-scrolling:touch;">
+        <button class="merchant-tab-btn active" id="tabBtn_reception" onclick="switchMerchantTab('reception')">
+          <i class="fa-solid fa-door-open"></i> 1. Door Reception & Bookings
+        </button>
+        <button class="merchant-tab-btn" id="tabBtn_profile" onclick="switchMerchantTab('profile')">
+          <i class="fa-solid fa-store"></i> 2. Space Profile & Media
+        </button>
+        <button class="merchant-tab-btn" id="tabBtn_payouts" onclick="switchMerchantTab('payouts')">
+          <i class="fa-solid fa-building-columns"></i> 3. Bank KYC & Payouts
+        </button>
+        <button class="merchant-tab-btn" id="tabBtn_settlements" onclick="switchMerchantTab('settlements')">
+          <i class="fa-solid fa-money-bill-transfer"></i> 4. Settlements & Reviews
+        </button>
+        <button class="merchant-tab-btn" id="tabBtn_analytics" onclick="switchMerchantTab('analytics')">
+          <i class="fa-solid fa-file-export"></i> 5. Data & Accounting Export
+        </button>
+        <button class="merchant-tab-btn" id="tabBtn_settings" onclick="switchMerchantTab('settings')">
+          <i class="fa-solid fa-gear"></i> 6. Security & Email
+        </button>
       </div>
 
-      <!-- 2. BANK SETTLEMENT & STATUTORY KYC MANAGER (ADMIN APPROVAL GATED) -->
-      <div class="glass-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-          <h3 style="color:#0f172a;"><i class="fa-solid fa-building-columns" style="color:var(--gold-main);"></i> Bank Settlement & Mandatory KYC Details</h3>
-          <span class="badge-green" id="payoutApprovedBadge"><i class="fa-solid fa-circle-check"></i> Active Approved Account</span>
+      <!-- TAB 1: DOOR RECEPTION & UPCOMING BOOKINGS -->
+      <div id="mTab_reception" class="merchant-tab-pane">
+        <div class="glass-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <div>
+              <h3 style="color:#0f172a;"><i class="fa-solid fa-calendar-check" style="color:var(--gold-main);"></i> Upcoming Screening Bookings & 1-Click Door Arrival</h3>
+              <p style="color:var(--text-muted); font-size:0.82rem; margin-top:2px;">Front-desk guest roster: Simply tap 1-Click Mark Arrived when guests arrive at the lounge.</p>
+            </div>
+            <button class="btn-secondary" onclick="loginMerchant()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+          </div>
+          <div id="merchantBookingsContainer"></div>
         </div>
-        <p style="color:var(--text-muted); font-size:0.82rem; margin-bottom:14px;">
-          Mandatory security rule: Updating your Payout UPI/Payment Phone number, Bank Account, or Tax KYC requires Master Admin verification to prevent unauthorized changes.
-        </p>
-
-        <!-- Pending Approval Alert Banner -->
-        <div id="pendingPayoutBanner" style="display:none; background:#fffbeb; border:1px solid #f59e0b; border-left:4px solid var(--gold-main); border-radius:8px; padding:12px; margin-bottom:16px; font-size:0.82rem; color:#92400e;">
-          <strong><i class="fa-solid fa-clock-rotate-left"></i> Modification Request Under Master Admin Review:</strong>
-          <div id="pendingPayoutDetailsText" style="margin-top:4px; line-height:1.5;"></div>
-          <p style="margin:4px 0 0 0; font-size:0.75rem; color:#78350f;">Your previously approved payout account remains active until Master Admin verifies and approves this update.</p>
-        </div>
-
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
-          <div class="form-group">
-            <label class="form-label">Instant Payout UPI ID / Payment Number *</label>
-            <input type="text" class="input-control" id="profUpiId" placeholder="e.g. 8667708711@upi">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Bank Account Holder Legal Name *</label>
-            <input type="text" class="input-control" id="profBankHolder" placeholder="Account Holder Name">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Bank Name *</label>
-            <input type="text" class="input-control" id="profBankName" placeholder="e.g. HDFC Bank Ltd">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Bank Account Number *</label>
-            <input type="text" class="input-control" id="profAccountNo" placeholder="Account Number">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Bank IFSC Code *</label>
-            <input type="text" class="input-control" id="profIfsc" placeholder="e.g. HDFC0000123">
-          </div>
-          <div class="form-group">
-            <label class="form-label">GSTIN (or Declaration) *</label>
-            <input type="text" class="input-control" id="profGstin" placeholder="e.g. 33AABCP1234F1Z8">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Business / Owner PAN Card *</label>
-            <input type="text" class="input-control" id="profPan" placeholder="e.g. AABCP1234F">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Registered Legal Entity Name *</label>
-            <input type="text" class="input-control" id="profBizName" placeholder="e.g. Prabhakar Luxury Theaters & Hospitality LLP">
-          </div>
-        </div>
-
-        <button class="btn-primary" onclick="submitPayoutModificationRequest()"><i class="fa-solid fa-shield-check"></i> Request KYC / Payout Details Update</button>
       </div>
 
-      <!-- 3. SPACE MEDIA: UP TO 10 PHOTOS & 1 VIDEO TOUR MANAGER -->
-      <div class="glass-card">
-        <h3 style="color:#ffffff; margin-bottom:6px;"><i class="fa-solid fa-images" style="color:var(--gold-main);"></i> Space Media: Up to 10 Photos & 1 Virtual Video Tour</h3>
-        <p style="color:var(--text-muted); font-size:0.82rem; margin-bottom:16px;">
-          Showcase your 5 motorized sofas, 4-guest VIP bed lounge, 4K laser projection, Dolby Atmos speakers, and snacks bar.
-        </p>
+      <!-- TAB 2: SPACE PROFILE, BRAND & MEDIA -->
+      <div id="mTab_profile" class="merchant-tab-pane" style="display:none;">
+        <!-- 1. BRAND PROFILE, LOGO, LOCATION & GOOGLE MAPS MANAGER -->
+        <div class="glass-card">
+          <h3 style="color:#0f172a; margin-bottom:6px;"><i class="fa-solid fa-id-badge" style="color:var(--gold-main);"></i> Brand Profile, Logo & Location Manager</h3>
+          <p style="color:var(--text-muted); font-size:0.82rem; margin-bottom:16px;">
+            Update your theater's public brand name, logo image, contact phone, and exact Google Maps location for guest directions.
+          </p>
 
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px; margin-bottom:14px;">
-          <div class="form-group">
-            <label class="form-label">Select Auditorium Suite</label>
-            <select class="input-control" id="mediaSuiteSelect" onchange="onSuiteSelectChange(this.value)"></select>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
+            <div class="form-group">
+              <label class="form-label">Brand Display Name *</label>
+              <input type="text" class="input-control" id="profBrandName" placeholder="e.g. Prabhakar Home Cinema">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Brand Logo Image URL *</label>
+              <input type="url" class="input-control" id="profLogoUrl" placeholder="https://.../logo.png">
+            </div>
+            <div class="form-group">
+              <label class="form-label">City *</label>
+              <input type="text" class="input-control" id="profCity" placeholder="Chennai">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Locality / Area *</label>
+              <input type="text" class="input-control" id="profLocality" placeholder="Anna Nagar">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contact Mobile / WhatsApp *</label>
+              <input type="tel" class="input-control" id="profPhone" placeholder="+91 99622 79790">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Official Email *</label>
+              <input type="email" class="input-control" id="profEmail" placeholder="prabhakar@prabhakarcinema.in">
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label class="form-label">Full Physical Address *</label>
+              <input type="text" class="input-control" id="profAddress" placeholder="Prabhakar Home Cinemas, 4th Cross Street, Anna Nagar, Chennai - 600040">
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label class="form-label">Google Maps Location Link (for 1-Tap Guest Navigation) *</label>
+              <input type="url" class="input-control" id="profMapsUrl" placeholder="https://maps.app.goo.gl/... or https://maps.google.com/?q=...">
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Virtual Video Tour URL (YouTube, Vimeo, MP4 direct) 🎥</label>
-            <input type="url" class="input-control" id="mediaVideoUrlInput" placeholder="https://www.youtube.com/embed/... or https://...video.mp4">
-          </div>
+
+          <button class="btn-primary" onclick="saveHostProfile()"><i class="fa-solid fa-floppy-disk"></i> Save Profile & Location</button>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Auditorium Photo Gallery URLs (Up to 10 Photos, 1 per line) 📸</label>
-          <textarea class="input-control" id="mediaPhotosTextarea" rows="6" placeholder="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c
+        <!-- 2. SPACE MEDIA: UP TO 10 PHOTOS & 1 VIDEO TOUR MANAGER -->
+        <div class="glass-card">
+          <h3 style="color:#0f172a; margin-bottom:6px;"><i class="fa-solid fa-images" style="color:var(--gold-main);"></i> Space Media: Up to 10 Photos & 1 Virtual Video Tour</h3>
+          <p style="color:var(--text-muted); font-size:0.82rem; margin-bottom:16px;">
+            Showcase your 5 motorized sofas, 4-guest VIP bed lounge, 4K laser projection, Dolby Atmos speakers, and snacks bar.
+          </p>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px; margin-bottom:14px;">
+            <div class="form-group">
+              <label class="form-label">Select Auditorium Suite</label>
+              <select class="input-control" id="mediaSuiteSelect" onchange="onSuiteSelectChange(this.value)"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Virtual Video Tour URL (YouTube, Vimeo, MP4 direct) 🎥</label>
+              <input type="url" class="input-control" id="mediaVideoUrlInput" placeholder="https://www.youtube.com/embed/... or https://...video.mp4">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Auditorium Photo Gallery URLs (Up to 10 Photos, 1 per line) 📸</label>
+            <textarea class="input-control" id="mediaPhotosTextarea" rows="6" placeholder="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c
 https://images.unsplash.com/photo-1489599849927-2ee91cede3ba
 https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePhotosPreview()"></textarea>
-        </div>
+          </div>
 
-        <!-- Live Photo Preview Strip -->
-        <label class="form-label">Live Photo Gallery Preview:</label>
-        <div class="photos-preview-strip" id="photosPreviewStrip"></div>
+          <!-- Live Photo Preview Strip -->
+          <label class="form-label">Live Photo Gallery Preview:</label>
+          <div class="photos-preview-strip" id="photosPreviewStrip"></div>
 
-        <div style="margin-top:16px;">
-          <button class="btn-primary" onclick="saveSpaceMedia()"><i class="fa-solid fa-cloud-arrow-up"></i> Save Space Photos & Video</button>
+          <div style="margin-top:16px;">
+            <button class="btn-primary" onclick="saveSpaceMedia()"><i class="fa-solid fa-cloud-arrow-up"></i> Save Space Photos & Video</button>
+          </div>
         </div>
       </div>
 
-      <!-- 3. Change Username & Password / PIN Settings -->
-      <div class="glass-card">
-        <h3 style="color:#ffffff; margin-bottom:6px;"><i class="fa-solid fa-key" style="color:var(--gold-main);"></i> Change Username & Login Password</h3>
-        <p style="color:var(--text-muted); font-size:0.82rem; margin-bottom:16px;">
-          Update your host username, login password, or 4-digit security PIN at any time.
-        </p>
+      <!-- TAB 3: BANK SETTLEMENT & MANDATORY KYC (APPROVAL-GATED) -->
+      <div id="mTab_payouts" class="merchant-tab-pane" style="display:none;">
+        <div class="glass-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <h3 style="color:#0f172a;"><i class="fa-solid fa-building-columns" style="color:var(--gold-main);"></i> Bank Settlement & Mandatory KYC Details</h3>
+            <span class="badge-green" id="payoutApprovedBadge"><i class="fa-solid fa-circle-check"></i> Active Approved Account</span>
+          </div>
+          <p style="color:var(--text-muted); font-size:0.82rem; margin-bottom:14px;">
+            Mandatory security rule: Updating your Payout UPI/Payment Phone number, Bank Account, or Tax KYC requires Master Admin verification to prevent unauthorized changes.
+          </p>
 
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px;">
-          <div class="form-group">
-            <label class="form-label">Current Password / PIN *</label>
-            <input type="password" class="input-control" id="currentHostSecretInput" placeholder="Current Secret">
+          <!-- Pending Approval Alert Banner -->
+          <div id="pendingPayoutBanner" style="display:none; background:#fffbeb; border:1px solid #f59e0b; border-left:4px solid var(--gold-main); border-radius:8px; padding:12px; margin-bottom:16px; font-size:0.82rem; color:#92400e;">
+            <strong><i class="fa-solid fa-clock-rotate-left"></i> Modification Request Under Master Admin Review:</strong>
+            <div id="pendingPayoutDetailsText" style="margin-top:4px; line-height:1.5;"></div>
+            <p style="margin:4px 0 0 0; font-size:0.75rem; color:#78350f;">Your previously approved payout account remains active until Master Admin verifies and approves this update.</p>
           </div>
-          <div class="form-group">
-            <label class="form-label">New Username</label>
-            <input type="text" class="input-control" id="newHostUsernameInput" placeholder="e.g. prabhakar_cinema">
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
+            <div class="form-group">
+              <label class="form-label">Instant Payout UPI ID / Payment Number *</label>
+              <input type="text" class="input-control" id="profUpiId" placeholder="e.g. 8667708711@upi">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Bank Account Holder Legal Name *</label>
+              <input type="text" class="input-control" id="profBankHolder" placeholder="Account Holder Name">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Bank Name *</label>
+              <input type="text" class="input-control" id="profBankName" placeholder="e.g. HDFC Bank Ltd">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Bank Account Number *</label>
+              <input type="text" class="input-control" id="profAccountNo" placeholder="Account Number">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Bank IFSC Code *</label>
+              <input type="text" class="input-control" id="profIfsc" placeholder="e.g. HDFC0000123">
+            </div>
+            <div class="form-group">
+              <label class="form-label">GSTIN (or Declaration) *</label>
+              <input type="text" class="input-control" id="profGstin" placeholder="e.g. 33AABCP1234F1Z8">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Business / Owner PAN Card *</label>
+              <input type="text" class="input-control" id="profPan" placeholder="e.g. AABCP1234F">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Registered Legal Entity Name *</label>
+              <input type="text" class="input-control" id="profBizName" placeholder="e.g. Prabhakar Luxury Theaters & Hospitality LLP">
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">New Password</label>
-            <input type="password" class="input-control" id="newHostPassInput" placeholder="Enter new password">
-          </div>
-          <div class="form-group">
-            <label class="form-label">New 4-Digit PIN</label>
-            <input type="password" maxlength="6" class="input-control" id="newHostPinInput" placeholder="e.g. 5566">
-          </div>
+
+          <button class="btn-primary" onclick="submitPayoutModificationRequest()"><i class="fa-solid fa-shield-check"></i> Request KYC / Payout Details Update</button>
         </div>
-
-        <button class="btn-primary" onclick="updateHostCredentials()"><i class="fa-solid fa-shield-halved"></i> Update Login Credentials</button>
       </div>
 
-      <!-- 4. Custom Gmail App Password & Email Settings -->
-      <div class="glass-card">
-        <h3 style="color:#ffffff; margin-bottom:6px;"><i class="fa-solid fa-envelope-open-text" style="color:var(--gold-main);"></i> Custom Email & Google App Password Setup</h3>
-        <p style="color:var(--text-muted); font-size:0.82rem; margin-bottom:16px;">
-          Configure your Gmail address and 16-character Google App Password so that all VIP passes and invoices are sent <strong>directly from your email</strong> to your guests.
-        </p>
-
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
-          <div class="form-group">
-            <label class="form-label">Host Gmail Address *</label>
-            <input type="email" class="input-control" id="smtpUserInput" placeholder="e.g. prabhakarhomecinema@gmail.com">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Google 16-Character App Password *</label>
-            <input type="password" class="input-control" id="smtpPassInput" placeholder="xxxx xxxx xxxx xxxx">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Display Sender Name</label>
-            <input type="text" class="input-control" id="smtpFromNameInput" placeholder="e.g. Prabhakar Cinema Concierge">
-          </div>
+      <!-- TAB 4: SETTLEMENTS & GUEST REVIEWS -->
+      <div id="mTab_settlements" class="merchant-tab-pane" style="display:none;">
+        <!-- Settlement Payout Ledger -->
+        <div class="glass-card">
+          <h3 style="color:#0f172a; margin-bottom:14px;"><i class="fa-solid fa-money-bill-transfer" style="color:var(--green-main);"></i> Payout Settlements Ledger</h3>
+          <div id="merchantSettlementsContainer"></div>
         </div>
 
-        <div style="display:flex; gap:12px; margin-top:8px;">
-          <button class="btn-secondary" onclick="testSmtpConnection()"><i class="fa-solid fa-paper-plane"></i> Test Connection</button>
-          <button class="btn-primary" onclick="saveSmtpSettings()"><i class="fa-solid fa-floppy-disk"></i> Save Email Settings</button>
+        <!-- Customer Reviews & Feedback Feed -->
+        <div class="glass-card">
+          <h3 style="color:#0f172a; margin-bottom:12px;"><i class="fa-solid fa-star" style="color:var(--gold-main);"></i> Guest Ratings & Screening Feedback</h3>
+          <div id="merchantReviewsContainer"></div>
         </div>
       </div>
 
-      <!-- 5. Upcoming Bookings Roster & 1-Click Door Check-in -->
-      <div class="glass-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-          <div>
-            <h3 style="color:#ffffff;"><i class="fa-solid fa-calendar-check" style="color:var(--gold-main);"></i> Upcoming Screening Bookings & Door Check-In</h3>
-            <p style="color:var(--text-muted); font-size:0.82rem; margin-top:2px;">Verify guest Govt ID and 4-digit door OTP when guests arrive at the lounge.</p>
+      <!-- TAB 5: DATA & ACCOUNTING EXPORT -->
+      <div id="mTab_analytics" class="merchant-tab-pane" style="display:none;">
+        <div class="glass-card" style="border: 2px solid rgba(217, 119, 6, 0.35);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div>
+              <h3 style="color:#0f172a;"><i class="fa-solid fa-file-export" style="color:var(--gold-main);"></i> Accounting & Analytics Data Export</h3>
+              <p style="color:var(--text-muted); font-size:0.82rem; margin-top:2px;">Download clean tabular CSV datasets for your CA accounting, GST filing, and business analytics.</p>
+            </div>
+            <span class="compliance-pill"><i class="fa-solid fa-file-csv"></i> CA & Excel Ready</span>
           </div>
-          <button class="btn-secondary" onclick="loginMerchant()"><i class="fa-solid fa-rotate"></i> Refresh</button>
-        </div>
-        <div id="merchantBookingsContainer"></div>
-      </div>
 
-      <!-- 6. Customer Reviews & Feedback Feed -->
-      <div class="glass-card">
-        <h3 style="color:#ffffff; margin-bottom:12px;"><i class="fa-solid fa-star" style="color:var(--gold-light);"></i> Guest Ratings & Screening Feedback</h3>
-        <div id="merchantReviewsContainer"></div>
-      </div>
-
-      <!-- 7. Settlement Payout Ledger -->
-      <div class="glass-card">
-        <h3 style="color:#0f172a; margin-bottom:14px;"><i class="fa-solid fa-money-bill-transfer" style="color:var(--green-main);"></i> Payout Settlements Ledger</h3>
-        <div id="merchantSettlementsContainer"></div>
-      </div>
-
-      <!-- 8. Host Analytics & Accounting Data Export Center -->
-      <div class="glass-card" style="border: 2px solid rgba(217, 119, 6, 0.35);">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <div>
-            <h3 style="color:#0f172a;"><i class="fa-solid fa-file-export" style="color:var(--gold-main);"></i> Accounting & Analytics Data Export</h3>
-            <p style="color:var(--text-muted); font-size:0.82rem; margin-top:2px;">Download clean tabular CSV datasets for your CA accounting, GST filing, and business analytics.</p>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:12px; margin-top:14px;">
+            <button class="btn-primary" style="justify-content:center; padding:10px 14px; font-size:0.84rem;" onclick="exportMerchantCsv('bookings')">
+              <i class="fa-solid fa-file-csv"></i> Export Bookings (CSV)
+            </button>
+            <button class="btn-secondary" style="background:#ffffff; justify-content:center; padding:10px 14px; font-size:0.84rem; display:inline-flex; align-items:center; gap:6px; font-weight:700; color:#0f172a;" onclick="exportMerchantCsv('settlements')">
+              <i class="fa-solid fa-file-invoice-dollar" style="color:#059669;"></i> Export Settlements (CSV)
+            </button>
+            <button class="btn-secondary" style="background:#ffffff; justify-content:center; padding:10px 14px; font-size:0.84rem; display:inline-flex; align-items:center; gap:6px; font-weight:700; color:#0f172a;" onclick="exportMerchantCsv('reviews')">
+              <i class="fa-solid fa-star" style="color:var(--gold-main);"></i> Export Guest Reviews (CSV)
+            </button>
+            <button class="btn-secondary" style="background:#ffffff; justify-content:center; padding:10px 14px; font-size:0.84rem; display:inline-flex; align-items:center; gap:6px; font-weight:700; color:#0f172a;" onclick="exportMerchantJsonBackup()">
+              <i class="fa-solid fa-file-code" style="color:#0284c7;"></i> Host Backup (JSON)
+            </button>
           </div>
-          <span class="compliance-pill"><i class="fa-solid fa-file-csv"></i> CA & Excel Ready</span>
+        </div>
+      </div>
+
+      <!-- TAB 6: SECURITY & HOST EMAIL -->
+      <div id="mTab_settings" class="merchant-tab-pane" style="display:none;">
+        <!-- Change Username & Password / PIN Settings -->
+        <div class="glass-card">
+          <h3 style="color:#0f172a; margin-bottom:6px;"><i class="fa-solid fa-key" style="color:var(--gold-main);"></i> Change Username & Login Password</h3>
+          <p style="color:var(--text-muted); font-size:0.82rem; margin-bottom:16px;">
+            Update your host username, login password, or 4-digit security PIN at any time.
+          </p>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px;">
+            <div class="form-group">
+              <label class="form-label">Current Password / PIN *</label>
+              <input type="password" class="input-control" id="currentHostSecretInput" placeholder="Current Secret">
+            </div>
+            <div class="form-group">
+              <label class="form-label">New Username</label>
+              <input type="text" class="input-control" id="newHostUsernameInput" placeholder="e.g. prabhakar_cinema">
+            </div>
+            <div class="form-group">
+              <label class="form-label">New Password</label>
+              <input type="password" class="input-control" id="newHostPassInput" placeholder="Enter new password">
+            </div>
+            <div class="form-group">
+              <label class="form-label">New 4-Digit PIN</label>
+              <input type="password" maxlength="6" class="input-control" id="newHostPinInput" placeholder="e.g. 5566">
+            </div>
+          </div>
+
+          <button class="btn-primary" onclick="updateHostCredentials()"><i class="fa-solid fa-shield-halved"></i> Update Login Credentials</button>
         </div>
 
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:12px; margin-top:14px;">
-          <button class="btn-primary" style="justify-content:center; padding:10px 14px; font-size:0.84rem;" onclick="exportMerchantCsv('bookings')">
-            <i class="fa-solid fa-file-csv"></i> Export Bookings (CSV)
-          </button>
-          <button class="btn-secondary" style="background:#ffffff; justify-content:center; padding:10px 14px; font-size:0.84rem; display:inline-flex; align-items:center; gap:6px; font-weight:700; color:#0f172a;" onclick="exportMerchantCsv('settlements')">
-            <i class="fa-solid fa-file-invoice-dollar" style="color:#059669;"></i> Export Settlements (CSV)
-          </button>
-          <button class="btn-secondary" style="background:#ffffff; justify-content:center; padding:10px 14px; font-size:0.84rem; display:inline-flex; align-items:center; gap:6px; font-weight:700; color:#0f172a;" onclick="exportMerchantCsv('reviews')">
-            <i class="fa-solid fa-star" style="color:var(--gold-main);"></i> Export Guest Reviews (CSV)
-          </button>
-          <button class="btn-secondary" style="background:#ffffff; justify-content:center; padding:10px 14px; font-size:0.84rem; display:inline-flex; align-items:center; gap:6px; font-weight:700; color:#0f172a;" onclick="exportMerchantJsonBackup()">
-            <i class="fa-solid fa-file-code" style="color:#0284c7;"></i> Host Backup (JSON)
-          </button>
+        <!-- Custom Gmail App Password & Email Settings -->
+        <div class="glass-card">
+          <h3 style="color:#0f172a; margin-bottom:6px;"><i class="fa-solid fa-envelope-open-text" style="color:var(--gold-main);"></i> Custom Email & Google App Password Setup</h3>
+          <p style="color:var(--text-muted); font-size:0.82rem; margin-bottom:16px;">
+            Configure your Gmail address and 16-character Google App Password so that all VIP passes and invoices are sent <strong>directly from your email</strong> to your guests.
+          </p>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
+            <div class="form-group">
+              <label class="form-label">Host Gmail Address *</label>
+              <input type="email" class="input-control" id="smtpUserInput" placeholder="e.g. prabhakarhomecinema@gmail.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Google 16-Character App Password *</label>
+              <input type="password" class="input-control" id="smtpPassInput" placeholder="xxxx xxxx xxxx xxxx">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Display Sender Name</label>
+              <input type="text" class="input-control" id="smtpFromNameInput" placeholder="e.g. Prabhakar Cinema Concierge">
+            </div>
+          </div>
+
+          <div style="display:flex; gap:12px; margin-top:8px;">
+            <button class="btn-secondary" onclick="testSmtpConnection()"><i class="fa-solid fa-paper-plane"></i> Test Connection</button>
+            <button class="btn-primary" onclick="saveSmtpSettings()"><i class="fa-solid fa-floppy-disk"></i> Save Email Settings</button>
+          </div>
         </div>
       </div>
 
@@ -1061,12 +1127,27 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
       document.getElementById('newHostPassInput').value = '';
     }
 
+    function switchMerchantTab(tabName) {
+      var tabs = ['reception', 'profile', 'payouts', 'settlements', 'analytics', 'settings'];
+      tabs.forEach(function(t) {
+        var btn = document.getElementById('tabBtn_' + t);
+        var content = document.getElementById('mTab_' + t);
+        if (btn) {
+          if (t === tabName) btn.classList.add('active');
+          else btn.classList.remove('active');
+        }
+        if (content) {
+          content.style.display = (t === tabName) ? 'block' : 'none';
+        }
+      });
+    }
+
     function renderMerchantBookings(bookings) {
       var container = document.getElementById('merchantBookingsContainer');
       container.innerHTML = '';
 
       if (bookings.length === 0) {
-        container.innerHTML = '<div style="color:var(--text-muted); padding:16px; text-align:center;">No bookings received yet.</div>';
+        container.innerHTML = '<div style="color:var(--text-muted); padding:16px; text-align:center;">No upcoming bookings received yet.</div>';
         return;
       }
 
@@ -1075,32 +1156,28 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
         var card = document.createElement('div');
         card.className = 'booking-row-card';
         card.innerHTML = ''
-          + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">'
+          + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">'
           + '  <div>'
-          + '    <strong style="color:var(--gold-light); font-family:monospace; font-size:1.1rem;">' + b.bookingId + '</strong>'
-          + '    <span style="background:rgba(245,158,11,0.15); border:1px solid var(--gold-main); color:var(--gold-light); padding:2px 8px; border-radius:4px; font-size:0.75rem; font-family:monospace; margin-left:6px;">Door PIN: ' + (b.checkinOtp || '8492') + '</span>'
+          + '    <strong style="color:var(--gold-main); font-family:monospace; font-size:1.15rem;">' + b.bookingId + '</strong>'
+          + '    <span style="background:var(--green-bg); border:1px solid rgba(5,150,105,0.3); color:var(--green-main); padding:3px 10px; border-radius:6px; font-size:0.78rem; font-family:monospace; font-weight:bold; margin-left:8px;"><i class="fa-solid fa-key"></i> Keypad PIN: ' + (b.checkinOtp || b.doorOtp || '8492') + '</span>'
           + '  </div>'
-          + '  <div>'
+          + '  <div style="display:flex; align-items:center; gap:8px;">'
+          + '    <span class="badge-green">Net Payout: ₹' + (b.merchantNetPayout || 4731) + ' (Paid)</span>'
           + (isCheckedIn 
-              ? '<span class="badge-green"><i class="fa-solid fa-check-double"></i> Checked-In</span>'
-              : '<button class="btn-checkin" onclick="verifyCheckinPrompt(\'' + b.bookingId + '\', \'' + b.customerName + '\')"><i class="fa-solid fa-door-open"></i> Verify Check-In</button>')
-          + '    <span class="badge-green" style="margin-left:6px;">Net Payout: ₹' + b.merchantNetPayout + '</span>'
+              ? '    <span class="badge-green" style="background:#ecfdf5; border:1px solid #10b981; font-weight:800;"><i class="fa-solid fa-circle-check"></i> Guest Checked-In</span>'
+              : '    <button class="btn-checkin" style="padding:8px 16px; font-size:0.82rem; cursor:pointer;" onclick="verifyCheckinPrompt(\'' + b.bookingId + '\', \'' + b.customerName + '\')"><i class="fa-solid fa-door-open"></i> 1-Click Mark Arrived</button>')
           + '  </div>'
           + '</div>'
-          + '<div style="font-size:0.85rem; color:#cbd5e1; line-height:1.7;">'
-          + '  <div><strong>Guest:</strong> ' + b.customerName + ' (' + b.customerPhone + ') - ' + b.customerEmail + '</div>'
-          + '  <div><strong>Slot:</strong> ' + b.venueName + ' | ' + b.bookingDate + ' (' + b.timeSlot + ')</div>'
-          + '  <div><strong>Details:</strong> ' + b.guests + ' Guests | ' + b.occasion + ' | Addons: ' + (b.addonsSummary || 'None') + '</div>'
-          + '  <div><strong>KYC ID:</strong> ' + (b.govtIdType || 'Aadhaar Card') + ' (' + (b.govtIdNumber || 'Verified') + ')</div>'
-          + '  <div style="font-size:0.75rem; color:var(--green-main);"><i class="fa-solid fa-check"></i> Damage Liability Accepted</div>'
+          + '<div style="font-size:0.86rem; color:#334155; line-height:1.8;">'
+          + '  <div><strong>Guest Name:</strong> ' + b.customerName + ' &bull; <i class="fa-solid fa-phone" style="color:var(--green-main);"></i> <a href="tel:' + b.customerPhone + '" style="color:#0284c7; text-decoration:none; font-weight:bold;">' + b.customerPhone + '</a> &bull; ' + (b.customerEmail || '') + '</div>'
+          + '  <div><strong>Screening Slot:</strong> ' + (b.venueName || 'Dolby Atmos Gold Lounge') + ' | <strong>' + b.bookingDate + '</strong> (' + b.timeSlot + ')</div>'
+          + '  <div><strong>Party Details:</strong> ' + (b.guests || 7) + ' Guests &bull; Occasion: <strong>' + (b.occasion || 'Celebration') + '</strong> &bull; Add-ons: ' + (b.addonsSummary || 'None') + '</div>'
           + '</div>';
         container.appendChild(card);
       });
     }
 
     async function verifyCheckinPrompt(bookingId, custName) {
-      if (!confirm('Mark ' + custName + ' (Booking: ' + bookingId + ') as Checked-In and verified at the door?')) return;
-
       try {
         var res = await fetch('/api/merchant/verify-checkin', {
           method: 'POST',
@@ -1110,7 +1187,7 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
         if (res.ok) {
           var data = await res.json();
           if (data.success) {
-            showToast('✓ Guest marked as Checked-In!');
+            showToast('✓ ' + custName + ' marked as Checked-In!');
             loginMerchant();
             return;
           }
@@ -1123,7 +1200,7 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
       if (b) b.checkinStatus = 'Checked-In';
       saveLocalMerchantDb(localDb);
 
-      showToast('✓ Guest marked as Checked-In at the door!');
+      showToast('✓ ' + custName + ' (Booking: ' + bookingId + ') marked as Checked-In!');
       loginMerchant();
     }
 

@@ -507,26 +507,13 @@
       <!-- 5. ADD-ONS -->
       <div class="form-group"><label class="form-label">5. Add-on Delights & Celebrations:</label><div id="modalAddonsList" style="display:flex; flex-direction:column; gap:6px;"></div></div>
 
-      <!-- Mandatory Customer KYC -->
+      <!-- Primary Guest Contact Information (Frictionless 30-Sec Checkout) -->
       <div style="border-top:1px solid var(--border-color); padding-top:14px; margin-top:14px;">
-        <h4 style="margin-bottom:10px; font-size:0.95rem;"><i class="fa-solid fa-id-card" style="color:var(--gold-main);"></i> Primary Hirer Mandatory Statutory KYC</h4>
+        <h4 style="margin-bottom:10px; font-size:0.95rem; color:#0f172a;"><i class="fa-solid fa-user-check" style="color:var(--gold-main);"></i> Primary Guest Contact Details</h4>
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px;">
-          <div><label class="form-label">Full Legal Name (As per Govt ID) *</label><input type="text" class="input-control" id="modalCustName" placeholder="e.g. Ramesh Kumar" required value="Ananya Deshmukh"></div>
-          <div><label class="form-label">WhatsApp Contact Mobile *</label><input type="tel" class="input-control" id="modalCustPhone" placeholder="+91 XXXXX XXXXX" required value="+91 98765 43210"></div>
-          <div><label class="form-label">Email Address *</label><input type="email" class="input-control" id="modalCustEmail" placeholder="guest@example.com" required value="ananya@example.com"></div>
-          <div>
-            <label class="form-label">Government ID Type *</label>
-            <select class="input-control" id="modalGovtIdType">
-              <option value="Aadhaar Card">Aadhaar Card</option>
-              <option value="Driving License">Driving License</option>
-              <option value="Voter ID">Voter ID</option>
-              <option value="Passport">Passport</option>
-            </select>
-          </div>
-          <div style="grid-column:1/-1;">
-            <label class="form-label">Govt ID Number / Last 4 Digits *</label>
-            <input type="text" class="input-control" id="modalGovtIdNumber" placeholder="e.g. 5678 or DL-TN01-2022001" required value="5678">
-          </div>
+          <div><label class="form-label">Full Name *</label><input type="text" class="input-control" id="modalCustName" placeholder="e.g. Ramesh Kumar" required value="Ananya Deshmukh"></div>
+          <div><label class="form-label">WhatsApp Contact Mobile *</label><input type="tel" class="input-control" id="modalCustPhone" placeholder="+91 98765 43210" required value="+91 98765 43210"></div>
+          <div><label class="form-label">Email Address (For Pass & Bill) *</label><input type="email" class="input-control" id="modalCustEmail" placeholder="guest@example.com" required value="ananya@example.com"></div>
         </div>
       </div>
 
@@ -1035,15 +1022,13 @@
       var name = document.getElementById('modalCustName').value.trim();
       var phone = document.getElementById('modalCustPhone').value.trim();
       var email = document.getElementById('modalCustEmail').value.trim();
-      var govtIdType = document.getElementById('modalGovtIdType').value;
-      var govtIdNumber = document.getElementById('modalGovtIdNumber').value.trim();
       var adults = document.getElementById('modalAdultsInput').value;
       var minors = document.getElementById('modalMinorsInput').value;
       var occasion = document.getElementById('modalOccasionSelect').value;
       var isLegal = document.getElementById('legalCheckbox').checked;
 
-      if (!name || !phone || !email || !govtIdNumber || !isLegal) {
-        showToast('Please complete all mandatory KYC fields and accept damage indemnity terms', true);
+      if (!name || !phone || !email || !isLegal) {
+        showToast('Please enter your Name, Phone, Email and accept damage terms', true);
         return;
       }
 
@@ -1066,9 +1051,7 @@
           selectedAddons: Object.keys(appState.selectedAddons),
           customerName: name,
           customerPhone: phone,
-          customerEmail: email,
-          govtIdType: govtIdType,
-          govtIdNumber: govtIdNumber
+          customerEmail: email
         };
 
         var res = await fetch('/api/payments/create-order', {
@@ -1089,7 +1072,7 @@
       showToast('🎉 Booking Confirmed! VIP Space Rental Pass & Tax Invoice Dispatched.');
       switchTab('passTab');
       document.getElementById('lookupQueryInput').value = bookingId;
-      renderSamplePass(bookingId, checkinOtp, name, phone, email, govtIdType, govtIdNumber, appState.selectedVenue.name, appState.selectedDate, appState.selectedSlot.name);
+      renderSamplePass(bookingId, checkinOtp, name, phone, email, 'Mobile OTP Verified', phone, appState.selectedVenue.name, appState.selectedDate, appState.selectedSlot.name);
       btn.disabled = false;
       btn.innerHTML = '<i class="fa-solid fa-lock"></i> Pay Securely via Razorpay';
     }
