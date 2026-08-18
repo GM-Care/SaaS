@@ -16,7 +16,7 @@ const DB_FILE = path.join(__dirname, 'marketplace_db.json');
 const DEFAULT_SEED_DATA = {
   adminCredentials: {
     username: 'admin',
-    email: process.env.ADMIN_EMAIL || 'prabhakar@prabhakarcinema.in',
+    email: process.env.ADMIN_EMAIL || 'support@gm-care.in',
     password: process.env.ADMIN_PASSWORD || 'admin123',
     pin: process.env.ADMIN_PIN || '1234',
     updatedAt: '2026-08-18'
@@ -39,26 +39,26 @@ const DEFAULT_SEED_DATA = {
   merchants: [
     {
       id: 'MERCH-001',
-      username: 'prabhakar',
+      username: 'host',
       password: 'password123',
       pin: '1234',
-      businessName: 'Prabhakar Luxury Theaters & Hospitality LLP',
-      brandName: 'Prabhakar Home Cinema',
+      businessName: 'Gadget Media Care',
+      brandName: 'Dolby Atmos Gold Lounge',
       logo: 'https://img.icons8.com/fluency/96/movie-projector.png',
-      entityType: 'Limited Liability Partnership (LLP)',
-      gstin: '33AABCP1234F1Z8',
-      panNumber: 'AABCP1234F',
-      ownerName: 'Prabhakar R.',
-      phone: '+91 99622 79790',
-      email: 'prabhakar@prabhakarcinema.in',
+      entityType: 'Sole Proprietorship',
+      gstin: '33BCXPR4393D2Z2',
+      panNumber: 'BCXPR4393D',
+      ownerName: 'Ranjith',
+      phone: '+91-8667708711',
+      email: 'support@gm-care.in',
       city: 'Chennai',
       locality: 'Anna Nagar',
-      address: 'Prabhakar Home Cinemas, 4th Cross Street, Anna Nagar, Chennai, Tamil Nadu - 600040.',
+      address: 'Gadget Media Care, 4th Cross Street, Anna Nagar, Chennai, Tamil Nadu - 600040.',
       googleMapsUrl: 'https://maps.google.com/?q=Anna+Nagar+Chennai',
       electricityConsumerNo: '04-123-456-789',
       fireSafetyCertified: true,
       cctvInstalled: true,
-      bankAccountName: 'Prabhakar Luxury Theaters LLP',
+      bankAccountName: 'Gadget Media Care',
       bankName: 'HDFC Bank Ltd',
       bankAccountNumber: '50200012345678',
       bankIfsc: 'HDFC0000123',
@@ -70,9 +70,9 @@ const DEFAULT_SEED_DATA = {
       smtpConfig: {
         host: 'smtp.gmail.com',
         port: 587,
-        user: 'prabhakarhomecinema@gmail.com',
+        user: 'support@gm-care.in',
         pass: '',
-        fromName: 'Prabhakar Home Cinema Concierge'
+        fromName: 'CineSpace Concierge'
       },
       status: 'Active',
       joinedAt: '2026-01-15'
@@ -124,7 +124,7 @@ const DEFAULT_SEED_DATA = {
       id: 'VEN-001',
       merchantId: 'MERCH-001',
       name: 'Dolby Atmos Gold Lounge (5 Recliners + 4 Bed Lounge)',
-      brandName: 'Prabhakar Home Cinema',
+      brandName: 'Dolby Atmos Gold Lounge',
       city: 'Chennai',
       locality: 'Anna Nagar',
       capacity: 9,
@@ -153,7 +153,7 @@ const DEFAULT_SEED_DATA = {
       id: 'VEN-002',
       merchantId: 'MERCH-001',
       name: 'IMAX Grand Suite',
-      brandName: 'Prabhakar Home Cinema',
+      brandName: 'Dolby Atmos Gold Lounge',
       city: 'Chennai',
       locality: 'Anna Nagar',
       capacity: 14,
@@ -197,7 +197,7 @@ const DEFAULT_SEED_DATA = {
       id: 'REV-001',
       venueId: 'VEN-001',
       merchantId: 'MERCH-001',
-      bookingId: 'PHC-7A8B',
+      bookingId: 'CS-7842',
       customerName: 'Ananya Deshmukh',
       rating: 5,
       avRating: 5,
@@ -333,7 +333,7 @@ const dbService = {
   getAdminCredentials: () => {
     return db.adminCredentials || {
       username: 'admin',
-      email: process.env.ADMIN_EMAIL || 'prabhakar@prabhakarcinema.in',
+      email: process.env.ADMIN_EMAIL || 'support@gm-care.in',
       password: process.env.ADMIN_PASSWORD || 'admin123',
       pin: process.env.ADMIN_PIN || '1234'
     };
@@ -348,7 +348,7 @@ const dbService = {
   updateAdminCredentials: (newUsername, newPassword, newPin) => {
     db.adminCredentials = {
       username: newUsername ? newUsername.trim() : (db.adminCredentials.username || 'admin'),
-      email: db.adminCredentials.email || 'prabhakar@prabhakarcinema.in',
+      email: db.adminCredentials.email || 'support@gm-care.in',
       password: newPassword ? newPassword.trim() : (db.adminCredentials.password || 'admin123'),
       pin: newPin ? newPin.trim() : (db.adminCredentials.pin || '1234'),
       updatedAt: new Date().toISOString()
@@ -678,7 +678,7 @@ const dbService = {
 
   // --- BOOKINGS & STATUTORY CONTRACT ---
   createBooking: (payload) => {
-    const bookingId = 'PHC-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+    const bookingId = 'CS-' + Math.random().toString(36).substring(2, 6).toUpperCase();
     const checkinOtp = Math.floor(1000 + Math.random() * 9000).toString();
 
     const newBooking = {

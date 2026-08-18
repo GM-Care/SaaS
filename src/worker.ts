@@ -38,26 +38,26 @@ const JSON_HEADERS = {
 // ============================================================================
 let globalMerchantData: any = {
   id: 'MERCH-001',
-  username: 'prabhakar',
+  username: 'host',
   pin: '1234',
   password: 'password123',
-  brandName: 'Prabhakar Home Cinema',
-  businessName: 'Prabhakar Luxury Theaters & Hospitality LLP',
-  entityType: 'Limited Liability Partnership (LLP)',
+  brandName: 'Dolby Atmos Gold Lounge',
+  businessName: 'Gadget Media Care',
+  entityType: 'Sole Proprietorship',
   logo: 'https://img.icons8.com/fluency/96/movie-projector.png',
   city: 'Chennai',
   locality: 'Anna Nagar',
-  phone: '+91 99622 79790',
-  email: 'prabhakar@prabhakarcinema.in',
-  address: 'Prabhakar Home Cinemas, 4th Cross Street, Anna Nagar, Chennai - 600040.',
+  phone: '+91 86677 08711',
+  email: 'support@gm-care.in',
+  address: 'Gadget Media Care, 4th Cross Street, Anna Nagar, Chennai, Tamil Nadu - 600040.',
   googleMapsUrl: 'https://maps.google.com/?q=Anna+Nagar+Chennai',
   upiId: '8667708711@upi',
   bankName: 'HDFC Bank Ltd',
   bankAccountNumber: '50200012345678',
   bankIfsc: 'HDFC0000123',
-  bankHolder: 'Prabhakar Luxury Theaters & Hospitality LLP',
-  gstin: '33AABCP1234F1Z8',
-  panNumber: 'AABCP1234F',
+  bankHolder: 'Gadget Media Care',
+  gstin: '33BCXPR4393D2Z2',
+  panNumber: 'BCXPR4393D',
   commissionRatePercent: 3.0,
   verificationStatus: 'Approved',
   inspectionNotes: 'Certified 9-Guest Luxury Lounge: 5 Motorized Recliners + 4 Bed VIP Lounge. 4K Laser & 9.4.6 Dolby Atmos Verified.',
@@ -126,7 +126,7 @@ export default {
               id: 'VEN-001',
               merchantId: 'MERCH-001',
               name: 'Dolby Atmos Gold Lounge (5 Recliners + 4 Bed Lounge)',
-              brandName: 'Prabhakar Home Cinema',
+              brandName: 'Dolby Atmos Gold Lounge',
               city: 'Chennai',
               locality: 'Anna Nagar',
               capacity: 9,
@@ -151,33 +151,24 @@ export default {
       }
 
       // ----------------------------------------------------------------------
-      // 2. VENUE AVAILABILITY & LOCKING STATUS
+      // 2. VENUE CALENDAR & SLOTS STATUS
       // ----------------------------------------------------------------------
-      if (path === '/api/marketplace/availability' && request.method === 'GET') {
-        const venueId = url.searchParams.get('venueId') || 'VEN-001';
-        const date = url.searchParams.get('date') || new Date().toISOString().split('T')[0];
-
-        const defaultSlots = [
-          { time: '10:00 AM - 01:00 PM', label: 'Morning Delight', price: 3499, available: true },
-          { time: '02:00 PM - 05:00 PM', label: 'Matinee Special', price: 3999, available: true },
-          { time: '06:00 PM - 09:00 PM', label: 'Prime Evening', price: 4999, available: false },
-          { time: '10:00 PM - 01:00 AM', label: 'Midnight Premiere', price: 4999, available: true }
+      if (path.startsWith('/api/marketplace/venues/') && path.endsWith('/calendar') && request.method === 'GET') {
+        const slots = [
+          { id: 'SLT-01', name: 'Morning Matinee (10:00 AM - 01:00 PM)', startTime: '10:00 AM', endTime: '01:00 PM', price: 4999, status: 'Available' },
+          { id: 'SLT-02', name: 'Afternoon Screening (02:00 PM - 05:00 PM)', startTime: '02:00 PM', endTime: '05:00 PM', price: 4999, status: 'Available' },
+          { id: 'SLT-03', name: 'Prime Evening (06:00 PM - 09:00 PM)', startTime: '06:00 PM', endTime: '09:00 PM', price: 4999, status: 'Booked' },
+          { id: 'SLT-04', name: 'Midnight Chill (10:00 PM - 01:00 AM)', startTime: '10:00 PM', endTime: '01:00 AM', price: 4999, status: 'Available' }
         ];
-
-        return new Response(JSON.stringify({
-          success: true,
-          venueId,
-          date,
-          slots: defaultSlots
-        }), { headers: JSON_HEADERS });
+        return new Response(JSON.stringify({ success: true, slots }), { headers: JSON_HEADERS });
       }
 
       // ----------------------------------------------------------------------
-      // 3. CREATE BOOKING & INITIATE RAZORPAY ORDER (TRANSACTIONAL)
+      // 3. CREATE RAZORPAY ORDER (EDGE DISTRIBUTED LOCKING)
       // ----------------------------------------------------------------------
-      if (path === '/api/bookings/create' && request.method === 'POST') {
+      if (path === '/api/payments/create-order' && request.method === 'POST') {
         const body: any = await request.json();
-        const bookingId = `PHC-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+        const bookingId = `CS-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
         const checkinOtp = Math.floor(1000 + Math.random() * 9000).toString();
         const totalAmount = body.totalAmount || 4999;
         const keyId = env.RAZORPAY_KEY_ID || 'rzp_test_DemoCineSpace2026';
@@ -247,7 +238,7 @@ export default {
           success: true,
           message: 'Payment verified and reservation confirmed!',
           booking: {
-            bookingId: body.bookingId || 'PHC-7A8B',
+            bookingId: body.bookingId || 'CS-7842',
             checkinOtp: '8492',
             paymentStatus: 'Paid',
             checkinStatus: 'Pending Check-In'
@@ -297,7 +288,7 @@ export default {
           ],
           bookings: [
             {
-              bookingId: 'PHC-7A8B',
+              bookingId: 'CS-7842',
               checkinOtp: '8492',
               venueName: 'Dolby Atmos Gold Lounge',
               customerName: 'Ananya Deshmukh',
@@ -326,7 +317,7 @@ export default {
           settlements: [
             {
               settlementId: 'SETT-8921',
-              bookingId: 'PHC-7A8B',
+              bookingId: 'CS-7842',
               showDate: '2026-08-18',
               grossTotal: 4999,
               platformFeeDeducted: 150,
@@ -364,7 +355,7 @@ export default {
           },
           adminInfo: {
             username: 'admin',
-            email: 'prabhakar@prabhakarcinema.in',
+            email: 'support@gm-care.in',
             pin: '1234'
           },
           gatewaySettings: {
@@ -397,7 +388,7 @@ export default {
           settlements: [
             {
               settlementId: 'SETT-8921',
-              bookingId: 'PHC-7A8B',
+              bookingId: 'CS-7842',
               merchantId: 'MERCH-001',
               showDate: '2026-08-18',
               grossTotal: 4999,

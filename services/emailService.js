@@ -45,7 +45,7 @@ const emailService = {
       const transporter = createTransporter(merchant ? merchant.smtpConfig : null);
       const senderEmail = (merchant && merchant.smtpConfig && merchant.smtpConfig.user) ? merchant.smtpConfig.user : 'concierge@cinespace.in';
       const senderName = (merchant && merchant.smtpConfig && merchant.smtpConfig.fromName) ? merchant.smtpConfig.fromName : (merchant ? merchant.brandName : 'CineSpace Concierge');
-      const hostPhone = merchant ? merchant.phone : '+91 99622 79790';
+      const hostPhone = merchant ? merchant.phone : '+91 86677 08711';
       const cleanHostPhone = hostPhone.replace(/\D+/g, '');
 
       const mailOptions = {

@@ -366,9 +366,9 @@
     <div id="passTab" class="tab-pane">
       <div class="glass-card" style="max-width:680px; margin:0 auto;">
         <h2 style="margin-bottom:8px;"><i class="fa-solid fa-magnifying-glass" style="color:var(--gold-main);"></i> VIP Pass, Door PIN & Tax Invoice</h2>
-        <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:18px;">Enter your <strong>Booking ID</strong> (e.g. PHC-7A8B) or registered <strong>Phone Number</strong>.</p>
+        <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:18px;">Enter your <strong>Booking ID</strong> (e.g. CS-7842) or registered <strong>Phone Number</strong>.</p>
         <div style="display:flex; gap:10px; margin-bottom:24px;">
-          <input type="text" class="input-control" id="lookupQueryInput" placeholder="Enter Booking ID or Phone" value="PHC-7A8B">
+          <input type="text" class="input-control" id="lookupQueryInput" placeholder="Enter Booking ID or Phone" value="CS-7842">
           <button class="btn-primary" onclick="lookupPass()" style="white-space:nowrap;">Search <i class="fa-solid fa-search"></i></button>
         </div>
         <div id="passLookupResult"></div>
@@ -389,21 +389,21 @@
             <div class="form-group">
               <label class="form-label">Legal Entity Type *</label>
               <select class="input-control" id="regEntityType" required>
-                <option value="Sole Proprietorship">Sole Proprietorship</option>
+                <option value="Sole Proprietorship" selected>Sole Proprietorship</option>
                 <option value="Partnership Firm">Partnership Firm</option>
-                <option value="Limited Liability Partnership (LLP)" selected>Limited Liability Partnership (LLP)</option>
+                <option value="Limited Liability Partnership (LLP)">Limited Liability Partnership (LLP)</option>
                 <option value="Private Limited Company">Private Limited Company</option>
                 <option value="Individual Property Owner">Individual Property Owner</option>
               </select>
             </div>
-            <div class="form-group"><label class="form-label">Registered Business Legal Name *</label><input type="text" class="input-control" id="regBizName" placeholder="e.g. Prabhakar Luxury Theaters LLP" required></div>
-            <div class="form-group"><label class="form-label">Brand / Display Name *</label><input type="text" class="input-control" id="regBrandName" placeholder="e.g. Prabhakar Home Cinema" required></div>
+            <div class="form-group"><label class="form-label">Registered Business Legal Name *</label><input type="text" class="input-control" id="regBizName" placeholder="e.g. Gadget Media Care" required></div>
+            <div class="form-group"><label class="form-label">Brand / Display Name *</label><input type="text" class="input-control" id="regBrandName" placeholder="e.g. Dolby Atmos Gold Lounge" required></div>
             <div class="form-group"><label class="form-label">Brand Logo URL</label><input type="url" class="input-control" id="regLogo" placeholder="https://.../logo.png"></div>
-            <div class="form-group"><label class="form-label">GSTIN (or Exemption Declaration) *</label><input type="text" class="input-control" id="regGstin" placeholder="e.g. 33AABCP1234F1Z8" value="33AABCP1234F1Z8"></div>
-            <div class="form-group"><label class="form-label">Business / Owner PAN Card No *</label><input type="text" class="input-control" id="regPan" placeholder="e.g. AABCP1234F" required></div>
-            <div class="form-group"><label class="form-label">Authorized Signatory Full Name *</label><input type="text" class="input-control" id="regOwnerName" required></div>
-            <div class="form-group"><label class="form-label">Mobile / WhatsApp Number *</label><input type="tel" class="input-control" id="regPhone" required></div>
-            <div class="form-group"><label class="form-label">Official Email Address *</label><input type="email" class="input-control" id="regEmail" required></div>
+            <div class="form-group"><label class="form-label">GSTIN (or Exemption Declaration) *</label><input type="text" class="input-control" id="regGstin" placeholder="e.g. 33BCXPR4393D2Z2" value="33BCXPR4393D2Z2"></div>
+            <div class="form-group"><label class="form-label">Business / Owner PAN Card No *</label><input type="text" class="input-control" id="regPan" placeholder="e.g. BCXPR4393D" required></div>
+            <div class="form-group"><label class="form-label">Authorized Signatory Full Name *</label><input type="text" class="input-control" id="regOwnerName" placeholder="Signatory Full Name" required></div>
+            <div class="form-group"><label class="form-label">Mobile / WhatsApp Number *</label><input type="tel" class="input-control" id="regPhone" placeholder="+91 86677 08711" required></div>
+            <div class="form-group"><label class="form-label">Official Email Address *</label><input type="email" class="input-control" id="regEmail" placeholder="support@gm-care.in" required></div>
             <div class="form-group"><label class="form-label">City *</label>
               <select class="input-control" id="regCity">
                 <option value="Chennai">Chennai</option>
@@ -611,7 +611,7 @@
         id: 'VEN-001',
         merchantId: 'MERCH-001',
         name: 'Dolby Atmos Gold Lounge (5 Recliners + 4 Bed Lounge)',
-        brandName: 'Prabhakar Home Cinema',
+        brandName: 'Dolby Atmos Gold Lounge',
         city: 'Chennai',
         locality: 'Anna Nagar',
         capacity: 9,
@@ -1054,7 +1054,7 @@
       btn.disabled = true;
       btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Initializing Razorpay Gateway...';
 
-      var bookingId = 'PHC-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+      var bookingId = 'CS-' + Math.random().toString(36).substring(2, 6).toUpperCase();
       var checkinOtp = Math.floor(1000 + Math.random() * 9000).toString();
 
       try {
@@ -1106,7 +1106,7 @@
         + '      <div style="background:var(--green-bg); border:1px solid var(--green-main); padding:4px 14px; border-radius:8px;"><span style="font-size:0.7rem; color:var(--green-main); font-weight:bold; display:block;">DOOR PIN</span><div style="font-size:1.5rem; font-weight:900; color:var(--green-main); font-family:monospace;">' + otp + '</div></div>'
         + '    </div>'
         + '    <h3 style="font-size:1.2rem; color:#0f172a;">' + venueName + '</h3>'
-        + '    <p style="color:var(--text-muted); font-size:0.8rem; font-weight:500;">Prabhakar Home Cinema &bull; GSTIN: 33AABCP1234F1Z8</p>'
+        + '    <p style="color:var(--text-muted); font-size:0.8rem; font-weight:500;">Dolby Atmos Gold Lounge &bull; GSTIN: 33BCXPR4393D2Z2</p>'
         + '  </div>'
         + '  <div style="font-size:0.88rem; color:#334155; line-height:1.8;">'
         + '    <div style="display:flex; justify-content:space-between;"><span style="color:var(--text-muted);">Primary Hirer:</span><strong>' + name + ' (' + phone + ')</strong></div>'
@@ -1118,7 +1118,7 @@
         + '    <strong>Auditorium Rules:</strong> 🚭 Strict No Smoking &bull; 👟 Indoor footwear only &bull; 👥 Max 9 Guests strictly enforced.'
         + '  </div>'
         + '  <div style="text-align:center; margin-top:16px;">'
-        + '    <a href="https://wa.me/919962279790?text=Hi%20Prabhakar%20Home%20Cinema%2C%20I%20have%20booked%20slot%20' + encodeURIComponent(slotName) + '%20(Booking%20ID%3A%20' + bId + ')%2E%20Please%20share%20directions%2E" target="_blank" style="background:#25D366; color:#ffffff; font-weight:bold; text-decoration:none; padding:10px 20px; border-radius:20px; font-size:0.85rem; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(37,211,102,0.3);">'
+        + '    <a href="https://wa.me/918667708711?text=Hi%20CineSpace%20Host%2C%20I%20have%20booked%20slot%20' + encodeURIComponent(slotName) + '%20(Booking%20ID%3A%20' + bId + ')%2E%20Please%20share%20directions%2E" target="_blank" style="background:#25D366; color:#ffffff; font-weight:bold; text-decoration:none; padding:10px 20px; border-radius:20px; font-size:0.85rem; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(37,211,102,0.3);">'
         + '      <i class="fa-brands fa-whatsapp"></i> Chat with Host for Directions & Entry'
         + '    </a>'
         + '  </div>'
@@ -1129,7 +1129,7 @@
       var query = document.getElementById('lookupQueryInput').value.trim();
       if (!query) { showToast('Please enter Booking ID or Phone', true); return; }
 
-      renderSamplePass(query || 'PHC-7A8B', '8492', 'Ananya Deshmukh', '+91 98765 43210', 'ananya@example.com', 'Aadhaar Card', '5678', 'Dolby Atmos Gold Lounge', '2026-08-18', 'Prime Evening (06:00 PM - 09:00 PM)');
+      renderSamplePass(query || 'CS-7842', '8492', 'Ananya Deshmukh', '+91 98765 43210', 'ananya@example.com', 'Aadhaar Card', '5678', 'Dolby Atmos Gold Lounge', '2026-08-18', 'Prime Evening (06:00 PM - 09:00 PM)');
     }
 
     async function submitFeedback(venueId, merchantId, bookingId, custName) {
@@ -1183,11 +1183,13 @@
       } else if (type === 'contact') {
         title.innerText = 'Contact Us & Grievance Redressal';
         body.innerHTML = ''
-          + '<p><strong>Platform Entity:</strong> Gadget Media Care</p>'
-          + '<p><strong>Brand:</strong> CineSpace India / Prabhakar Home Cinema</p>'
-          + '<p><strong>Physical Address:</strong> Prabhakar Home Cinemas, 4th Cross Street, Anna Nagar, Chennai, Tamil Nadu - 600040.</p>'
-          + '<p><strong>Helpline / WhatsApp:</strong> +91 99622 79790</p>'
-          + '<p><strong>Email Support:</strong> support@prabhakarcinema.in</p>'
+          + '<p><strong>Platform Legal Entity:</strong> Gadget Media Care</p>'
+          + '<p><strong>Brand / Marketplace:</strong> CineSpace India</p>'
+          + '<p><strong>GST Number:</strong> 33BCXPR4393D2Z2</p>'
+          + '<p><strong>Registered Address:</strong> Gadget Media Care, Anna Nagar, Chennai, Tamil Nadu - 600040</p>'
+          + '<p><strong>Customer Support Email:</strong> <a href="mailto:support@gm-care.in" style="color:#0284c7;">support@gm-care.in</a> (or <a href="mailto:support@cinespace.in" style="color:#0284c7;">support@cinespace.in</a>)</p>'
+          + '<p><strong>Grievance & Escalation Officer:</strong> <a href="mailto:ranjith@gm-care.in" style="color:#0284c7;">ranjith@gm-care.in</a></p>'
+          + '<p><strong>Official Contact / WhatsApp:</strong> <a href="tel:+918667708711" style="color:#059669; font-weight:bold;">+91-8667708711</a></p>'
           + '<p><strong>Support Hours:</strong> 09:00 AM - 11:00 PM (Monday to Sunday)</p>';
       }
 

@@ -273,7 +273,7 @@
 
       <div class="form-group">
         <label class="form-label">Username or Admin Email</label>
-        <input type="text" class="input-control" id="adminLoginUserInput" placeholder="e.g. admin or prabhakar@prabhakarcinema.in" value="admin">
+        <input type="text" class="input-control" id="adminLoginUserInput" placeholder="e.g. admin or support@gm-care.in" value="admin">
       </div>
 
       <div class="form-group">
@@ -626,7 +626,7 @@
 
       <div class="form-group">
         <label class="form-label">Admin Email Address *</label>
-        <input type="email" class="input-control" id="adminForgotEmailInput" placeholder="e.g. prabhakar@prabhakarcinema.in" value="prabhakar@prabhakarcinema.in">
+        <input type="email" class="input-control" id="adminForgotEmailInput" placeholder="e.g. support@gm-care.in" value="support@gm-care.in">
       </div>
 
       <button class="btn-primary" style="width:100%; justify-content:center;" id="adminSendResetBtn" onclick="requestAdminPasswordResetLink()">
@@ -647,7 +647,7 @@
       <input type="hidden" id="editPayoutMerchantId">
 
       <div style="background:#f8fafc; border:1px solid var(--border-color); border-radius:8px; padding:10px; margin-bottom:14px; font-size:0.82rem;">
-        <strong id="editPayoutBrandTitle" style="color:#0f172a;">Prabhakar Home Cinema</strong>
+        <strong id="editPayoutBrandTitle" style="color:#0f172a;">Dolby Atmos Gold Lounge</strong>
         <div id="editPayoutMerchantIdText" style="font-size:0.75rem; color:var(--text-muted); font-family:monospace;">MERCH-001</div>
       </div>
 
@@ -692,24 +692,24 @@
 
     // --- BUILT-IN FALLBACK DATABASE (OFFLINE & CLOUDFLARE STATIC COMPATIBLE) ---
     var defaultSeedData = {
-      adminInfo: { username: 'admin', email: 'prabhakar@prabhakarcinema.in', pin: '1234', password: 'admin123' },
+      adminInfo: { username: 'admin', email: 'support@gm-care.in', pin: '1234', password: 'admin123' },
       stats: { totalGmv: 4999, totalPlatformCommission: 150, approvedMerchantsCount: 2, pendingMerchantsCount: 0 },
       merchants: [
         {
           id: 'MERCH-001',
-          username: 'prabhakar',
+          username: 'host',
           pin: '1234',
           password: 'password123',
-          brandName: 'Prabhakar Home Cinema',
-          businessName: 'Prabhakar Luxury Theaters & Hospitality LLP',
-          entityType: 'Limited Liability Partnership (LLP)',
-          gstin: '33AABCP1234F1Z8',
-          panNumber: 'AABCP1234F',
-          phone: '+91 99622 79790',
-          email: 'prabhakar@prabhakarcinema.in',
+          brandName: 'Dolby Atmos Gold Lounge',
+          businessName: 'Gadget Media Care',
+          entityType: 'Sole Proprietorship',
+          gstin: '33BCXPR4393D2Z2',
+          panNumber: 'BCXPR4393D',
+          phone: '+91 86677 08711',
+          email: 'support@gm-care.in',
           city: 'Chennai',
           locality: 'Anna Nagar',
-          address: 'Prabhakar Home Cinemas, 4th Cross Street, Anna Nagar, Chennai, Tamil Nadu - 600040.',
+          address: 'Gadget Media Care, 4th Cross Street, Anna Nagar, Chennai, Tamil Nadu - 600040.',
           bankName: 'HDFC Bank Ltd',
           bankAccountNumber: '50200012345678',
           bankIfsc: 'HDFC0000123',
@@ -765,7 +765,7 @@
       settlements: [
         {
           settlementId: 'SETT-8921',
-          bookingId: 'PHC-7A8B',
+          bookingId: 'CS-7842',
           merchantId: 'MERCH-001',
           showDate: '2026-08-18',
           grossTotal: 4999,
@@ -1583,7 +1583,7 @@
         venues: localDb.venues || [],
         bookings: localDb.bookings || [
           {
-            bookingId: 'PHC-7A8B',
+            bookingId: 'CS-7842',
             venueId: 'VEN-001',
             merchantId: 'MERCH-001',
             customerName: 'Ananya Deshmukh',
@@ -1623,7 +1623,7 @@
       if (tableName === 'bookings') {
         var bookings = localDb.bookings || [
           {
-            bookingId: 'PHC-7A8B',
+            bookingId: 'CS-7842',
             venueId: 'VEN-001',
             merchantId: 'MERCH-001',
             customerName: 'Ananya Deshmukh',

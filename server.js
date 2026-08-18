@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * CINESPACE & PRABHAKAR HOME CINEMA - MULTI-TENANT SAAS SERVER
+ * CINESPACE INDIA - MULTI-TENANT LUXURY PRIVATE CINEMA MARKETPLACE
  * ============================================================================
  * Full-Stack Node.js + Express + Razorpay Gateway + Webhook Engine
  * Features: 3 Dedicated Portals, 10-Photo Gallery & Video Walkthrough Manager,
@@ -161,7 +161,7 @@ app.get('/api/config', (req, res) => {
     platformName: process.env.PLATFORM_NAME || 'CineSpace India - Luxury Private Theaters',
     razorpayKeyId: razorpayService.getKeyId(),
     defaultCommissionPercent: parseFloat(process.env.PLATFORM_COMMISSION_PERCENT || '10.0'),
-    defaultSupportPhone: process.env.DEFAULT_SUPPORT_WHATSAPP || '+91 99622 79790',
+    defaultSupportPhone: process.env.DEFAULT_SUPPORT_WHATSAPP || '+91 86677 08711',
     legalDeclarations: LEGAL_DECLARATIONS,
     houseRules: db.getHouseRules()
   });

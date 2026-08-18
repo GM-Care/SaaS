@@ -2,7 +2,7 @@
 -- CLOUDFLARE D1 INITIAL SEED DATA
 -- ============================================================================
 
--- 1. Pilot Flagship Host: Prabhakar Home Cinema
+-- 1. Pilot Flagship Host: Dolby Atmos Gold Lounge
 INSERT OR REPLACE INTO merchants (
   id, username, pin, business_name, brand_name, logo_url,
   entity_type, gstin, pan_number, owner_name, phone, email,
@@ -10,11 +10,11 @@ INSERT OR REPLACE INTO merchants (
   bank_name, bank_account_no, bank_ifsc, upi_id, commission_rate_percent,
   verification_status, inspection_notes
 ) VALUES (
-  'MERCH-001', 'prabhakar', '1234', 'Prabhakar Luxury Theaters & Hospitality LLP', 'Prabhakar Home Cinema',
+  'MERCH-001', 'host', '1234', 'Gadget Media Care', 'Dolby Atmos Gold Lounge',
   'https://img.icons8.com/fluency/96/movie-projector.png',
-  'Limited Liability Partnership (LLP)', '33AABCP1234F1Z8', 'AABCP1234F', 'Prabhakar R.',
-  '+91 99622 79790', 'prabhakar@prabhakarcinema.in',
-  'Chennai', 'Anna Nagar', 'Prabhakar Home Cinemas, 4th Cross Street, Anna Nagar, Chennai, Tamil Nadu - 600040.',
+  'Sole Proprietorship', '33BCXPR4393D2Z2', 'BCXPR4393D', 'Ranjith',
+  '+91 86677 08711', 'support@gm-care.in',
+  'Chennai', 'Anna Nagar', 'Gadget Media Care, 4th Cross Street, Anna Nagar, Chennai, Tamil Nadu - 600040.',
   'https://maps.google.com/?q=Anna+Nagar+Chennai',
   'HDFC Bank Ltd', '50200012345678', 'HDFC0000123', '8667708711@upi', 3.0,
   'Approved', 'Certified 9-Guest Luxury Lounge: 5 Motorized Ergonomic Recliners + 4 Bed VIP Lounge. 4K Laser & 9.4.6 Dolby Atmos Verified.'
@@ -76,7 +76,7 @@ INSERT OR REPLACE INTO bookings (
   damage_liability_accepted, addons_json, total_amount, platform_commission, merchant_net_payout,
   razorpay_order_id, razorpay_payment_id, payment_status, checkin_status
 ) VALUES (
-  'BKG-001', 'PHC-7A8B', 'VEN-001', 'MERCH-001', 'Ananya Deshmukh', '+91 98765 43210', 'ananya@example.com',
+  'BKG-001', 'CS-7842', 'VEN-001', 'MERCH-001', 'Ananya Deshmukh', '+91 98765 43210', 'ananya@example.com',
   '2026-08-18', 'Prime Evening (06:00 PM - 09:00 PM)', 7, 'Birthday Celebration',
   '8492', 'Aadhaar Card', '5678', 1,
   '["Caramel Popcorn & Artisanal Drinks Tub (₹899)", "VIP Celebration Decor (₹1299)"]',
@@ -88,7 +88,7 @@ INSERT OR REPLACE INTO settlements (
   id, settlement_id, booking_id, merchant_id, show_date, gross_total,
   platform_fee_deducted, net_payable_to_merchant, settlement_status, payout_utr
 ) VALUES (
-  'SETT-001', 'SETT-8921', 'PHC-7A8B', 'MERCH-001', '2026-08-18', 4999.0,
+  'SETT-001', 'SETT-8921', 'CS-7842', 'MERCH-001', '2026-08-18', 4999.0,
   150.0, 4731.0, 'Settled', 'HDFC-UPI-99281729'
 );
 
@@ -97,11 +97,11 @@ INSERT OR REPLACE INTO reviews (
   id, venue_id, merchant_id, booking_id, customer_name, rating,
   av_rating, comfort_rating, hospitality_rating, comment
 ) VALUES (
-  'REV-001', 'VEN-001', 'MERCH-001', 'PHC-7A8B', 'Ananya Deshmukh', 5,
+  'REV-001', 'VEN-001', 'MERCH-001', 'CS-7842', 'Ananya Deshmukh', 5,
   5, 5, 5, 'Unbelievable Dolby Atmos 9.4.6 audio separation! The 5 motorized recliners and 4-bed lounge made our family birthday celebration pure luxury.'
 );
 
 -- 6. Gateway & Platform Config
 INSERT OR REPLACE INTO settings (key, value) VALUES
-  ('ADMIN_CREDENTIALS', '{"username":"admin","email":"prabhakar@prabhakarcinema.in","pin":"1234"}'),
+  ('ADMIN_CREDENTIALS', '{"username":"admin","email":"support@gm-care.in","pin":"1234"}'),
   ('GATEWAY_SETTINGS', '{"keyId":"rzp_test_DemoCineSpace2026","keySecret":"demo_secret_key_123","webhookSecret":"demo_webhook_secret","mode":"Test Mode (Sandbox)"}');
