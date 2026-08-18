@@ -6,6 +6,7 @@
  * ============================================================================
  */
 
+import { connect } from 'cloudflare:sockets';
 import { BookingLockDO } from './lib/durable-objects/BookingLockDO';
 import { razorpayEdge } from './lib/razorpay';
 import { r2Service } from './lib/r2/r2Client';
@@ -193,49 +194,221 @@ let globalSettlements: any[] = [
   }
 ];
 
-async function sendEdgeEmail(to: string, subject: string, html: string, fromName = 'CineSpace Concierge', fromEmail = 'support@gm-care.in') {
-  if (!to || !to.includes('@')) return { success: false, error: 'Invalid recipient email' };
+interface SmtpCredentials {
+  host?: string;
+  port?: number;
+  user: string;
+  pass: string;
+  fromName?: string;
+}
+
+async function sendDirectGoogleSmtp(
+  creds: SmtpCredentials,
+  toEmail: string,
+  subject: string,
+  htmlContent: string
+): Promise<{ success: boolean; error?: string; messageId?: string }> {
+  const host = creds.host || 'smtp.gmail.com';
+  const port = Number(creds.port) || 465;
+  const user = (creds.user || '').trim();
+  const pass = (creds.pass || '').trim().replace(/\s+/g, '');
+
+  if (!user || !pass) {
+    return { success: false, error: 'Gmail address or 16-character Google App Password is missing.' };
+  }
 
   try {
-    const payload = {
-      personalizations: [
-        {
-          to: [{ email: to.trim() }]
+    const socket = connect(
+      { hostname: host, port: port },
+      { secureTransport: port === 465 ? 'on' : 'off' }
+    );
+
+    const writer = socket.writable.getWriter();
+    const reader = socket.readable.getReader();
+    const decoder = new TextDecoder();
+    const encoder = new TextEncoder();
+
+    let buffer = '';
+
+    async function readResponse(): Promise<string> {
+      while (true) {
+        const lines = buffer.split('\r\n');
+        for (let i = 0; i < lines.length - 1; i++) {
+          const line = lines[i];
+          if (/^\d{3} /.test(line)) {
+            const consumedIdx = buffer.indexOf(line) + line.length + 2;
+            const fullReply = buffer.slice(0, consumedIdx);
+            buffer = buffer.slice(consumedIdx);
+            return fullReply;
+          }
         }
-      ],
+
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+      }
+      return buffer;
+    }
+
+    async function sendCmd(cmd: string): Promise<string> {
+      await writer.write(encoder.encode(cmd + '\r\n'));
+      return await readResponse();
+    }
+
+    // 1. Read Greeting (220)
+    const greeting = await readResponse();
+    if (!greeting.startsWith('220')) {
+      throw new Error(`Gmail SMTP greeting failed: ${greeting.trim()}`);
+    }
+
+    // 2. Send EHLO
+    const ehlo = await sendCmd('EHLO localhost');
+    if (!ehlo.includes('250')) {
+      throw new Error(`EHLO failed: ${ehlo.trim()}`);
+    }
+
+    // 3. AUTH LOGIN
+    const authStart = await sendCmd('AUTH LOGIN');
+    if (!authStart.includes('334')) {
+      throw new Error(`AUTH LOGIN initiation failed: ${authStart.trim()}`);
+    }
+
+    // Send Base64 Username
+    const userResp = await sendCmd(btoa(user));
+    if (!userResp.includes('334')) {
+      throw new Error(`Username not accepted: ${userResp.trim()}`);
+    }
+
+    // Send Base64 App Password
+    const passResp = await sendCmd(btoa(pass));
+    if (!passResp.includes('235')) {
+      throw new Error(`Google Authentication Failed: ${passResp.trim()}. Please ensure 2-Step Verification is active on your Google account and you generated a 16-character App Password under security settings.`);
+    }
+
+    // 4. MAIL FROM
+    const mailFrom = await sendCmd(`MAIL FROM:<${user}>`);
+    if (!mailFrom.includes('250')) {
+      throw new Error(`MAIL FROM failed: ${mailFrom.trim()}`);
+    }
+
+    // 5. RCPT TO
+    const rcptTo = await sendCmd(`RCPT TO:<${toEmail.trim()}>`);
+    if (!rcptTo.includes('250')) {
+      throw new Error(`RCPT TO failed for ${toEmail}: ${rcptTo.trim()}`);
+    }
+
+    // 6. DATA
+    const dataStart = await sendCmd('DATA');
+    if (!dataStart.includes('354')) {
+      throw new Error(`DATA command start failed: ${dataStart.trim()}`);
+    }
+
+    // 7. Send Raw MIME Body with RFC 2047 UTF-8 Base64 Subject
+    const boundary = `====_cinespace_${Date.now()}_${Math.random().toString(36).substring(2)}====`;
+    const messageId = `<cinespace.${Date.now()}.${Math.random().toString(36).substring(2)}@gmail.com>`;
+    const fromDisplayName = creds.fromName || 'CineSpace Concierge';
+    const utf8Subject = `=?UTF-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`;
+
+    const mime = [
+      `From: "${fromDisplayName}" <${user}>`,
+      `To: <${toEmail.trim()}>`,
+      `Subject: ${utf8Subject}`,
+      `Date: ${new Date().toUTCString()}`,
+      `Message-ID: ${messageId}`,
+      `MIME-Version: 1.0`,
+      `Content-Type: multipart/alternative; boundary="${boundary}"`,
+      ``,
+      `--${boundary}`,
+      `Content-Type: text/plain; charset=UTF-8`,
+      `Content-Transfer-Encoding: 7bit`,
+      ``,
+      `Please view your CineSpace VIP pass in an HTML-compatible email client.`,
+      ``,
+      `--${boundary}`,
+      `Content-Type: text/html; charset=UTF-8`,
+      `Content-Transfer-Encoding: 8bit`,
+      ``,
+      htmlContent,
+      ``,
+      `--${boundary}--`,
+      `.`
+    ].join('\r\n');
+
+    const dataEnd = await sendCmd(mime);
+    if (!dataEnd.includes('250')) {
+      throw new Error(`Email data rejected by Gmail: ${dataEnd.trim()}`);
+    }
+
+    // 8. QUIT
+    try {
+      await sendCmd('QUIT');
+      writer.releaseLock();
+      reader.releaseLock();
+      socket.close();
+    } catch (_) {}
+
+    console.log(`[Google Direct SMTP Success] Email delivered to ${toEmail}. MessageId: ${messageId}`);
+    return { success: true, messageId };
+  } catch (err: any) {
+    console.error(`[Google Direct SMTP Error]`, err);
+    return { success: false, error: err.message || String(err) };
+  }
+}
+
+async function sendEdgeEmail(
+  to: string,
+  subject: string,
+  html: string,
+  fromName = 'CineSpace Concierge',
+  customSmtp?: SmtpCredentials
+): Promise<{ success: boolean; error?: string }> {
+  if (!to || !to.includes('@')) return { success: false, error: 'Invalid recipient email' };
+
+  const creds: SmtpCredentials = customSmtp || {
+    host: globalAdminSmtpConfig.host || 'smtp.gmail.com',
+    port: globalAdminSmtpConfig.port || 465,
+    user: globalAdminSmtpConfig.user || 'support@gm-care.in',
+    pass: globalAdminSmtpConfig.pass || '',
+    fromName: fromName || globalAdminSmtpConfig.fromName || 'CineSpace Concierge'
+  };
+
+  // If Google App Password is provided, send directly via Google TLS SMTP!
+  if (creds.pass && creds.pass.trim().length >= 8) {
+    console.log(`[Edge Email] Attempting direct Google SMTP for ${to}...`);
+    const smtpRes = await sendDirectGoogleSmtp(creds, to, subject, html);
+    if (smtpRes.success) {
+      return { success: true };
+    }
+    console.warn(`[Edge Email] Direct Gmail SMTP failed (${smtpRes.error}). Falling back to MailChannels...`);
+  }
+
+  // Fallback: MailChannels
+  try {
+    const payload = {
+      personalizations: [{ to: [{ email: to.trim() }] }],
       from: {
-        email: fromEmail,
-        name: fromName
+        email: creds.user || 'support@gm-care.in',
+        name: creds.fromName || fromName
       },
       subject: subject,
-      content: [
-        {
-          type: 'text/html',
-          value: html
-        }
-      ]
+      content: [{ type: 'text/html', value: html }]
     };
 
     const res = await fetch('https://api.mailchannels.net/tx/v1/send', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
 
     if (res.status >= 200 && res.status < 300) {
-      console.log(`[Edge Email Dispatched] To: ${to} | Subject: ${subject}`);
+      console.log(`[Edge Email Fallback OK] Dispatched to ${to}`);
       return { success: true };
-    } else {
-      const errText = await res.text();
-      console.warn(`[Edge Email MailChannels Notice (${res.status})]`, errText);
-      return { success: false, error: errText };
     }
   } catch (err: any) {
-    console.error(`[Edge Email Dispatch Error]`, err);
-    return { success: false, error: err.message };
+    console.warn(`[Edge Email Fallback Notice]`, err.message);
   }
+
+  return { success: false, error: 'Failed to dispatch email' };
 }
 
 export default {
@@ -544,24 +717,33 @@ export default {
             </div>
           `;
 
-          ctx.waitUntil(sendEdgeEmail(newBooking.customerEmail, `🎬 VIP Space Lease Pass & Door OTP: ${newBooking.bookingId} - ${newBooking.venueName}`, passHtml));
+          const hostSmtp = (globalMerchantData.smtpConfig && globalMerchantData.smtpConfig.pass) 
+            ? globalMerchantData.smtpConfig 
+            : undefined;
+
+          ctx.waitUntil(sendEdgeEmail(
+            newBooking.customerEmail, 
+            `🎬 VIP Space Lease Pass & Door OTP: ${newBooking.bookingId} - ${newBooking.venueName}`, 
+            passHtml,
+            globalMerchantData.brandName || 'CineSpace Concierge',
+            hostSmtp
+          ));
         }
 
         // Send Host Alert
-        if (globalMerchantData.email) {
-          const hostHtml = `
-            <div style="font-family: Arial, sans-serif; background: #0f172a; color: #ffffff; padding: 20px; border-radius: 8px;">
-              <h2 style="color: #10b981;">New Confirmed Booking Alert!</h2>
-              <p><strong>Booking ID:</strong> ${newBooking.bookingId}</p>
-              <p><strong>Check-In OTP:</strong> <span style="font-size: 18px; font-weight: bold; color: #fbbf24;">${newBooking.checkinOtp}</span></p>
-              <p><strong>Guest:</strong> ${newBooking.customerName} (${newBooking.customerPhone})</p>
-              <p><strong>Date & Slot:</strong> ${newBooking.bookingDate} | ${newBooking.timeSlot}</p>
-              <p><strong>Gross Amount:</strong> ₹${newBooking.grossTotal}</p>
-              <p><strong>Net Payout Payable:</strong> ₹${newBooking.merchantNetPayout} (after platform fee & PG fee)</p>
-            </div>
-          `;
-          ctx.waitUntil(sendEdgeEmail(globalMerchantData.email, `🔔 New Booking Confirmed: ${newBooking.bookingId} - ${newBooking.customerName}`, hostHtml));
-        }
+        const hostEmail = globalMerchantData.email || 'support@gm-care.in';
+        const hostHtml = `
+          <div style="font-family: Arial, sans-serif; background: #0f172a; color: #ffffff; padding: 20px; border-radius: 8px;">
+            <h2 style="color: #10b981;">New Confirmed Booking Alert!</h2>
+            <p><strong>Booking ID:</strong> ${newBooking.bookingId}</p>
+            <p><strong>Check-In OTP:</strong> <span style="font-size: 18px; font-weight: bold; color: #fbbf24;">${newBooking.checkinOtp}</span></p>
+            <p><strong>Guest:</strong> ${newBooking.customerName} (${newBooking.customerPhone})</p>
+            <p><strong>Date & Slot:</strong> ${newBooking.bookingDate} | ${newBooking.timeSlot}</p>
+            <p><strong>Gross Amount:</strong> ₹${newBooking.grossTotal}</p>
+            <p><strong>Net Payout Payable:</strong> ₹${newBooking.merchantNetPayout} (after platform fee & PG fee)</p>
+          </div>
+        `;
+        ctx.waitUntil(sendEdgeEmail(hostEmail, `🔔 New Booking Confirmed: ${newBooking.bookingId} - ${newBooking.customerName}`, hostHtml, 'CineSpace Platform Alerts'));
 
         return new Response(JSON.stringify({
           success: true,
@@ -980,14 +1162,16 @@ export default {
           });
         }
         if (body.user) globalAdminSmtpConfig.user = body.user.trim();
-        if (body.pass && !body.pass.includes('••••')) globalAdminSmtpConfig.pass = body.pass.trim();
+        if (body.pass && !body.pass.includes('••••')) {
+          globalAdminSmtpConfig.pass = body.pass.trim().replace(/\s+/g, '');
+        }
         if (body.fromName) globalAdminSmtpConfig.fromName = body.fromName.trim();
         if (body.host) globalAdminSmtpConfig.host = body.host.trim();
-        if (body.port) globalAdminSmtpConfig.port = Number(body.port);
+        if (body.port) globalAdminSmtpConfig.port = Number(body.port) || 465;
 
         return new Response(JSON.stringify({
           success: true,
-          message: 'Master Platform Email & Google App Password configuration saved successfully!',
+          message: 'Master Platform Email & Google App Password saved successfully!',
           adminSmtpConfig: {
             host: globalAdminSmtpConfig.host,
             port: globalAdminSmtpConfig.port,
@@ -1008,10 +1192,149 @@ export default {
             headers: JSON_HEADERS
           });
         }
+
+        const testUser = (body.user || globalAdminSmtpConfig.user || 'support@gm-care.in').trim();
+        const testPass = (body.pass && !body.pass.includes('••••')) 
+          ? body.pass.trim().replace(/\s+/g, '') 
+          : (globalAdminSmtpConfig.pass || '');
+        const testHost = body.host || globalAdminSmtpConfig.host || 'smtp.gmail.com';
+        const testPort = Number(body.port) || globalAdminSmtpConfig.port || 465;
+        const testFromName = body.fromName || globalAdminSmtpConfig.fromName || 'CineSpace Concierge';
+        const recipient = (body.testRecipient || testUser).trim();
+
+        if (!testUser || !testPass) {
+          return new Response(JSON.stringify({
+            success: false,
+            message: 'Please enter both your Gmail Address and 16-character Google App Password to test connection.'
+          }), { status: 400, headers: JSON_HEADERS });
+        }
+
+        // Store into config
+        globalAdminSmtpConfig.user = testUser;
+        globalAdminSmtpConfig.pass = testPass;
+        globalAdminSmtpConfig.host = testHost;
+        globalAdminSmtpConfig.port = testPort;
+        globalAdminSmtpConfig.fromName = testFromName;
+
+        const testHtml = `
+          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 580px; margin: 0 auto; background: #0b0f19; color: #f8fafc; border-radius: 12px; overflow: hidden; border: 1px solid #10b981;">
+            <div style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 22px 20px; text-align: center;">
+              <h2 style="margin: 0; color: #ffffff; font-size: 20px; text-transform: uppercase; letter-spacing: 1px;">✓ Google SMTP Connection Verified</h2>
+              <p style="margin: 4px 0 0 0; color: #ecfdf5; font-size: 12px;">CineSpace Platform Transactional Mail Relay</p>
+            </div>
+            <div style="padding: 24px 20px;">
+              <p style="font-size: 15px; margin-top: 0;">Hello Platform Administrator,</p>
+              <p style="color: #cbd5e1; font-size: 14px; line-height: 1.6;">
+                Your Gmail account <strong>${testUser}</strong> is now officially verified and connected to Google SMTP (<code>smtp.gmail.com:465</code>) with your Google App Password.
+              </p>
+              <div style="background: #111726; border-left: 4px solid #10b981; padding: 14px; border-radius: 6px; font-size: 13px; color: #cbd5e1; margin: 18px 0; line-height: 1.6;">
+                <strong>Live Email Routing Status:</strong><br/>
+                All customer Space Lease Passes, Door Check-in PINs, and Merchant Booking Alerts will be dispatched live directly from <strong>${testUser}</strong>.
+              </div>
+              <p style="font-size: 12px; color: #94a3b8; margin-bottom: 0;">Verified at: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</p>
+            </div>
+            <div style="background: #060911; padding: 14px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #1e293b;">
+              CineSpace India &copy; 2026. Managed by Gadget Media Care. GSTIN: 33BCXPR4393D2Z2.
+            </div>
+          </div>
+        `;
+
+        const smtpRes = await sendDirectGoogleSmtp(
+          { host: testHost, port: testPort, user: testUser, pass: testPass, fromName: testFromName },
+          recipient,
+          '🎬 CineSpace Live SMTP Test - Google Mail Relay Verified',
+          testHtml
+        );
+
+        if (smtpRes.success) {
+          return new Response(JSON.stringify({
+            success: true,
+            message: `✓ Connection Successful! Test verification email delivered directly to ${recipient}. Please check your inbox!`,
+            messageId: smtpRes.messageId
+          }), { headers: JSON_HEADERS });
+        } else {
+          return new Response(JSON.stringify({
+            success: false,
+            message: `Google SMTP Authentication Failed: ${smtpRes.error}`
+          }), { status: 400, headers: JSON_HEADERS });
+        }
+      }
+
+      // ----------------------------------------------------------------------
+      // 9E-2. MERCHANT CUSTOM SMTP CONFIG & TEST API
+      // ----------------------------------------------------------------------
+      if (path === '/api/merchant/smtp-settings' && request.method === 'POST') {
+        const body: any = await request.json();
+        const user = (body.smtpUser || body.user || '').trim();
+        const pass = (body.smtpPass || body.pass || '').trim().replace(/\s+/g, '');
+        const fromName = (body.fromName || globalMerchantData.brandName).trim();
+
+        if (!globalMerchantData.smtpConfig) {
+          globalMerchantData.smtpConfig = {};
+        }
+        if (user) globalMerchantData.smtpConfig.user = user;
+        if (pass && !pass.includes('••••')) globalMerchantData.smtpConfig.pass = pass;
+        if (fromName) globalMerchantData.smtpConfig.fromName = fromName;
+        globalMerchantData.smtpConfig.host = 'smtp.gmail.com';
+        globalMerchantData.smtpConfig.port = 465;
+
         return new Response(JSON.stringify({
           success: true,
-          message: `✓ SMTP Connection Verified! Test authentication succeeded for ${body.user || globalAdminSmtpConfig.user}`
+          message: 'Host Gmail Address & Google App Password saved successfully!',
+          smtpConfig: {
+            host: 'smtp.gmail.com',
+            port: 465,
+            user: globalMerchantData.smtpConfig.user,
+            pass: globalMerchantData.smtpConfig.pass ? '••••••••' : '',
+            fromName: globalMerchantData.smtpConfig.fromName
+          }
         }), { headers: JSON_HEADERS });
+      }
+
+      if (path === '/api/merchant/smtp-settings/test' && request.method === 'POST') {
+        const body: any = await request.json();
+        const user = (body.smtpUser || body.user || (globalMerchantData.smtpConfig && globalMerchantData.smtpConfig.user) || '').trim();
+        const pass = (body.smtpPass || body.pass || (globalMerchantData.smtpConfig && globalMerchantData.smtpConfig.pass) || '').trim().replace(/\s+/g, '');
+        const fromName = body.fromName || (globalMerchantData.smtpConfig && globalMerchantData.smtpConfig.fromName) || globalMerchantData.brandName || 'CineSpace Host';
+
+        if (!user || !pass) {
+          return new Response(JSON.stringify({
+            success: false,
+            message: 'Please provide both your Gmail Address and 16-character Google App Password to test.'
+          }), { status: 400, headers: JSON_HEADERS });
+        }
+
+        const testHtml = `
+          <div style="font-family: Arial, sans-serif; max-width: 580px; margin: 0 auto; background: #0b0f19; color: #f8fafc; border-radius: 12px; overflow: hidden; border: 1px solid #10b981;">
+            <div style="background: #10b981; padding: 18px; text-align: center; color: #ffffff;">
+              <h2 style="margin: 0; font-size: 20px;">✓ Host Google SMTP Connection Verified</h2>
+            </div>
+            <div style="padding: 20px;">
+              <p>Hello ${fromName},</p>
+              <p>Your custom host email <strong>${user}</strong> is authenticated with Google SMTP servers! VIP passes for your auditorium suite will now be sent directly to your guests from this address.</p>
+            </div>
+          </div>
+        `;
+
+        const smtpRes = await sendDirectGoogleSmtp(
+          { host: 'smtp.gmail.com', port: 465, user, pass, fromName },
+          user,
+          `🎬 CineSpace Host Mail Verification - ${fromName}`,
+          testHtml
+        );
+
+        if (smtpRes.success) {
+          return new Response(JSON.stringify({
+            success: true,
+            message: `✓ Host SMTP Verified! Test email delivered to ${user}. Check your inbox!`,
+            messageId: smtpRes.messageId
+          }), { headers: JSON_HEADERS });
+        } else {
+          return new Response(JSON.stringify({
+            success: false,
+            message: `Google SMTP Failed: ${smtpRes.error}`
+          }), { status: 400, headers: JSON_HEADERS });
+        }
       }
 
       // ----------------------------------------------------------------------

@@ -16,13 +16,15 @@ const db = require('../database/db');
 function createTransporter(config) {
   // 1. Per-Merchant custom configuration (if host configured their Gmail App Password)
   if (config && config.user && config.pass) {
+    const cleanPass = String(config.pass).trim().replace(/\s+/g, '');
+    const port = Number(config.port) || 465;
     return nodemailer.createTransporter({
       host: config.host || 'smtp.gmail.com',
-      port: Number(config.port) || 587,
-      secure: Number(config.port) === 465,
+      port: port,
+      secure: port === 465,
       auth: {
-        user: config.user,
-        pass: config.pass
+        user: String(config.user).trim(),
+        pass: cleanPass
       }
     });
   }
@@ -30,25 +32,28 @@ function createTransporter(config) {
   // 2. Fallback to Master Platform Admin SMTP configuration
   const adminSmtp = db.getAdminSmtpConfig ? db.getAdminSmtpConfig() : null;
   if (adminSmtp && adminSmtp.user && adminSmtp.pass) {
+    const cleanPass = String(adminSmtp.pass).trim().replace(/\s+/g, '');
+    const port = Number(adminSmtp.port) || 465;
     return nodemailer.createTransporter({
       host: adminSmtp.host || 'smtp.gmail.com',
-      port: Number(adminSmtp.port) || 587,
-      secure: Number(adminSmtp.port) === 465,
+      port: port,
+      secure: port === 465,
       auth: {
-        user: adminSmtp.user,
-        pass: adminSmtp.pass
+        user: String(adminSmtp.user).trim(),
+        pass: cleanPass
       }
     });
   }
 
   // 3. Fallback to Environment Variables or Demo Dispatch
+  const envPass = String(process.env.SMTP_PASS || 'default_demo_pass').trim().replace(/\s+/g, '');
   return nodemailer.createTransporter({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: false,
+    port: parseInt(process.env.SMTP_PORT || '465'),
+    secure: parseInt(process.env.SMTP_PORT || '465') === 465,
     auth: {
       user: process.env.SMTP_USER || 'support@gm-care.in',
-      pass: process.env.SMTP_PASS || 'default_demo_pass'
+      pass: envPass
     }
   });
 }

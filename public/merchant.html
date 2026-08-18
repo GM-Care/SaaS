@@ -2560,10 +2560,34 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
     async function testSmtpConnection() {
       var user = document.getElementById('smtpUserInput').value.trim();
       var pass = document.getElementById('smtpPassInput').value.trim();
+      var fromName = document.getElementById('smtpFromNameInput').value.trim();
 
-      if (!user || !pass) { showToast('Please enter Gmail and App Password to test', true); return; }
+      if (!user || !pass) { 
+        showToast('Please enter your Gmail and 16-character App Password to test connection', true); 
+        return; 
+      }
 
-      showToast('✓ Host SMTP verified with Google Mail servers!');
+      showToast('Authenticating with Google SMTP servers (smtp.gmail.com:465)...');
+
+      try {
+        var res = await fetch('/api/merchant/smtp-settings/test', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            smtpUser: user,
+            smtpPass: pass,
+            fromName: fromName
+          })
+        });
+        var data = await res.json();
+        if (data.success) {
+          showToast(data.message || '✓ Host SMTP verified with Google Mail servers!');
+        } else {
+          showToast('❌ ' + (data.message || 'Google Authentication Failed. Check App Password.'), true);
+        }
+      } catch (e) {
+        showToast('Error connecting to SMTP test service', true);
+      }
     }
 
     // ========================================================================
