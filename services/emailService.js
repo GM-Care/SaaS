@@ -75,19 +75,63 @@ function resolveSenderDetails(merchant) {
   };
 }
 
+async function sendViaHttpApi(mailOptions) {
+  try {
+    const toEmail = typeof mailOptions.to === 'string' ? mailOptions.to : (mailOptions.to && mailOptions.to[0] ? mailOptions.to[0].email || mailOptions.to[0] : '');
+    if (!toEmail || !toEmail.includes('@')) return false;
+
+    const fromHeader = mailOptions.from || 'support@gm-care.in';
+    const fromNameMatch = fromHeader.match(/"([^"]+)"/);
+    const fromName = fromNameMatch ? fromNameMatch[1] : 'CineSpace Concierge';
+    const fromEmailMatch = fromHeader.match(/<([^>]+)>/);
+    const fromEmail = fromEmailMatch ? fromEmailMatch[1] : 'support@gm-care.in';
+
+    const payload = {
+      personalizations: [
+        {
+          to: [{ email: toEmail.trim() }]
+        }
+      ],
+      from: {
+        email: fromEmail,
+        name: fromName
+      },
+      subject: mailOptions.subject,
+      content: [
+        {
+          type: 'text/html',
+          value: mailOptions.html
+        }
+      ]
+    };
+
+    const res = await fetch('https://api.mailchannels.net/tx/v1/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.status >= 200 && res.status < 300) {
+      console.log(`[HTTP Direct Dispatch] Email delivered to ${toEmail} | Subject: ${mailOptions.subject}`);
+      return true;
+    }
+  } catch (err) {
+    console.warn(`[HTTP Direct Dispatch Notice] ${err.message}`);
+  }
+  return false;
+}
+
 const emailService = {
   /**
    * 1. Send VIP Pass & Tax Invoice to Customer with Check-In OTP & House Rules
    */
   sendCustomerConfirmationPass: async (booking, venue, merchant) => {
-    try {
-      const transporter = createTransporter(merchant ? merchant.smtpConfig : null);
-      const sender = resolveSenderDetails(merchant);
-      const hostPhone = merchant ? merchant.phone : '+91 86677 08711';
-      const cleanHostPhone = hostPhone.replace(/\D+/g, '');
+    const sender = resolveSenderDetails(merchant);
+    const hostPhone = merchant ? merchant.phone : '+91 86677 08711';
+    const cleanHostPhone = hostPhone.replace(/\D+/g, '');
 
-      const mailOptions = {
-        from: `"${sender.name}" <${sender.email}>`,
+    const mailOptions = {
+      from: `"${sender.name}" <${sender.email}>`,
         to: booking.customerEmail,
         subject: `🎬 VIP Space Lease Pass & Door OTP: ${booking.bookingId} - ${venue.name}`,
         html: `
@@ -160,9 +204,17 @@ const emailService = {
         `
       };
 
-      const info = await transporter.sendMail(mailOptions);
-      console.log(`[Email Service] Customer Pass sent for ${booking.bookingId}. MessageId: ${info.messageId}`);
-      return { success: true, messageId: info.messageId };
+      try {
+        const transporter = createTransporter(merchant ? merchant.smtpConfig : null);
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`[Email Service] Customer Pass sent for ${booking.bookingId}. MessageId: ${info.messageId}`);
+        return { success: true, messageId: info.messageId };
+      } catch (smtpErr) {
+        console.warn(`[Email Service SMTP Notice] Transporter failed (${smtpErr.message}), trying HTTP direct dispatch fallback...`);
+        const httpOk = await sendViaHttpApi(mailOptions);
+        if (httpOk) return { success: true, messageId: 'http_direct_fallback' };
+        throw smtpErr;
+      }
     } catch (err) {
       console.warn(`[Email Service Notice] Could not dispatch email: ${err.message}`);
       return { success: false, error: err.message };
@@ -174,27 +226,28 @@ const emailService = {
    */
   sendMerchantBookingAlert: async (booking, venue, merchant) => {
     if (!merchant || !merchant.email) return;
+    const mailOptions = {
+      from: '"CineSpace Host System" <concierge@cinespace.in>',
+      to: merchant.email,
+      subject: `🔔 New Booking Confirmed: ${booking.bookingId} - ${booking.customerName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; background: #0f172a; color: #ffffff; padding: 20px; border-radius: 8px;">
+          <h2 style="color: #10b981;">New Confirmed Booking Alert!</h2>
+          <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
+          <p><strong>Check-In OTP:</strong> <span style="font-size: 18px; font-weight: bold; color: #fbbf24;">${booking.checkinOtp || '1234'}</span></p>
+          <p><strong>Guest:</strong> ${booking.customerName} (${booking.customerPhone})</p>
+          <p><strong>Date & Slot:</strong> ${booking.bookingDate} | ${booking.timeSlot}</p>
+          <p><strong>Net Payout Payable:</strong> ₹${booking.merchantNetPayout}</p>
+          <p><strong>KYC ID:</strong> ${booking.govtIdType} (${booking.govtIdNumber})</p>
+        </div>
+      `
+    };
     try {
       const transporter = createTransporter(null);
-      const mailOptions = {
-        from: '"CineSpace Host System" <concierge@cinespace.in>',
-        to: merchant.email,
-        subject: `🔔 New Booking Confirmed: ${booking.bookingId} - ${booking.customerName}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; background: #0f172a; color: #ffffff; padding: 20px; border-radius: 8px;">
-            <h2 style="color: #10b981;">New Confirmed Booking Alert!</h2>
-            <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
-            <p><strong>Check-In OTP:</strong> <span style="font-size: 18px; font-weight: bold; color: #fbbf24;">${booking.checkinOtp || '1234'}</span></p>
-            <p><strong>Guest:</strong> ${booking.customerName} (${booking.customerPhone})</p>
-            <p><strong>Date & Slot:</strong> ${booking.bookingDate} | ${booking.timeSlot}</p>
-            <p><strong>Net Payout Payable:</strong> ₹${booking.merchantNetPayout}</p>
-            <p><strong>KYC ID:</strong> ${booking.govtIdType} (${booking.govtIdNumber})</p>
-          </div>
-        `
-      };
       await transporter.sendMail(mailOptions);
     } catch (err) {
-      console.warn(`[Email Service Notice] Host alert skipped: ${err.message}`);
+      console.warn(`[Email Service Notice] Host alert SMTP notice (${err.message}), trying HTTP direct dispatch fallback...`);
+      await sendViaHttpApi(mailOptions);
     }
   },
 

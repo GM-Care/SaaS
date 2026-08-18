@@ -161,6 +161,51 @@ let globalBookings: any[] = [
   }
 ];
 
+async function sendEdgeEmail(to: string, subject: string, html: string, fromName = 'CineSpace Concierge', fromEmail = 'support@gm-care.in') {
+  if (!to || !to.includes('@')) return { success: false, error: 'Invalid recipient email' };
+
+  try {
+    const payload = {
+      personalizations: [
+        {
+          to: [{ email: to.trim() }]
+        }
+      ],
+      from: {
+        email: fromEmail,
+        name: fromName
+      },
+      subject: subject,
+      content: [
+        {
+          type: 'text/html',
+          value: html
+        }
+      ]
+    };
+
+    const res = await fetch('https://api.mailchannels.net/tx/v1/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.status >= 200 && res.status < 300) {
+      console.log(`[Edge Email Dispatched] To: ${to} | Subject: ${subject}`);
+      return { success: true };
+    } else {
+      const errText = await res.text();
+      console.warn(`[Edge Email MailChannels Notice (${res.status})]`, errText);
+      return { success: false, error: errText };
+    }
+  } catch (err: any) {
+    console.error(`[Edge Email Dispatch Error]`, err);
+    return { success: false, error: err.message };
+  }
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -261,6 +306,34 @@ export default {
       }
 
       // ----------------------------------------------------------------------
+      // 2B. REAL-TIME SLOT AVAILABILITY CHECK & LOCKING API
+      // ----------------------------------------------------------------------
+      if (path === '/api/slots/availability' && request.method === 'GET') {
+        const venueId = url.searchParams.get('venueId') || 'VEN-001';
+        const date = url.searchParams.get('date') || new Date().toISOString().split('T')[0];
+
+        const defaultSlots = [
+          { id: 'SLT-01', name: 'Morning Matinee (10:00 AM - 01:00 PM)', startTime: '10:00 AM', endTime: '01:00 PM', isAvailable: true },
+          { id: 'SLT-02', name: 'Afternoon Screening (02:00 PM - 05:00 PM)', startTime: '02:00 PM', endTime: '05:00 PM', isAvailable: true },
+          { id: 'SLT-03', name: 'Prime Evening (06:00 PM - 09:00 PM)', startTime: '06:00 PM', endTime: '09:00 PM', isAvailable: true },
+          { id: 'SLT-04', name: 'Midnight Chill (10:00 PM - 01:00 AM)', startTime: '10:00 PM', endTime: '01:00 AM', isAvailable: true }
+        ];
+
+        const occupiedSlotNames = new Set(
+          globalBookings
+            .filter(b => (b.venueId === venueId || !b.venueId) && b.bookingDate === date && (b.bookingStatus === 'Confirmed' || b.bookingStatus === 'Blocked' || b.paymentStatus === 'Paid'))
+            .map(b => b.timeSlot.trim())
+        );
+
+        const slots = defaultSlots.map(s => ({
+          ...s,
+          isAvailable: !occupiedSlotNames.has(s.name.trim())
+        }));
+
+        return new Response(JSON.stringify({ success: true, venueId, date, slots }), { headers: JSON_HEADERS });
+      }
+
+      // ----------------------------------------------------------------------
       // 3. CREATE RAZORPAY ORDER (EDGE DISTRIBUTED LOCKING)
       // ----------------------------------------------------------------------
       if (path === '/api/payments/create-order' && request.method === 'POST') {
@@ -334,6 +407,7 @@ export default {
         const newBooking = {
           bookingId: body.bookingId || `CS-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
           checkinOtp: body.checkinOtp || Math.floor(1000 + Math.random() * 9000).toString(),
+          venueId: body.venueId || 'VEN-001',
           venueName: body.venueName || 'Dolby Atmos Gold Lounge',
           customerName: body.customerName || 'VIP Guest',
           customerPhone: body.customerPhone || '+91 86677 08711',
@@ -343,6 +417,7 @@ export default {
           guests: body.guests || 2,
           occasion: body.occasion || 'Movie Screening',
           addonsSummary: body.addonsSummary || 'None',
+          totalAmount: body.totalAmount || 4999,
           merchantNetPayout: body.merchantNetPayout || 4731,
           bookingStatus: 'Confirmed',
           checkinStatus: 'Pending Check-In'
@@ -353,6 +428,82 @@ export default {
           globalBookings[existIdx] = { ...globalBookings[existIdx], ...newBooking };
         } else {
           globalBookings.unshift(newBooking);
+        }
+
+        // Send VIP pass email to customer
+        if (newBooking.customerEmail) {
+          const passHtml = `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 640px; margin: 0 auto; background: #0b0f19; color: #f8fafc; border-radius: 14px; overflow: hidden; border: 1px solid #d97706;">
+              <div style="background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); padding: 24px 20px; text-align: center;">
+                <h1 style="margin: 0; color: #090d16; font-size: 24px; text-transform: uppercase;">Official Space Lease VIP Pass</h1>
+                <p style="margin: 4px 0 0 0; color: #1e293b; font-size: 13px; font-weight: bold;">Short-Term Space & Audio-Visual Lease (SAC Code: 997312)</p>
+              </div>
+
+              <div style="padding: 24px 20px;">
+                <p style="font-size: 16px; margin-top: 0;">Dear <strong>${newBooking.customerName}</strong>,</p>
+                <p style="color: #cbd5e1; font-size: 14px; line-height: 1.6;">
+                  Your luxury private screening reservation at <strong>${newBooking.venueName}</strong> (${globalMerchantData.brandName}) is confirmed!
+                </p>
+
+                <div style="background: #111726; border: 1px dashed #f59e0b; border-radius: 10px; padding: 20px; margin: 20px 0;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 14px; margin-bottom: 14px;">
+                    <div>
+                      <span style="font-size: 11px; color: #94a3b8; text-transform: uppercase;">Booking Reference</span>
+                      <div style="font-size: 24px; font-weight: bold; color: #fbbf24; font-family: monospace;">${newBooking.bookingId}</div>
+                    </div>
+                    <div style="text-align: right; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; padding: 6px 14px; border-radius: 8px;">
+                      <span style="font-size: 10px; color: #34d399; text-transform: uppercase; font-weight: bold; display: block;">Door Check-In PIN</span>
+                      <div style="font-size: 22px; font-weight: 900; color: #10b981; font-family: monospace; letter-spacing: 2px;">${newBooking.checkinOtp}</div>
+                    </div>
+                  </div>
+
+                  <table style="width: 100%; font-size: 13px; color: #e2e8f0; line-height: 1.8;">
+                    <tr><td style="color: #94a3b8;">Auditorium Suite:</td><td><strong>${newBooking.venueName}</strong></td></tr>
+                    <tr><td style="color: #94a3b8;">Show Date & Slot:</td><td><strong>${newBooking.bookingDate} | ${newBooking.timeSlot}</strong></td></tr>
+                    <tr><td style="color: #94a3b8;">Occasion & Guests:</td><td>${newBooking.occasion} &bull; ${newBooking.guests} Guests</td></tr>
+                    <tr><td style="color: #94a3b8;">Add-ons Package:</td><td>${newBooking.addonsSummary}</td></tr>
+                    <tr><td style="color: #94a3b8;">Space Lease Total:</td><td><strong style="color: #10b981; font-size: 15px;">₹${newBooking.totalAmount || 4999} (Paid)</strong></td></tr>
+                    <tr><td style="color: #94a3b8;">Venue Address:</td><td>${globalMerchantData.address}</td></tr>
+                  </table>
+                </div>
+
+                <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 14px; margin-bottom: 18px; font-size: 12px; color: #fde68a; line-height: 1.6;">
+                  <strong style="color: #fbbf24; font-size: 13px; display: block; margin-bottom: 6px;">🏠 Auditorium House Rules:</strong>
+                  • <strong>Strict No Smoking / Vaping:</strong> Acoustic wall fabrics & 4K optical sensors are sensitive.<br/>
+                  • <strong>Indoor Footwear:</strong> Please place outdoor shoes in the entrance organizer.<br/>
+                  • <strong>Max 9 Guests:</strong> 5 Motorized Recliners + 4 Bed Lounge.<br/>
+                  • <strong>Check-in:</strong> Enter the 4-digit door PIN <strong>${newBooking.checkinOtp}</strong> at the entrance keypad.
+                </div>
+
+                <div style="text-align: center; margin: 20px 0;">
+                  <a href="https://wa.me/918667708711?text=Hi%20CineSpace%20Host%2C%20I%20have%20booked%20slot%20${encodeURIComponent(newBooking.timeSlot)}%20(Booking%20ID%3A%20${newBooking.bookingId})%2E%20Please%20share%20directions%2E" style="background: #25D366; color: #ffffff; font-weight: bold; text-decoration: none; padding: 12px 24px; border-radius: 25px; display: inline-block; font-size: 14px;">
+                    💬 Chat with Host on WhatsApp for Directions
+                  </a>
+                </div>
+              </div>
+
+              <div style="background: #060911; padding: 16px; text-align: center; border-top: 1px solid #1e293b; font-size: 11px; color: #64748b;">
+                Private screening gathering under Section 52 of the Indian Copyright Act 1957. CineSpace India &copy; 2026. Managed by Gadget Media Care. GSTIN: 33BCXPR4393D2Z2.
+              </div>
+            </div>
+          `;
+
+          ctx.waitUntil(sendEdgeEmail(newBooking.customerEmail, `🎬 VIP Space Lease Pass & Door OTP: ${newBooking.bookingId} - ${newBooking.venueName}`, passHtml));
+        }
+
+        // Send Host Alert
+        if (globalMerchantData.email) {
+          const hostHtml = `
+            <div style="font-family: Arial, sans-serif; background: #0f172a; color: #ffffff; padding: 20px; border-radius: 8px;">
+              <h2 style="color: #10b981;">New Confirmed Booking Alert!</h2>
+              <p><strong>Booking ID:</strong> ${newBooking.bookingId}</p>
+              <p><strong>Check-In OTP:</strong> <span style="font-size: 18px; font-weight: bold; color: #fbbf24;">${newBooking.checkinOtp}</span></p>
+              <p><strong>Guest:</strong> ${newBooking.customerName} (${newBooking.customerPhone})</p>
+              <p><strong>Date & Slot:</strong> ${newBooking.bookingDate} | ${newBooking.timeSlot}</p>
+              <p><strong>Net Payout Payable:</strong> ₹${newBooking.merchantNetPayout || 4731}</p>
+            </div>
+          `;
+          ctx.waitUntil(sendEdgeEmail(globalMerchantData.email, `🔔 New Booking Confirmed: ${newBooking.bookingId} - ${newBooking.customerName}`, hostHtml));
         }
 
         return new Response(JSON.stringify({

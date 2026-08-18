@@ -1022,23 +1022,67 @@
         }
       } catch (e) {}
 
+      // Cross-check with local bookings in browser storage
+      try {
+        var rawB = localStorage.getItem('cinespace_bookings');
+        if (rawB) {
+          var localBookings = JSON.parse(rawB);
+          var occupiedNames = localBookings
+            .filter(function(b) {
+              return b.bookingDate === dateStr && (b.paymentStatus === 'Paid' || b.bookingStatus === 'Confirmed' || b.bookingStatus === 'Blocked');
+            })
+            .map(function(b) { return (b.timeSlot || '').trim().toLowerCase(); });
+
+          slots.forEach(function(s) {
+            if (occupiedNames.indexOf((s.name || '').trim().toLowerCase()) !== -1) {
+              s.isAvailable = false;
+            }
+          });
+        }
+      } catch (e) {}
+
       container.innerHTML = '';
-      slots.forEach(function(slot, idx) {
+      var firstAvailableSlot = null;
+
+      slots.forEach(function(slot) {
+        var isAvail = Boolean(slot.isAvailable);
+        if (isAvail && !firstAvailableSlot) firstAvailableSlot = slot;
+
         var item = document.createElement('div');
-        item.className = 'slot-item ' + (slot.isAvailable ? 'available' : 'booked') + (idx === 2 ? ' selected' : '');
-        if (idx === 2 && slot.isAvailable) appState.selectedSlot = slot;
+        item.className = 'slot-item ' + (isAvail ? 'available' : 'booked');
+        item.innerHTML = '<div style="font-weight:700; font-size:0.84rem; color:' + (isAvail ? '#0f172a' : '#94a3b8') + ';">' + slot.name + '</div><div style="font-size:0.74rem; font-weight:600; color:' + (isAvail ? 'var(--green-main)' : 'var(--red-main)') + ';">' + (isAvail ? '✓ Available' : '🔒 Reserved / Blocked') + '</div>';
 
-        item.innerHTML = '<div style="font-weight:700; font-size:0.84rem; color:#0f172a;">' + slot.name + '</div><div style="font-size:0.74rem; font-weight:600; color:' + (slot.isAvailable ? 'var(--green-main)' : 'var(--red-main)') + ';">' + (slot.isAvailable ? '✓ Available' : '🔒 Reserved') + '</div>';
-
-        if (slot.isAvailable) {
+        if (isAvail) {
           item.onclick = function() {
             document.querySelectorAll('.slot-item').forEach(function(c) { c.classList.remove('selected'); });
             item.classList.add('selected');
             appState.selectedSlot = slot;
           };
+        } else {
+          item.style.opacity = '0.5';
+          item.style.cursor = 'not-allowed';
+          item.style.background = '#f1f5f9';
+          item.style.border = '1px dashed #cbd5e1';
         }
         container.appendChild(item);
       });
+
+      var payBtn = document.getElementById('payRazorpayBtn');
+      if (firstAvailableSlot) {
+        appState.selectedSlot = firstAvailableSlot;
+        var availableEls = container.querySelectorAll('.slot-item.available');
+        if (availableEls.length > 0) availableEls[0].classList.add('selected');
+        if (payBtn) {
+          payBtn.disabled = false;
+          payBtn.innerHTML = '<i class="fa-solid fa-lock"></i> Pay Securely via Razorpay';
+        }
+      } else {
+        appState.selectedSlot = null;
+        if (payBtn) {
+          payBtn.disabled = true;
+          payBtn.innerHTML = '⚠️ All Slots Reserved for this Date';
+        }
+      }
     }
 
     async function loadModalOccasions() {
@@ -1259,6 +1303,7 @@
                   guests: parseInt(adults) + parseInt(minors),
                   occasion: occasion,
                   addonsSummary: selectedAddonsList.join(', ') || 'None',
+                  totalAmount: totalAmount,
                   merchantNetPayout: totalAmount - Math.round(totalAmount * 0.1)
                 })
               });

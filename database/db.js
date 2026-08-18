@@ -885,24 +885,27 @@ const dbService = {
   // --- TIME SLOTS & AVAILABILITY ---
   getTimeSlots: () => db.timeSlots || [],
   getAvailableSlots: (venueId, bookingDate) => {
-    const venue = (db.venues || []).find(v => v.id === venueId);
-    if (!venue) return [];
+    const activeSlots = (db.timeSlots && db.timeSlots.length > 0 ? db.timeSlots : [
+      { id: 'SLT-01', name: 'Morning Matinee (10:00 AM - 01:00 PM)', startTime: '10:00 AM', endTime: '01:00 PM', active: true },
+      { id: 'SLT-02', name: 'Afternoon Screening (02:00 PM - 05:00 PM)', startTime: '02:00 PM', endTime: '05:00 PM', active: true },
+      { id: 'SLT-03', name: 'Prime Evening (06:00 PM - 09:00 PM)', startTime: '06:00 PM', endTime: '09:00 PM', active: true },
+      { id: 'SLT-04', name: 'Midnight Chill (10:00 PM - 01:00 AM)', startTime: '10:00 PM', endTime: '01:00 AM', active: true }
+    ]).filter(s => s.active !== false);
 
-    const activeSlots = (db.timeSlots || []).filter(s => s.active);
     const bookings = (db.bookings || []).filter(b => 
-      b.venueId === venueId && 
+      (b.venueId === venueId || !b.venueId || venueId === 'VEN-001') && 
       b.bookingDate === bookingDate &&
-      (b.bookingStatus === 'Confirmed' || b.bookingStatus === 'Blocked' || b.bookingStatus === 'Checked-In')
+      (b.bookingStatus === 'Confirmed' || b.bookingStatus === 'Blocked' || b.bookingStatus === 'Checked-In' || b.paymentStatus === 'Paid')
     );
 
-    const occupiedSlotNames = new Set(bookings.map(b => b.timeSlot.trim()));
+    const occupiedSlotNames = new Set(bookings.map(b => (b.timeSlot || '').trim().toLowerCase()));
 
     return activeSlots.map(slot => ({
       id: slot.id,
       name: slot.name,
       startTime: slot.startTime,
       endTime: slot.endTime,
-      isAvailable: !occupiedSlotNames.has(slot.name.trim())
+      isAvailable: !occupiedSlotNames.has((slot.name || '').trim().toLowerCase())
     }));
   },
 
