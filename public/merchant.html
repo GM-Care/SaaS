@@ -1252,8 +1252,20 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
           document.getElementById('smtpFromNameInput').value = data.merchant.smtpConfig.fromName || data.merchant.brandName;
         }
 
-        // Render Bookings
-        renderMerchantBookings(data.bookings || []);
+        // Render Bookings (with local sync for test mode)
+        var allBookings = (data.bookings && data.bookings.length > 0) ? data.bookings : [];
+        try {
+          var rawB = localStorage.getItem('cinespace_bookings');
+          if (rawB) {
+            var localB = JSON.parse(rawB);
+            localB.forEach(function(lb) {
+              if (!allBookings.some(function(x) { return x.bookingId === lb.bookingId; })) {
+                allBookings.unshift(lb);
+              }
+            });
+          }
+        } catch (e) {}
+        renderMerchantBookings(allBookings);
 
         // Render Reviews
         renderMerchantReviews(data.reviews || []);
