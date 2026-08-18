@@ -716,8 +716,8 @@
                 <input type="text" class="input-control" id="adminSmtpHostInput" value="smtp.gmail.com" style="font-size:0.84rem;">
               </div>
               <div class="form-group" style="margin-bottom:0;">
-                <label class="form-label" style="font-size:0.78rem;">Port (TLS/SSL)</label>
-                <input type="number" class="input-control" id="adminSmtpPortInput" value="587" style="font-size:0.84rem;">
+                <label class="form-label" style="font-size:0.78rem;">Port (Direct SSL/TLS)</label>
+                <input type="number" class="input-control" id="adminSmtpPortInput" value="465" style="font-size:0.84rem;">
               </div>
             </div>
           </div>
@@ -1242,7 +1242,7 @@
       }
       if (document.getElementById('adminSmtpFromNameInput')) document.getElementById('adminSmtpFromNameInput').value = smtp.fromName || 'CineSpace Concierge';
       if (document.getElementById('adminSmtpHostInput')) document.getElementById('adminSmtpHostInput').value = smtp.host || 'smtp.gmail.com';
-      if (document.getElementById('adminSmtpPortInput')) document.getElementById('adminSmtpPortInput').value = smtp.port || 587;
+      if (document.getElementById('adminSmtpPortInput')) document.getElementById('adminSmtpPortInput').value = smtp.port || 465;
       if (document.getElementById('adminSmtpTestRecipientInput') && !document.getElementById('adminSmtpTestRecipientInput').value) {
         document.getElementById('adminSmtpTestRecipientInput').value = smtp.user || 'support@gm-care.in';
       }
@@ -1380,7 +1380,7 @@
           showToast('❌ ' + (data.message || 'SMTP Connection Failed. Check your App Password.'), true);
         }
       } catch (err) {
-        showToast('✓ [Demo Mode] Google SMTP parameters formatted correctly. Ready for dispatch!', false);
+        showToast('❌ Network error testing SMTP: ' + (err.message || 'Check connection'), true);
       }
 
       btn.disabled = false;

@@ -208,8 +208,9 @@ async function sendDirectGoogleSmtp(
   subject: string,
   htmlContent: string
 ): Promise<{ success: boolean; error?: string; messageId?: string }> {
-  const host = creds.host || 'smtp.gmail.com';
-  const port = Number(creds.port) || 465;
+  const host = (creds.host || 'smtp.gmail.com').trim();
+  const isGmail = host.toLowerCase().includes('gmail.com');
+  const port = isGmail ? 465 : (Number(creds.port) || 465);
   const user = (creds.user || '').trim();
   const pass = (creds.pass || '').trim().replace(/\s+/g, '');
 
@@ -220,7 +221,7 @@ async function sendDirectGoogleSmtp(
   try {
     const socket = connect(
       { hostname: host, port: port },
-      { secureTransport: port === 465 ? 'on' : 'off' }
+      { secureTransport: (port === 465 || isGmail) ? 'on' : 'off' }
     );
 
     const writer = socket.writable.getWriter();
@@ -230,8 +231,12 @@ async function sendDirectGoogleSmtp(
 
     let buffer = '';
 
-    async function readResponse(): Promise<string> {
+    async function readResponse(timeoutMs = 10000): Promise<string> {
+      const startTime = Date.now();
       while (true) {
+        if (Date.now() - startTime > timeoutMs) {
+          throw new Error('Google SMTP connection timed out (10s)');
+        }
         const lines = buffer.split('\r\n');
         for (let i = 0; i < lines.length - 1; i++) {
           const line = lines[i];
@@ -262,7 +267,7 @@ async function sendDirectGoogleSmtp(
     }
 
     // 2. Send EHLO
-    const ehlo = await sendCmd('EHLO localhost');
+    const ehlo = await sendCmd('EHLO cinespace.gm-care.in');
     if (!ehlo.includes('250')) {
       throw new Error(`EHLO failed: ${ehlo.trim()}`);
     }
@@ -276,13 +281,13 @@ async function sendDirectGoogleSmtp(
     // Send Base64 Username
     const userResp = await sendCmd(btoa(user));
     if (!userResp.includes('334')) {
-      throw new Error(`Username not accepted: ${userResp.trim()}`);
+      throw new Error(`Username not accepted by Gmail: ${userResp.trim()}`);
     }
 
     // Send Base64 App Password
     const passResp = await sendCmd(btoa(pass));
     if (!passResp.includes('235')) {
-      throw new Error(`Google Authentication Failed: ${passResp.trim()}. Please ensure 2-Step Verification is active on your Google account and you generated a 16-character App Password under security settings.`);
+      throw new Error(`Google App Password Authentication Failed: ${passResp.trim()}. Make sure 2-Step Verification is active and you generated an App Password.`);
     }
 
     // 4. MAIL FROM
