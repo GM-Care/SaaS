@@ -1,16 +1,42 @@
 # ============================================================================
-# CLOUDFLARE WORKERS & PAGES CONFIGURATION - SAAS
+# CLOUDFLARE EDGE-NATIVE SAAS CONFIGURATION - CINESPACE & GADGET MEDIA CARE
 # ============================================================================
 name = "saas"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
+main = "src/worker.ts"
 
 [assets]
 directory = "./public"
 binding = "ASSETS"
 
+# 1. Cloudflare D1 Serverless SQL Database Binding
+[[d1_databases]]
+binding = "DB"
+database_name = "cinespace-production-db"
+database_id = "cinespace-db-id"
+
+# 2. Cloudflare R2 Media Storage Bucket Binding (Zero Egress Costs)
+[[r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "cinespace-media-uploads"
+
+# 3. Cloudflare Durable Objects (Distributed Concurrency & Slot Mutex Lock)
+[[durable_objects.bindings]]
+name = "BOOKING_LOCK_DO"
+class_name = "BookingLockDO"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["BookingLockDO"]
+
+# 4. Environment Variables
 [vars]
 PLATFORM_NAME = "CineSpace India - Luxury Private Theaters"
+PLATFORM_LEGAL_ENTITY = "Gadget Media Care"
 PLATFORM_COMMISSION_PERCENT = "10.0"
 ADMIN_PIN = "1234"
 DEFAULT_SUPPORT_WHATSAPP = "+919962279790"
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_demo"
+RAZORPAY_KEY_ID = "rzp_test_DemoCineSpace2026"
+RAZORPAY_KEY_SECRET = "demo_secret_key_123"

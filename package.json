@@ -1,21 +1,26 @@
 {
-  "name": "cinespace-luxury-cinema-marketplace",
-  "version": "2.0.0",
-  "description": "Full-Stack Multi-Merchant Private Cinema & Event Space Rental Platform with Razorpay Split Payments and Indian Legal Compliance",
-  "main": "server.js",
+  "name": "cinespace-saas",
+  "version": "3.0.0",
+  "description": "Cloudflare Edge-Native SaaS Marketplace: Next.js + Cloudflare Pages + Workers + D1 + Durable Objects + R2 + Razorpay",
+  "main": "src/worker.ts",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "d1:init": "wrangler d1 execute cinespace-production-db --file=src/lib/db/schema.sql",
+    "d1:seed": "wrangler d1 execute cinespace-production-db --file=src/lib/db/seed.sql",
+    "r2:create": "wrangler r2 bucket create cinespace-media-uploads",
+    "start": "node server.js"
   },
   "keywords": [
-    "cinema-booking",
-    "private-theater",
-    "marketplace",
+    "cloudflare-workers",
+    "cloudflare-d1",
+    "cloudflare-r2",
+    "durable-objects",
+    "nextjs",
     "razorpay",
-    "multi-merchant",
-    "indian-law-compliant"
+    "saas"
   ],
-  "author": "Prabhakar Home Cinema & CineSpace Network",
+  "author": "Gadget Media Care",
   "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
@@ -23,5 +28,10 @@
     "express": "^4.19.2",
     "nodemailer": "^6.9.13",
     "razorpay": "^2.9.4"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240925.0",
+    "typescript": "^5.4.5",
+    "wrangler": "^3.78.0"
   }
 }
