@@ -163,36 +163,37 @@
       line-height: 1.5;
     }
 
-    /* Clean Multi-Tab Wrap - Zero Horizontal Scrolling */
+    /* Clean 1-Line Multi-Tab Bar - Zero Horizontal Scrolling */
     .admin-tabs-wrap {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
-      margin: 20px 0 16px 0;
+      gap: 8px;
+      margin: 18px 0 14px 0;
       border-bottom: 2px solid var(--border-color);
       padding-bottom: 12px;
       overflow: visible !important;
     }
 
     .admin-tab-btn {
-      padding: 11px 20px;
-      border-radius: 10px;
+      padding: 9px 14px;
+      border-radius: 8px;
       border: 1.5px solid #cbd5e1;
       background: #ffffff;
       color: #1e293b;
-      font-size: 0.92rem;
+      font-size: 0.88rem;
       font-weight: bold;
       font-family: Cambria, Georgia, serif;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 7px;
+      white-space: nowrap;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
     }
     .admin-tab-btn i {
       color: var(--gold-main);
-      font-size: 1rem;
+      font-size: 0.95rem;
       transition: color 0.2s ease;
     }
     .admin-tab-btn:hover {
@@ -324,25 +325,25 @@
         </div>
       </div>
 
-      <!-- Navigation Tabs Strip for Master Admin (Clean Wrap - Zero Internal Scrollbar) -->
+      <!-- Navigation Tabs Strip for Master Admin (Clean 1-Line Display) -->
       <div class="admin-tabs-wrap">
         <button class="admin-tab-btn active" id="adminTabBtn_hosts" onclick="switchAdminTab('hosts')">
-          <i class="fa-solid fa-building-columns"></i> 1. Host Network & Fees
+          <i class="fa-solid fa-building-columns"></i> Host Network
         </button>
         <button class="admin-tab-btn" id="adminTabBtn_requests" onclick="switchAdminTab('requests')">
-          <i class="fa-solid fa-shield-check"></i> 2. Payout & KYC Requests
+          <i class="fa-solid fa-shield-check"></i> Payout & KYC Requests
         </button>
         <button class="admin-tab-btn" id="adminTabBtn_finance" onclick="switchAdminTab('finance')">
-          <i class="fa-solid fa-money-bill-transfer"></i> 3. Settlements & Reviews
+          <i class="fa-solid fa-money-bill-transfer"></i> Settlements & Reviews
         </button>
         <button class="admin-tab-btn" id="adminTabBtn_data" onclick="switchAdminTab('data')">
-          <i class="fa-solid fa-database"></i> 4. Data Science & ETL Hub
+          <i class="fa-solid fa-database"></i> Data Science & ETL
         </button>
         <button class="admin-tab-btn" id="adminTabBtn_gateway" onclick="switchAdminTab('gateway')">
-          <i class="fa-solid fa-credit-card"></i> 5. Payment Gateway
+          <i class="fa-solid fa-credit-card"></i> Payment Gateway
         </button>
         <button class="admin-tab-btn" id="adminTabBtn_security" onclick="switchAdminTab('security')">
-          <i class="fa-solid fa-user-shield"></i> 6. Security & Master PIN
+          <i class="fa-solid fa-user-shield"></i> Security & Credentials
         </button>
       </div>
 
@@ -350,7 +351,7 @@
       <div id="adminActiveTabIndicator" style="display:flex; align-items:center; justify-content:space-between; background: #ffffff; border: 1.5px solid var(--border-color); border-left: 4px solid var(--gold-main); border-radius: 8px; padding: 10px 16px; margin-bottom: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
         <div style="font-size: 0.92rem; font-weight: bold; color: #0f172a; display:flex; align-items:center; gap: 8px; font-family: Cambria, Georgia, serif;">
           <span style="background:var(--gold-main); color:#ffffff; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; text-transform: uppercase; letter-spacing:0.5px; font-weight:bold;">ACTIVE VIEW</span>
-          <span id="adminActiveTabNameDisplay">🏛️ 1. Cinema Host Network & Fee Control</span>
+          <span id="adminActiveTabNameDisplay">🏛️ Cinema Host Network & Fee Control</span>
         </div>
         <span class="card-subtitle">Master Administration Workspace</span>
       </div>
@@ -885,12 +886,12 @@
     }
 
     var adminTabTitlesMap = {
-      'hosts': '🏛️ 1. Cinema Host Network & Fee Control',
-      'requests': '🚨 2. Payout & KYC Review Queue (Approval-Gated)',
-      'finance': '💰 3. Financial Settlements & Quality Reviews',
-      'data': '📊 4. Data Science Hub (ETL Import / Export)',
-      'gateway': '💳 5. Razorpay Gateway & Webhooks Configuration',
-      'security': '🔐 6. Master Security & PIN Management'
+      'hosts': '🏛️ Cinema Host Network & Fee Control',
+      'requests': '🚨 Payout & KYC Review Queue (Approval-Gated)',
+      'finance': '💰 Financial Settlements & Quality Reviews',
+      'data': '📊 Data Science Hub (ETL Import / Export)',
+      'gateway': '💳 Razorpay Gateway & Webhooks Configuration',
+      'security': '🔐 Master Security & PIN Management'
     };
 
     function switchAdminTab(tabName) {
