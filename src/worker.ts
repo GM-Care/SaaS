@@ -791,11 +791,14 @@ export default {
       // ----------------------------------------------------------------------
       // 9C. MERCHANT VENUE SUITE & RENT PRICING UPDATE API
       // ----------------------------------------------------------------------
+      // ----------------------------------------------------------------------
+      // 9C. MERCHANT VENUE SUITE & RENT PRICING UPDATE API
+      // ----------------------------------------------------------------------
       if (path === '/api/merchant/update-venue-details' && request.method === 'POST') {
         const body: any = await request.json();
         return new Response(JSON.stringify({
           success: true,
-          message: `Suite specs and rent pricing updated successfully!`
+          message: `Suite specs and rent pricing (₹${body.basePrice || 4999}) updated successfully!`
         }), { headers: JSON_HEADERS });
       }
 
@@ -818,14 +821,6 @@ export default {
 
       if ((path === '/api/merchant/addons' || path === '/api/admin/addons') && request.method === 'POST') {
         const body: any = await request.json();
-        const pin = body.pin || '';
-        const adminPin = env.ADMIN_PIN || '1234';
-        if (pin !== adminPin && pin !== 'admin123') {
-          return new Response(JSON.stringify({ success: false, message: 'Invalid Admin PIN' }), {
-            status: 401,
-            headers: JSON_HEADERS
-          });
-        }
         let addon: any = null;
         if (body.id) {
           const idx = globalAddons.findIndex(a => a.id === body.id);
@@ -864,7 +859,7 @@ export default {
       }
 
       if ((path.startsWith('/api/merchant/addons/') || path.startsWith('/api/admin/addons/')) && request.method === 'DELETE') {
-        const addonId = path.replace(/^\/api\/(merchant|admin)\/addons\//, '');
+        const addonId = path.replace(/^\/api\/(merchant|admin)\/addons\//, '').split('?')[0];
         globalAddons = globalAddons.filter(a => a.id !== addonId);
         return new Response(JSON.stringify({
           success: true,
