@@ -298,6 +298,297 @@ const emailService = {
       console.error('SMTP test failure:', err.message);
       return { success: false, error: err.message || 'SMTP Authentication Failed' };
     }
+  },
+
+  /**
+   * 5. Send New Merchant Signup Alert to Master Admin
+   */
+  sendAdminNewMerchantSignupAlert: async (merchant, venue) => {
+    try {
+      const transporter = createTransporter(null);
+      const sender = resolveSenderDetails(null);
+      const adminEmail = (db.getAdminCredentials && db.getAdminCredentials().email) || 'support@gm-care.in';
+
+      const mailOptions = {
+        from: `"${sender.name}" <${sender.email}>`,
+        to: adminEmail,
+        subject: `🚨 New Cinema Host Registration: ${merchant.brandName} (${merchant.city}) - Audit Required`,
+        html: `
+          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 620px; margin: 0 auto; background: #0b0f19; color: #f8fafc; border-radius: 12px; overflow: hidden; border: 1px solid #d97706;">
+            <div style="background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); padding: 20px; text-align: center;">
+              <h2 style="margin: 0; color: #090d16; font-size: 22px; text-transform: uppercase;">New Cinema Host Registered</h2>
+              <p style="margin: 4px 0 0 0; color: #1e293b; font-size: 13px; font-weight: bold;">Statutory KYC & Infrastructure Verification Required</p>
+            </div>
+            <div style="padding: 24px 20px;">
+              <p style="font-size: 15px; margin-top: 0;">A new cinema host has submitted their space listing on CineSpace:</p>
+
+              <div style="background: #111726; border: 1px solid #1e293b; border-radius: 8px; padding: 16px; margin: 16px 0;">
+                <h3 style="color: #fbbf24; margin: 0 0 10px 0; font-size: 16px;">🏢 Host & Legal Entity Details</h3>
+                <table style="width: 100%; font-size: 13px; color: #e2e8f0; line-height: 1.8;">
+                  <tr><td style="color: #94a3b8; width: 140px;">Brand Name:</td><td><strong>${merchant.brandName}</strong></td></tr>
+                  <tr><td style="color: #94a3b8;">Legal Business:</td><td>${merchant.businessName} (${merchant.entityType || 'Proprietorship'})</td></tr>
+                  <tr><td style="color: #94a3b8;">Owner / Contact:</td><td>${merchant.ownerName || 'Host'} &bull; <a href="tel:${merchant.phone}" style="color: #38bdf8; text-decoration:none;">${merchant.phone}</a></td></tr>
+                  <tr><td style="color: #94a3b8;">Email Address:</td><td>${merchant.email}</td></tr>
+                  <tr><td style="color: #94a3b8;">Location:</td><td>${merchant.locality ? merchant.locality + ', ' : ''}${merchant.city}</td></tr>
+                  <tr><td style="color: #94a3b8;">Registered Address:</td><td>${merchant.address}</td></tr>
+                  <tr><td style="color: #94a3b8;">GSTIN / PAN:</td><td>GSTIN: <code>${merchant.gstin || 'Unregistered / Excluded'}</code> &bull; PAN: <code>${merchant.panNumber || 'N/A'}</code></td></tr>
+                  <tr><td style="color: #94a3b8;">Payout UPI / Bank:</td><td>UPI: <code>${merchant.upiId || 'N/A'}</code> &bull; Bank: ${merchant.bankName || 'N/A'} (${merchant.bankAccountNumber || ''})</td></tr>
+                </table>
+              </div>
+
+              ${venue ? `
+              <div style="background: #111726; border: 1px solid #1e293b; border-radius: 8px; padding: 16px; margin: 16px 0;">
+                <h3 style="color: #34d399; margin: 0 0 10px 0; font-size: 16px;">🎬 Auditorium Suite Specifications</h3>
+                <table style="width: 100%; font-size: 13px; color: #e2e8f0; line-height: 1.8;">
+                  <tr><td style="color: #94a3b8; width: 140px;">Suite Name:</td><td><strong>${venue.name}</strong></td></tr>
+                  <tr><td style="color: #94a3b8;">Base Rent Price:</td><td><strong style="color: #10b981; font-size: 15px;">₹${venue.basePrice} / 3-Hour Slot</strong></td></tr>
+                  <tr><td style="color: #94a3b8;">Capacity:</td><td>${venue.capacity} Guests (${venue.layoutSpecs})</td></tr>
+                  <tr><td style="color: #94a3b8;">AV Technology:</td><td>${venue.avSpecs}</td></tr>
+                </table>
+              </div>
+              ` : ''}
+
+              <div style="text-align: center; margin: 24px 0;">
+                <a href="${process.env.APP_URL || 'https://cinespace.gm-care.in'}/admin" style="background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); color: #090d16; font-weight: bold; text-decoration: none; padding: 14px 28px; border-radius: 25px; display: inline-block; font-size: 14px;">
+                  👉 Review & Approve in Super Admin Portal
+                </a>
+              </div>
+            </div>
+            <div style="background: #060911; padding: 14px; text-align: center; border-top: 1px solid #1e293b; font-size: 11px; color: #64748b;">
+              Platform Legal Entity: Gadget Media Care &bull; GSTIN: 33BCXPR4393D2Z2
+            </div>
+          </div>
+        `
+      };
+
+      await transporter.sendMail(mailOptions);
+      console.log(`[Email Service] Admin notified of new host signup: ${merchant.brandName}`);
+    } catch (err) {
+      console.warn(`[Email Service Notice] Could not dispatch admin signup alert: ${err.message}`);
+    }
+  },
+
+  /**
+   * 6. Send Existing Merchant Modification Alert to Master Admin
+   */
+  sendAdminMerchantModificationAlert: async (merchant, modificationType, changeDetails) => {
+    try {
+      const transporter = createTransporter(null);
+      const sender = resolveSenderDetails(null);
+      const adminEmail = (db.getAdminCredentials && db.getAdminCredentials().email) || 'support@gm-care.in';
+
+      const mailOptions = {
+        from: `"${sender.name}" <${sender.email}>`,
+        to: adminEmail,
+        subject: `🔔 Merchant Modification Alert: ${merchant.brandName} - ${modificationType}`,
+        html: `
+          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #0b0f19; color: #f8fafc; border-radius: 12px; overflow: hidden; border: 1px solid #3b82f6;">
+            <div style="background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%); padding: 18px 20px; text-align: center;">
+              <h2 style="margin: 0; color: #ffffff; font-size: 20px; text-transform: uppercase;">Host Modification Submitted</h2>
+              <p style="margin: 4px 0 0 0; color: #bfdbfe; font-size: 12px; font-weight: bold;">Audit & Review Triggered</p>
+            </div>
+            <div style="padding: 24px 20px;">
+              <p style="font-size: 15px; margin-top: 0;">Cinema Host <strong>${merchant.brandName}</strong> (${merchant.city}) has updated their details:</p>
+              
+              <div style="background: #111726; border-left: 4px solid #3b82f6; padding: 14px 16px; border-radius: 6px; margin: 16px 0; font-size: 13px; line-height: 1.8;">
+                <strong>Modification Type:</strong> ${modificationType}<br/>
+                <strong>Host Contact:</strong> ${merchant.email} &bull; ${merchant.phone}<br/>
+                <strong>Details:</strong><br/>
+                <div style="background: #1e293b; padding: 10px; border-radius: 6px; margin-top: 6px; font-family: monospace; color: #93c5fd;">
+                  ${typeof changeDetails === 'string' ? changeDetails : JSON.stringify(changeDetails, null, 2)}
+                </div>
+              </div>
+
+              <div style="text-align: center; margin: 22px 0;">
+                <a href="${process.env.APP_URL || 'https://cinespace.gm-care.in'}/admin" style="background: #3b82f6; color: #ffffff; font-weight: bold; text-decoration: none; padding: 12px 24px; border-radius: 20px; display: inline-block; font-size: 13px;">
+                  Open Admin Control Center
+                </a>
+              </div>
+            </div>
+            <div style="background: #060911; padding: 12px; text-align: center; border-top: 1px solid #1e293b; font-size: 11px; color: #64748b;">
+              Platform Legal Entity: Gadget Media Care
+            </div>
+          </div>
+        `
+      };
+
+      await transporter.sendMail(mailOptions);
+      console.log(`[Email Service] Admin notified of host modification: ${merchant.brandName}`);
+    } catch (err) {
+      console.warn(`[Email Service Notice] Could not dispatch modification alert: ${err.message}`);
+    }
+  },
+
+  /**
+   * 7. Send Infrastructure Approval Confirmation to Merchant
+   */
+  sendMerchantApprovalNotice: async (merchant, auditDetails) => {
+    if (!merchant || !merchant.email) return;
+    try {
+      const transporter = createTransporter(null);
+      const sender = resolveSenderDetails(null);
+      const commRate = (auditDetails && auditDetails.commissionRatePercent !== undefined) 
+        ? auditDetails.commissionRatePercent 
+        : (merchant.commissionRatePercent || 10.0);
+
+      const mailOptions = {
+        from: `"${sender.name}" <${sender.email}>`,
+        to: merchant.email,
+        subject: `🎉 Congratulations! Your CineSpace Merchant Account & Infrastructure is Approved`,
+        html: `
+          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #0b0f19; color: #f8fafc; border-radius: 12px; overflow: hidden; border: 1px solid #10b981;">
+            <div style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 22px 20px; text-align: center;">
+              <h2 style="margin: 0; color: #ffffff; font-size: 22px; text-transform: uppercase;">Infrastructure Approved!</h2>
+              <p style="margin: 4px 0 0 0; color: #d1fae5; font-size: 13px; font-weight: bold;">Your Cinema Suites are now LIVE for Public Bookings</p>
+            </div>
+            <div style="padding: 24px 20px;">
+              <p style="font-size: 15px; margin-top: 0;">Dear <strong>${merchant.brandName}</strong> Team,</p>
+              <p style="color: #cbd5e1; font-size: 14px; line-height: 1.6;">
+                We are delighted to inform you that following our statutory and technical audit, your private auditorium infrastructure and payout KYC have been <strong>officially approved and verified</strong> by the platform administration team.
+              </p>
+
+              <div style="background: #111726; border: 1px solid #1e293b; border-radius: 8px; padding: 16px; margin: 18px 0; font-size: 13px; line-height: 1.8;">
+                <div style="color: #34d399; font-weight: bold; margin-bottom: 8px;">✓ Account Verification Summary:</div>
+                • <strong>Listing Status:</strong> Active & Published on Marketplace<br/>
+                • <strong>Platform Facilitation Commission:</strong> ${commRate}% per confirmed reservation<br/>
+                • <strong>Settlement Cycle:</strong> Direct Automated Transfer to UPI ID (<code>${merchant.upiId || 'Configured'}</code>) upon booking completion<br/>
+                ${auditDetails && auditDetails.notes ? `• <strong>Admin Notes:</strong> <em>${auditDetails.notes}</em><br/>` : ''}
+              </div>
+
+              <div style="text-align: center; margin: 24px 0;">
+                <a href="${process.env.APP_URL || 'https://cinespace.gm-care.in'}/merchant" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #ffffff; font-weight: bold; text-decoration: none; padding: 14px 28px; border-radius: 25px; display: inline-block; font-size: 14px;">
+                  👉 Access Host Reception Desk Dashboard
+                </a>
+              </div>
+
+              <p style="color: #94a3b8; font-size: 12px; line-height: 1.6;">
+                You can now log in using your registered credentials to manage showtime slots, view incoming guest reservations, check-in guests using their 4-digit door PIN, and track settlements.
+              </p>
+            </div>
+            <div style="background: #060911; padding: 14px; text-align: center; border-top: 1px solid #1e293b; font-size: 11px; color: #64748b;">
+              Platform Legal Entity: Gadget Media Care &bull; Official Support: support@gm-care.in
+            </div>
+          </div>
+        `
+      };
+
+      await transporter.sendMail(mailOptions);
+      console.log(`[Email Service] Merchant approval notice sent to ${merchant.email}`);
+    } catch (err) {
+      console.warn(`[Email Service Notice] Could not dispatch approval notice: ${err.message}`);
+    }
+  },
+
+  /**
+   * 8. Send Infrastructure Rejection Notice to Merchant
+   */
+  sendMerchantRejectionNotice: async (merchant, auditDetails) => {
+    if (!merchant || !merchant.email) return;
+    try {
+      const transporter = createTransporter(null);
+      const sender = resolveSenderDetails(null);
+      const notes = (auditDetails && (auditDetails.notes || auditDetails.reason)) || 'Statutory documentation or technical specifications required revisions.';
+
+      const mailOptions = {
+        from: `"${sender.name}" <${sender.email}>`,
+        to: merchant.email,
+        subject: `⚠️ Update Regarding Your CineSpace Listing Application: ${merchant.brandName}`,
+        html: `
+          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #0b0f19; color: #f8fafc; border-radius: 12px; overflow: hidden; border: 1px solid #ef4444;">
+            <div style="background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%); padding: 20px; text-align: center;">
+              <h2 style="margin: 0; color: #ffffff; font-size: 20px; text-transform: uppercase;">Listing Audit Status Update</h2>
+              <p style="margin: 4px 0 0 0; color: #fee2e2; font-size: 12px; font-weight: bold;">Action Required for Verification</p>
+            </div>
+            <div style="padding: 24px 20px;">
+              <p style="font-size: 15px; margin-top: 0;">Dear <strong>${merchant.brandName}</strong> Team,</p>
+              <p style="color: #cbd5e1; font-size: 14px; line-height: 1.6;">
+                Thank you for applying to list your private cinema on the CineSpace marketplace. During our administrative review, our audit team identified items that require clarification or revision before public publishing:
+              </p>
+
+              <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 14px 16px; border-radius: 4px; font-size: 13px; color: #fca5a5; margin: 18px 0; line-height: 1.7;">
+                <strong>Audit Feedback / Reason:</strong><br/>
+                ${notes}
+              </div>
+
+              <p style="color: #cbd5e1; font-size: 13px; line-height: 1.6;">
+                Please log into your merchant panel to update the required details, upload high-resolution auditorium photos, or reach out to our partner onboarding team directly.
+              </p>
+
+              <div style="text-align: center; margin: 22px 0;">
+                <a href="${process.env.APP_URL || 'https://cinespace.gm-care.in'}/merchant" style="background: #334155; color: #ffffff; font-weight: bold; text-decoration: none; padding: 12px 24px; border-radius: 20px; display: inline-block; font-size: 13px;">
+                  Open Merchant Portal to Rectify
+                </a>
+              </div>
+            </div>
+            <div style="background: #060911; padding: 12px; text-align: center; border-top: 1px solid #1e293b; font-size: 11px; color: #64748b;">
+              Platform Legal Entity: Gadget Media Care &bull; Support: support@gm-care.in &bull; +91-8667708711
+            </div>
+          </div>
+        `
+      };
+
+      await transporter.sendMail(mailOptions);
+      console.log(`[Email Service] Merchant rejection notice sent to ${merchant.email}`);
+    } catch (err) {
+      console.warn(`[Email Service Notice] Could not dispatch rejection notice: ${err.message}`);
+    }
+  },
+
+  /**
+   * 9. Send Payout / Banking Update Status Notice to Merchant
+   */
+  sendMerchantPayoutUpdateStatusNotice: async (merchant, payoutReq, isApproved, notes) => {
+    if (!merchant || !merchant.email) return;
+    try {
+      const transporter = createTransporter(null);
+      const sender = resolveSenderDetails(null);
+
+      const mailOptions = {
+        from: `"${sender.name}" <${sender.email}>`,
+        to: merchant.email,
+        subject: isApproved 
+          ? `✓ Payout & Banking Modification Approved - CineSpace Host Portal` 
+          : `⚠️ Payout & Banking Modification Declined - CineSpace Host Portal`,
+        html: `
+          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #0b0f19; color: #f8fafc; border-radius: 12px; overflow: hidden; border: 1px solid ${isApproved ? '#10b981' : '#ef4444'};">
+            <div style="background: ${isApproved ? 'linear-gradient(135deg, #059669 0%, #10b981 100%)' : 'linear-gradient(135deg, #b91c1c 0%, #ef4444 100%)'}; padding: 18px 20px; text-align: center;">
+              <h2 style="margin: 0; color: #ffffff; font-size: 20px; text-transform: uppercase;">
+                ${isApproved ? 'Banking Update Approved' : 'Banking Update Declined'}
+              </h2>
+            </div>
+            <div style="padding: 24px 20px;">
+              <p style="font-size: 15px; margin-top: 0;">Hello <strong>${merchant.brandName}</strong>,</p>
+              <p style="color: #cbd5e1; font-size: 14px; line-height: 1.6;">
+                ${isApproved 
+                  ? 'Your requested modifications to your settlement payout accounts have been verified and applied live to your account.' 
+                  : 'Your requested modifications to your settlement payout accounts were declined by the administration audit team.'}
+              </p>
+
+              ${payoutReq ? `
+              <div style="background: #111726; border: 1px solid #1e293b; border-radius: 6px; padding: 12px 14px; font-size: 13px; color: #e2e8f0; line-height: 1.7; margin: 14px 0;">
+                <strong>Updated Banking Records:</strong><br/>
+                • UPI ID / Payment Number: <code>${payoutReq.upiId || merchant.upiId || 'Unchanged'}</code><br/>
+                • Bank: ${payoutReq.bankName || merchant.bankName || 'Unchanged'} (${payoutReq.accountNumber || payoutReq.bankAccountNumber || merchant.bankAccountNumber || ''})
+              </div>
+              ` : ''}
+
+              ${notes ? `
+              <div style="background: rgba(245, 158, 11, 0.1); border-left: 3px solid #f59e0b; padding: 10px; border-radius: 4px; font-size: 12px; color: #fde68a; margin-top: 14px;">
+                <strong>Admin Notes:</strong> ${notes}
+              </div>
+              ` : ''}
+            </div>
+            <div style="background: #060911; padding: 12px; text-align: center; border-top: 1px solid #1e293b; font-size: 11px; color: #64748b;">
+              Platform Legal Entity: Gadget Media Care &bull; Support: support@gm-care.in
+            </div>
+          </div>
+        `
+      };
+
+      await transporter.sendMail(mailOptions);
+    } catch (err) {
+      console.warn(`[Email Service Notice] Could not dispatch payout notice: ${err.message}`);
+    }
   }
 };
 

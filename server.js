@@ -654,6 +654,11 @@ app.post('/api/merchant/update-profile', (req, res) => {
       upiId
     });
 
+    // Notify Master Admin of profile update
+    emailService.sendAdminMerchantModificationAlert(updated, 'Profile, Logo & Contact Update', {
+      brandName, logo, city, locality, address, googleMapsUrl, phone, email, upiId
+    });
+
     res.json({
       success: true,
       message: 'Host profile, logo, and location updated successfully!',
@@ -784,6 +789,9 @@ app.post('/api/merchants/register', (req, res) => {
       videoUrl: videoUrl || '',
       verificationStatus: 'Pending Verification'
     });
+
+    // Notify Master Admin of new host registration
+    emailService.sendAdminNewMerchantSignupAlert(merchant, venue);
 
     res.json({
       success: true,
@@ -952,6 +960,15 @@ app.post('/api/merchant/update-venue-details', (req, res) => {
       return res.status(404).json({ success: false, message: 'Auditorium Suite not found for this host.' });
     }
 
+    // Notify Master Admin of suite modifications
+    emailService.sendAdminMerchantModificationAlert(merchant, 'Auditorium Suite Specs & Rent Pricing Update', {
+      suiteName: updatedVenue.name,
+      basePrice: updatedVenue.basePrice,
+      capacity: updatedVenue.capacity,
+      layoutSpecs: updatedVenue.layoutSpecs,
+      avSpecs: updatedVenue.avSpecs
+    });
+
     const allVenues = db.getVenues({ merchantId: merchant.id, includeUnverified: true });
 
     res.json({
@@ -959,6 +976,50 @@ app.post('/api/merchant/update-venue-details', (req, res) => {
       message: `Suite '${updatedVenue.name}' rent pricing (₹${updatedVenue.basePrice}) and specs updated successfully!`,
       venue: updatedVenue,
       venues: allVenues
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 19BB. Merchant: Request Settlement Payout / Banking KYC Modification
+ */
+app.post('/api/merchant/request-payout-update', (req, res) => {
+  try {
+    const { merchantId, pin, upiId, bankName, accountNumber, ifsc, bankHolder, gstin, panNumber, businessName } = req.body;
+    const merchant = db.getMerchantById(merchantId);
+
+    if (!merchant || (merchant.pin !== String(pin).trim() && merchant.password !== String(pin).trim())) {
+      return res.status(401).json({ success: false, message: 'Invalid Security PIN or Password' });
+    }
+
+    const updated = db.requestPayoutUpdate(merchantId, {
+      upiId,
+      bankName,
+      accountNumber,
+      ifsc,
+      bankHolder,
+      gstin,
+      panNumber,
+      businessName
+    });
+
+    // Notify Master Admin of payout modification request
+    emailService.sendAdminMerchantModificationAlert(merchant, 'Payout & Banking KYC Modification', {
+      upiId,
+      bankName,
+      accountNumber,
+      ifsc,
+      gstin,
+      panNumber,
+      businessName
+    });
+
+    res.json({
+      success: true,
+      message: 'Payout & Banking KYC modification request submitted for Super-Admin review!',
+      merchant: updated
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -1403,10 +1464,82 @@ app.post('/api/admin/merchant/verify-infrastructure', (req, res) => {
       return res.status(404).json({ success: false, message: 'Merchant ID not found' });
     }
 
+    // Automatically send approval or rejection email notification directly to host
+    if (status === 'Approved') {
+      emailService.sendMerchantApprovalNotice(updated, { status, notes, commissionRatePercent });
+    } else {
+      emailService.sendMerchantRejectionNotice(updated, { status, notes, commissionRatePercent });
+    }
+
     res.json({
       success: true,
-      message: `Infrastructure for ${updated.brandName} is now ${status}! Commission set to ${updated.commissionRatePercent}%.`,
+      message: `Infrastructure for ${updated.brandName} is now ${status}! Commission set to ${updated.commissionRatePercent}%. Notification email dispatched to host.`,
       merchant: updated
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 24B. Master Admin: Approve or Reject Merchant Payout / Banking Update Request
+ */
+app.post('/api/admin/approve-payout-update', (req, res) => {
+  try {
+    const { pin, merchantId, action, notes } = req.body;
+
+    if (!db.verifyAdminAuth(pin)) {
+      return res.status(401).json({ success: false, message: 'Invalid Master Admin PIN' });
+    }
+
+    const result = db.approvePayoutUpdate(merchantId, action, notes);
+    if (!result || !result.merchant) {
+      return res.status(404).json({ success: false, message: 'Merchant ID not found' });
+    }
+
+    // Dispatch status notice email directly to host
+    emailService.sendMerchantPayoutUpdateStatusNotice(result.merchant, result.request, action === 'APPROVE', notes);
+
+    res.json({
+      success: true,
+      message: action === 'APPROVE' 
+        ? `Payout modification for ${result.merchant.brandName} approved and applied live! Confirmation email sent.`
+        : `Payout modification for ${result.merchant.brandName} rejected. Notification email sent.`,
+      merchant: result.merchant
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * 24C. Master Admin: Direct Payout Override
+ */
+app.post('/api/admin/direct-update-payout', (req, res) => {
+  try {
+    const { pin, merchantId, upiId, bankName, accountNumber, ifsc, commissionRatePercent } = req.body;
+
+    if (!db.verifyAdminAuth(pin)) {
+      return res.status(401).json({ success: false, message: 'Invalid Master Admin PIN' });
+    }
+
+    const merchant = db.getMerchantById(merchantId);
+    if (!merchant) return res.status(404).json({ success: false, message: 'Merchant ID not found' });
+
+    if (upiId) merchant.upiId = upiId.trim();
+    if (bankName) merchant.bankName = bankName.trim();
+    if (accountNumber) merchant.bankAccountNumber = accountNumber.trim();
+    if (ifsc) merchant.bankIfsc = ifsc.trim();
+    if (commissionRatePercent !== undefined) merchant.commissionRatePercent = Number(commissionRatePercent);
+    merchant.pendingPayoutRequest = null;
+    db.saveDb ? db.saveDb() : null;
+
+    emailService.sendMerchantPayoutUpdateStatusNotice(merchant, { upiId, bankName, accountNumber, ifsc }, true, 'Admin direct override applied.');
+
+    res.json({
+      success: true,
+      message: `Payout and commission details for ${merchant.brandName} updated live by Admin!`,
+      merchant
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

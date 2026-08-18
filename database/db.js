@@ -759,6 +759,37 @@ const dbService = {
     return merchant;
   },
 
+  requestPayoutUpdate: (merchantId, reqData) => {
+    const merchant = (db.merchants || []).find(m => m.id === merchantId);
+    if (!merchant) return null;
+    merchant.pendingPayoutRequest = {
+      ...reqData,
+      requestedAt: new Date().toISOString().split('T')[0]
+    };
+    saveDb();
+    return merchant;
+  },
+
+  approvePayoutUpdate: (merchantId, action, notes) => {
+    const merchant = (db.merchants || []).find(m => m.id === merchantId);
+    if (!merchant) return null;
+    const req = merchant.pendingPayoutRequest;
+    if (action === 'APPROVE' && req) {
+      if (req.upiId) merchant.upiId = req.upiId;
+      if (req.bankName) merchant.bankName = req.bankName;
+      if (req.bankAccountNumber || req.accountNumber) merchant.bankAccountNumber = (req.bankAccountNumber || req.accountNumber);
+      if (req.bankIfsc || req.ifsc) merchant.bankIfsc = (req.bankIfsc || req.ifsc);
+      if (req.bankHolder || req.bankAccountName) merchant.bankAccountName = (req.bankHolder || req.bankAccountName);
+      if (req.gstin) merchant.gstin = req.gstin;
+      if (req.panNumber) merchant.panNumber = req.panNumber;
+      if (req.businessName) merchant.businessName = req.businessName;
+    }
+    merchant.pendingPayoutRequest = null;
+    if (notes) merchant.payoutAuditNotes = notes;
+    saveDb();
+    return { merchant, request: req, action };
+  },
+
   // --- VENUES & SCREENS ---
   getVenues: (filters = {}) => {
     let list = db.venues || [];

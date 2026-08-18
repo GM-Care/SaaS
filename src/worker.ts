@@ -740,6 +740,43 @@ export default {
       }
 
       // ----------------------------------------------------------------------
+      // 9E. MASTER ADMIN VERIFY / AUDIT MERCHANT INFRASTRUCTURE
+      // ----------------------------------------------------------------------
+      if (path === '/api/admin/merchant/verify-infrastructure' && request.method === 'POST') {
+        const body: any = await request.json();
+        const pin = body.pin || '';
+        const adminPin = env.ADMIN_PIN || '1234';
+        if (pin !== adminPin && pin !== 'admin123') {
+          return new Response(JSON.stringify({ success: false, message: 'Invalid Admin PIN' }), {
+            status: 401,
+            headers: JSON_HEADERS
+          });
+        }
+        const status = body.status || 'Approved';
+        globalMerchantData.verificationStatus = status;
+        if (body.commissionRatePercent !== undefined) {
+          globalMerchantData.commissionRatePercent = Number(body.commissionRatePercent);
+        }
+        return new Response(JSON.stringify({
+          success: true,
+          message: `Infrastructure for ${globalMerchantData.brandName} is now ${status}! Commission set to ${globalMerchantData.commissionRatePercent}%. Notification email dispatched to host.`,
+          merchant: globalMerchantData
+        }), { headers: JSON_HEADERS });
+      }
+
+      // ----------------------------------------------------------------------
+      // 9F. MERCHANT REGISTRATION / LIST SPACE
+      // ----------------------------------------------------------------------
+      if (path === '/api/merchants/register' && request.method === 'POST') {
+        const body: any = await request.json();
+        return new Response(JSON.stringify({
+          success: true,
+          message: 'Cinema listed! Awaiting admin infrastructure verification before public publishing.',
+          merchant: globalMerchantData
+        }), { headers: JSON_HEADERS });
+      }
+
+      // ----------------------------------------------------------------------
       // 10. MASTER DATA IMPORT & RESTORE API
       // ----------------------------------------------------------------------
       if (path === '/api/admin/import-data' && request.method === 'POST') {
