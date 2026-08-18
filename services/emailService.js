@@ -218,13 +218,10 @@ const emailService = {
         console.warn(`[Email Service SMTP Notice] Transporter failed (${smtpErr.message}), trying HTTP direct dispatch fallback...`);
         const httpOk = await sendViaHttpApi(mailOptions);
         if (httpOk) return { success: true, messageId: 'http_direct_fallback' };
-        throw smtpErr;
+        console.warn(`[Email Service Notice] Could not dispatch email: ${smtpErr.message}`);
+        return { success: false, error: smtpErr.message };
       }
-    } catch (err) {
-      console.warn(`[Email Service Notice] Could not dispatch email: ${err.message}`);
-      return { success: false, error: err.message };
-    }
-  },
+    },
 
   /**
    * 2. Send Host New Booking Alert
