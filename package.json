@@ -1,0 +1,27 @@
+{
+  "name": "cinespace-luxury-cinema-marketplace",
+  "version": "2.0.0",
+  "description": "Full-Stack Multi-Merchant Private Cinema & Event Space Rental Platform with Razorpay Split Payments and Indian Legal Compliance",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "cinema-booking",
+    "private-theater",
+    "marketplace",
+    "razorpay",
+    "multi-merchant",
+    "indian-law-compliant"
+  ],
+  "author": "Prabhakar Home Cinema & CineSpace Network",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "nodemailer": "^6.9.13",
+    "razorpay": "^2.9.4"
+  }
+}

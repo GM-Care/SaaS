@@ -1,0 +1,15 @@
+# ============================================================================
+# CLOUDFLARE PAGES / WORKERS CONFIGURATION - CINESPACE SAAS
+# ============================================================================
+name = "cinespace-cinema-marketplace"
+compatibility_date = "2026-08-01"
+main = "server.js"
+
+[site]
+bucket = "./public"
+
+[vars]
+PLATFORM_NAME = "CineSpace India - Luxury Private Theaters"
+PLATFORM_COMMISSION_PERCENT = "10.0"
+ADMIN_PIN = "1234"
+DEFAULT_SUPPORT_WHATSAPP = "+919962279790"

@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CineSpace India | Luxury Private Cinema Marketplace</title>
+  
+  <!-- Google Fonts: Cinzel (Luxury Headings) & Outfit (Modern UI) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome 6 CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --bg-card: #111726;
+      --bg-glass: rgba(17, 23, 38, 0.9);
+      --border-color: rgba(217, 119, 6, 0.25);
+      --border-light: rgba(255, 255, 255, 0.08);
+      --gold-main: #f59e0b;
+      --gold-dark: #d97706;
+      --gold-light: #fbbf24;
+      --gold-gradient: linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --green-main: #10b981;
+      --shadow-luxury: 0 10px 30px -5px rgba(0, 0, 0, 0.6), 0 0 20px -2px rgba(217, 119, 6, 0.15);
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(217, 119, 6, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(245, 158, 11, 0.06) 0%, transparent 40%),
+        linear-gradient(to bottom, rgba(9, 13, 22, 0.96), rgba(9, 13, 22, 0.98)),
+        url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1920&q=80');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1, h2, h3, h4 { font-family: 'Cinzel', serif; letter-spacing: 1px; }
+    .container { width: 100%; max-width: 1140px; margin: 0 auto; padding: 0 16px; }
+
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--bg-glass); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-content { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .brand-logo { width: 44px; height: 44px; border-radius: 50%; background: var(--gold-gradient); padding: 2px; display: flex; align-items: center; justify-content: center; }
+    .brand-logo img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #090d16; }
+    .brand-text h1 { font-size: 1.15rem; font-weight: 700; background: var(--gold-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .brand-text p { font-size: 0.7rem; color: var(--text-muted); }
+
+    .nav-tabs-bar { display: flex; justify-content: center; background: rgba(13, 19, 33, 0.95); border-bottom: 1px solid var(--border-light); padding: 6px 0; overflow-x: auto; }
+    .nav-tab-btn { background: transparent; border: none; color: var(--text-muted); padding: 8px 18px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; border-radius: 30px; transition: all 0.3s ease; white-space: nowrap; }
+    .nav-tab-btn.active { color: #090d16; background: var(--gold-gradient); box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3); }
+
+    main { flex: 1; padding: 24px 0 60px 0; }
+    .tab-pane { display: none; animation: fadeIn 0.35s ease; }
+    .tab-pane.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .hero-banner { text-align: center; padding: 25px 20px 30px 20px; background: linear-gradient(180deg, rgba(217, 119, 6, 0.1) 0%, rgba(17, 23, 38, 0.6) 100%); border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 26px; }
+    .compliance-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--green-main); border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+
+    .venues-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }
+    .venue-card { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-luxury); transition: all 0.3s ease; display: flex; flex-direction: column; }
+    .venue-card:hover { border-color: var(--gold-main); transform: translateY(-4px); }
+    .venue-body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+    .venue-title { font-size: 1.2rem; color: #ffffff; margin-bottom: 6px; }
+    .venue-layout { font-size: 0.82rem; color: #cbd5e1; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .venue-specs { background: rgba(0, 0, 0, 0.3); border-left: 3px solid var(--gold-main); padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.78rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 16px; }
+    .venue-footer { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border-light); }
+    .venue-price { font-size: 1.35rem; font-weight: 800; color: var(--gold-light); }
+    .venue-price span { font-size: 0.75rem; color: var(--text-muted); font-weight: normal; }
+
+    .btn-book { background: var(--gold-gradient); border: none; color: #090d16; padding: 9px 20px; border-radius: 25px; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-book:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); }
+
+    /* Modal */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; }
+    .modal-card { background: #111726; border: 1px solid var(--border-color); border-radius: var(--radius-lg); max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: var(--shadow-luxury); position: relative; }
+    .close-modal-btn { position: absolute; top: 18px; right: 18px; background: rgba(255, 255, 255, 0.08); border: none; color: var(--text-muted); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+    .input-control { width: 100%; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 11px 14px; color: #ffffff; font-size: 0.92rem; outline: none; }
+    .input-control:focus { border-color: var(--gold-main); }
+
+    .slots-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 8px; }
+    .slot-item { background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 10px; cursor: pointer; transition: all 0.2s ease; }
+    .slot-item.available:hover { border-color: var(--gold-main); }
+    .slot-item.selected { border-color: var(--gold-main); background: rgba(245, 158, 11, 0.15); }
+    .slot-item.booked { opacity: 0.4; cursor: not-allowed; border-color: rgba(239, 68, 68, 0.3); }
+
+    .legal-box { background: rgba(217, 119, 6, 0.08); border: 1px solid rgba(217, 119, 6, 0.3); border-radius: var(--radius-sm); padding: 12px; margin: 16px 0; font-size: 0.78rem; color: #e2e8f0; line-height: 1.5; }
+    .bill-card { background: #090d16; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 14px; margin: 16px 0; }
+    .bill-row { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); padding: 4px 0; }
+    .bill-row.total { border-top: 1px dashed var(--border-color); margin-top: 6px; padding-top: 8px; font-size: 1.15rem; font-weight: 800; color: var(--gold-light); }
+
+    .btn-primary { background: var(--gold-gradient); border: none; color: #090d16; padding: 12px 28px; border-radius: 30px; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+    .glass-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 24px; box-shadow: var(--shadow-luxury); }
+
+    #toast { position: fixed; bottom: 20px; right: 20px; background: #1e293b; color: #ffffff; padding: 12px 20px; border-radius: 30px; border-left: 4px solid var(--gold-main); box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: none; z-index: 9999; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <a href="#" class="brand">
+          <div class="brand-logo">
+            <img src="https://img.icons8.com/fluency/96/movie-projector.png" alt="CineSpace Logo">
+          </div>
+          <div class="brand-text">
+            <h1>CineSpace India</h1>
+            <p>Luxury Private Theaters & Event Space Marketplace</p>
+          </div>
+        </a>
+        <a href="tel:+919962279790" class="btn-book" style="padding:6px 14px; font-size:0.8rem; text-decoration:none;">
+          <i class="fa-solid fa-phone-volume"></i> Concierge: +91 99622 79790
+        </a>
+      </div>
+    </div>
+
+    <div class="nav-tabs-bar">
+      <button class="nav-tab-btn active" onclick="switchTab('marketplaceTab')"><i class="fa-solid fa-film"></i> Explore Lounges</button>
+      <button class="nav-tab-btn" onclick="switchTab('passTab')"><i class="fa-solid fa-ticket"></i> My VIP Pass & Invoice</button>
+      <button class="nav-tab-btn" onclick="switchTab('adminTab')"><i class="fa-solid fa-shield-halved"></i> Master Admin</button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- TAB 1: MARKETPLACE -->
+    <div id="marketplaceTab" class="tab-pane active">
+      <div class="hero-banner">
+        <div class="compliance-pill"><i class="fa-solid fa-scale-balanced"></i> Indian Copyright Act 1957 & Space Rental Compliant</div>
+        <h2 style="margin-top:10px;">Rent High-End Private Theaters by the Hour</h2>
+        <p>Private family & friends screening suites featuring 4K Laser, Dolby Atmos 9.4.6, Motorized Sofas & Plush Bed Lounges.</p>
+      </div>
+
+      <div class="venues-grid" id="venuesContainer">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+
+    <!-- TAB 2: PASS LOOKUP -->
+    <div id="passTab" class="tab-pane">
+      <div class="glass-card" style="max-width:620px; margin:0 auto;">
+        <h2 style="color:#ffffff; margin-bottom:8px;"><i class="fa-solid fa-magnifying-glass" style="color:var(--gold-main);"></i> VIP Pass & Invoice Lookup</h2>
+        <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:16px;">Search by <strong>Booking ID</strong> (e.g. PHC-7K2M) or registered <strong>Phone Number</strong>.</p>
+        <div style="display:flex; gap:10px; margin-bottom:20px;">
+          <input type="text" class="input-control" id="lookupQuery" placeholder="Enter Booking ID or Phone">
+          <button class="btn-primary" onclick="lookupPass()" style="white-space:nowrap;">Search <i class="fa-solid fa-search"></i></button>
+        </div>
+        <div id="passResultArea"></div>
+      </div>
+    </div>
+
+    <!-- TAB 3: MASTER ADMIN -->
+    <div id="adminTab" class="tab-pane">
+      <div class="glass-card" style="max-width:680px; margin:0 auto;">
+        <h2 style="color:#ffffff; margin-bottom:14px;"><i class="fa-solid fa-crown" style="color:var(--gold-main);"></i> Master Platform Revenue Control</h2>
+        <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:20px;">Platform Commission (10%) & Merchant Payout Settlements (90%) are automatically recorded in Google Sheets database under <strong>'Settlements'</strong> sheet.</p>
+        <div style="background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:8px; padding:16px;">
+          <h4 style="color:#f59e0b; margin-bottom:8px;">Google Sheets Integrated Modules:</h4>
+          <ul style="padding-left:20px; font-size:0.85rem; color:#cbd5e1; line-height:1.8;">
+            <li><strong>Sheet 1: Settings</strong> - Platform Commission %, Admin PIN, Razorpay credentials.</li>
+            <li><strong>Sheet 2: Merchants</strong> - Registered theater owners & UPI payout IDs.</li>
+            <li><strong>Sheet 3: Screens</strong> - Prabhakar Home Cinema (9-Guests: 5 Sofas + 4 Beds) & Partner Lounges.</li>
+            <li><strong>Sheet 4: Bookings</strong> - Full reservation records with financial split breakdown.</li>
+            <li><strong>Sheet 5: Settlements</strong> - Merchant net payable payout ledger with UTR tracking.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- BOOKING MODAL -->
+  <div class="modal-overlay" id="bookingModal">
+    <div class="modal-card">
+      <button class="close-modal-btn" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+      <span class="compliance-pill" id="mCityBadge">Chennai</span>
+      <h2 style="color:#ffffff; margin-top:6px;" id="mTitle">Venue Title</h2>
+      <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:16px;" id="mLayout">Seating Specs</p>
+
+      <div class="form-group">
+        <label class="form-label">1. Screening Date:</label>
+        <input type="date" class="input-control" id="mDatePicker" onchange="onDateChange(this.value)">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">2. Showtime Slot:</label>
+        <div class="slots-grid" id="mSlotsGrid"></div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
+        <div class="form-group">
+          <label class="form-label">3. Occasion:</label>
+          <select class="input-control" id="mOccasion">
+            <option value="Movie Screening">🎬 Movie Screening</option>
+            <option value="Birthday Celebration">🎂 Birthday Celebration</option>
+            <option value="Anniversary Surprise">💍 Anniversary</option>
+            <option value="Romantic Date">✨ Romantic Date</option>
+            <option value="PS5 Gaming Session">🎮 PS5 Gaming</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">4. Number of Guests (Max <span id="mCapacity">9</span>):</label>
+          <input type="number" min="1" max="9" class="input-control" id="mGuests" value="5">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">5. Add-on Delights:</label>
+        <div id="mAddonsList" style="display:flex; flex-direction:column; gap:6px;"></div>
+      </div>
+
+      <div style="border-top:1px solid var(--border-light); padding-top:14px; margin-top:14px;">
+        <h4 style="color:#ffffff; margin-bottom:10px;">Primary Guest & Mandatory KYC Details</h4>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px;">
+          <input type="text" class="input-control" id="mCustName" placeholder="Primary Guest Name *" required>
+          <input type="tel" class="input-control" id="mCustPhone" placeholder="WhatsApp Number *" required>
+          <input type="email" class="input-control" id="mCustEmail" placeholder="Email for Tax Pass *" required>
+          <select class="input-control" id="mGovtIdType">
+            <option value="Aadhaar Card">Aadhaar Card</option>
+            <option value="Driving License">Driving License</option>
+            <option value="Voter ID">Voter ID</option>
+            <option value="Passport">Passport</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="bill-card">
+        <div class="bill-row"><span>Base Space Rental (SAC 997312):</span><span id="bBase">₹0</span></div>
+        <div class="bill-row"><span>Add-on Delights:</span><span id="bAddons">₹0</span></div>
+        <div class="bill-row"><span>Platform Facilitation:</span><span>Included</span></div>
+        <div class="bill-row total"><span>Total Payable Amount:</span><span id="bTotal">₹0</span></div>
+      </div>
+
+      <div class="legal-box">
+        <strong style="color:var(--gold-light);">📜 Indian Copyright Act 1957 Compliance Declaration:</strong><br/>
+        Space rental is strictly for private, non-commercial personal entertainment. Guests bring their own streaming subscriptions. Original Govt ID verification is mandatory at check-in.
+        <label style="display:flex; align-items:center; gap:8px; margin-top:8px; cursor:pointer;">
+          <input type="checkbox" id="mLegalCheck" required style="accent-color:var(--gold-main);">
+          <span>I agree to Space Rental Terms & confirm private gathering under Copyright Act.</span>
+        </label>
+      </div>
+
+      <div style="text-align:center; margin-top:16px;">
+        <button class="btn-primary" style="width:100%; justify-content:center;" id="submitBookingBtn" onclick="submitBooking()">
+          <i class="fa-solid fa-lock"></i> Confirm Reservation & Block Slot
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"><span id="toastMsg"></span></div>
+
+  <script>
+    var state = {
+      screens: [],
+      slots: [],
+      addons: [],
+      selectedScreen: null,
+      selectedDate: null,
+      selectedSlot: null,
+      selectedAddons: {}
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+      var today = new Date().toISOString().split('T')[0];
+      state.selectedDate = today;
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.withSuccessHandler(onDataLoaded).getMarketplaceData();
+      } else {
+        // Standalone preview fallback
+        onDataLoaded({
+          success: true,
+          screens: [
+            { id: 'SCR-01', merchantId: 'MERCH-001', name: 'Dolby Atmos Gold Lounge', city: 'Chennai', capacity: 9, layoutSpecs: '5 Motorized Recliners + 4 Bed Lounge', avSpecs: '4K RGB Laser + 9.4.6 Dolby Atmos', basePrice: 4999, description: 'Ultra-luxurious private screening lounge.', brandName: 'Prabhakar Home Cinema', merchantPhone: '+91 99622 79790' },
+            { id: 'SCR-02', merchantId: 'MERCH-001', name: 'IMAX Grand Suite', city: 'Chennai', capacity: 14, layoutSpecs: '14 Dual-Motor Leather Loungers', avSpecs: '200" 4K MicroLED Wall + 9.4.6 Spatial Audio', basePrice: 5999, description: 'Theatrical scale private auditorium.', brandName: 'Prabhakar Home Cinema', merchantPhone: '+91 99622 79790' },
+            { id: 'SCR-03', merchantId: 'MERCH-002', name: 'Starlight Fiber-Optic Couple Suite', city: 'Bengaluru', capacity: 4, layoutSpecs: '2 Luxury Double Loveseats', avSpecs: '4K Laser + Starlight Constellation Ceiling', basePrice: 3999, description: 'Cozy romantic couple theater room.', brandName: 'Starlight Private Suites', merchantPhone: '+91 98450 11223' }
+          ],
+          slots: [
+            { id: 'SLT-01', name: 'Morning Matinee (10:00 AM - 01:00 PM)' },
+            { id: 'SLT-02', name: 'Afternoon Screening (02:00 PM - 05:00 PM)' },
+            { id: 'SLT-03', name: 'Prime Evening (06:00 PM - 09:00 PM)' },
+            { id: 'SLT-04', name: 'Midnight Chill (10:00 PM - 01:00 AM)' }
+          ],
+          addons: [
+            { id: 'ADD-01', name: 'Jumbo Caramel Popcorn & Soft Drinks Combo', price: 899 },
+            { id: 'ADD-02', name: 'Gourmet Nachos & Sliders Platter', price: 699 },
+            { id: 'ADD-03', name: 'VIP Birthday / Anniversary Surprise Package', price: 1299 },
+            { id: 'ADD-04', name: 'Custom Cutting Cake (1 Kg Truffle)', price: 999 },
+            { id: 'ADD-05', name: 'PS5 & 4K Gaming Console Add-on (3 Hours)', price: 799 }
+          ]
+        });
+      }
+    });
+
+    function onDataLoaded(res) {
+      if (!res || !res.success) return;
+      state.screens = res.screens || [];
+      state.slots = res.slots || [];
+      state.addons = res.addons || [];
+      renderScreens();
+    }
+
+    function renderScreens() {
+      var container = document.getElementById('venuesContainer');
+      container.innerHTML = '';
+
+      state.screens.forEach(function(sc) {
+        var card = document.createElement('div');
+        card.className = 'venue-card';
+        card.innerHTML = ''
+          + '<div class="venue-body">'
+          + '  <span style="font-size:0.75rem; color:var(--gold-light); font-weight:700; text-transform:uppercase;">' + sc.brandName + ' • ' + sc.city + '</span>'
+          + '  <h3 class="venue-title">' + sc.name + '</h3>'
+          + '  <div class="venue-layout"><i class="fa-solid fa-couch" style="color:var(--gold-main);"></i> ' + sc.layoutSpecs + ' (Up to ' + sc.capacity + ' Guests)</div>'
+          + '  <div class="venue-specs">' + sc.avSpecs + '</div>'
+          + '  <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:14px;">' + sc.description + '</p>'
+          + '  <div class="venue-footer">'
+          + '    <div class="venue-price">₹' + sc.basePrice + ' <span>/ 3-Hour Slot</span></div>'
+          + '    <button class="btn-book" onclick="openModal(\'' + sc.id + '\')"><i class="fa-solid fa-ticket"></i> Book Slot</button>'
+          + '  </div>'
+          + '</div>';
+        container.appendChild(card);
+      });
+    }
+
+    function openModal(screenId) {
+      var sc = state.screens.find(function(x) { return x.id === screenId; });
+      if (!sc) return;
+      state.selectedScreen = sc;
+      state.selectedAddons = {};
+      state.selectedSlot = null;
+
+      document.getElementById('mTitle').innerText = sc.name;
+      document.getElementById('mCityBadge').innerText = sc.city + ' • ' + sc.brandName;
+      document.getElementById('mLayout').innerText = sc.layoutSpecs;
+      document.getElementById('mCapacity').innerText = sc.capacity;
+      document.getElementById('mGuests').max = sc.capacity;
+      document.getElementById('mGuests').value = Math.min(5, sc.capacity);
+
+      var today = new Date().toISOString().split('T')[0];
+      document.getElementById('mDatePicker').min = today;
+      document.getElementById('mDatePicker').value = today;
+      state.selectedDate = today;
+
+      loadModalSlots(sc.name, today);
+      loadModalAddons();
+      updateBill();
+
+      document.getElementById('bookingModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('bookingModal').style.display = 'none';
+    }
+
+    function loadModalSlots(screenName, dateStr) {
+      var container = document.getElementById('mSlotsGrid');
+      container.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem;"><i class="fa-solid fa-circle-notch fa-spin"></i> Checking live availability...</div>';
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.withSuccessHandler(function(res) {
+          renderSlots(res.slots);
+        }).getAvailableSlots(screenName, dateStr);
+      } else {
+        setTimeout(function() {
+          renderSlots(state.slots.map(function(s, idx) {
+            return { id: s.id, name: s.name, isAvailable: idx !== 2 };
+          }));
+        }, 200);
+      }
+    }
+
+    function renderSlots(slots) {
+      var container = document.getElementById('mSlotsGrid');
+      container.innerHTML = '';
+      if (!slots || slots.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted);">No slots found</div>';
+        return;
+      }
+      slots.forEach(function(slot) {
+        var item = document.createElement('div');
+        item.className = 'slot-item ' + (slot.isAvailable ? 'available' : 'booked');
+        item.innerHTML = '<div style="font-weight:700; font-size:0.85rem; color:#ffffff;">' + slot.name + '</div>'
+          + '<div style="font-size:0.75rem; color:' + (slot.isAvailable ? 'var(--green-main)' : 'var(--red-main)') + ';">' + (slot.isAvailable ? '✓ Available' : '🔒 Reserved') + '</div>';
+
+        if (slot.isAvailable) {
+          item.onclick = function() {
+            document.querySelectorAll('.slot-item').forEach(function(c) { c.classList.remove('selected'); });
+            item.classList.add('selected');
+            state.selectedSlot = slot;
+          };
+        }
+        container.appendChild(item);
+      });
+    }
+
+    function onDateChange(dateVal) {
+      state.selectedDate = dateVal;
+      if (state.selectedScreen) loadModalSlots(state.selectedScreen.name, dateVal);
+    }
+
+    function loadModalAddons() {
+      var container = document.getElementById('mAddonsList');
+      container.innerHTML = '';
+      state.addons.forEach(function(ad) {
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex; justify-content:space-between; background:rgba(0,0,0,0.3); padding:8px 12px; border-radius:6px; font-size:0.85rem;';
+        row.innerHTML = '<label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" onchange="toggleAddon(\'' + ad.id + '\', ' + ad.price + ', this.checked)"><span>' + ad.name + '</span></label><span style="color:var(--gold-light); font-weight:700;">+ ₹' + ad.price + '</span>';
+        container.appendChild(row);
+      });
+    }
+
+    function toggleAddon(id, price, isChecked) {
+      if (isChecked) state.selectedAddons[id] = price;
+      else delete state.selectedAddons[id];
+      updateBill();
+    }
+
+    function updateBill() {
+      var base = state.selectedScreen ? state.selectedScreen.basePrice : 0;
+      var sum = 0;
+      for (var k in state.selectedAddons) sum += state.selectedAddons[k];
+      document.getElementById('bBase').innerText = '₹' + base;
+      document.getElementById('bAddons').innerText = '₹' + sum;
+      document.getElementById('bTotal').innerText = '₹' + (base + sum);
+    }
+
+    function submitBooking() {
+      if (!state.selectedSlot) { showToast('Please select a showtime slot', true); return; }
+      var name = document.getElementById('mCustName').value.trim();
+      var phone = document.getElementById('mCustPhone').value.trim();
+      var email = document.getElementById('mCustEmail').value.trim();
+      var govtId = document.getElementById('mGovtIdType').value;
+      var guests = document.getElementById('mGuests').value;
+      var occasion = document.getElementById('mOccasion').value;
+      var isLegal = document.getElementById('mLegalCheck').checked;
+
+      if (!name) { showToast('Please enter Primary Guest Name', true); return; }
+      if (!phone || phone.length < 10) { showToast('Please enter valid WhatsApp phone number', true); return; }
+      if (!email || !email.includes('@')) { showToast('Please enter valid email address', true); return; }
+      if (!isLegal) { showToast('Please accept the Space Rental Legal Terms', true); return; }
+
+      var addonSum = 0;
+      for (var k in state.selectedAddons) addonSum += state.selectedAddons[k];
+
+      var payload = {
+        merchantId: state.selectedScreen.merchantId,
+        screenName: state.selectedScreen.name,
+        bookingDate: state.selectedDate,
+        timeSlot: state.selectedSlot.name,
+        customerName: name,
+        customerPhone: phone,
+        customerEmail: email,
+        govtIdType: govtId,
+        guests: guests,
+        occasion: occasion,
+        baseAmount: state.selectedScreen.basePrice,
+        addonsAmount: addonSum,
+        addonsSummary: Object.keys(state.selectedAddons).join(', ') || 'None',
+        commissionRate: 10.0
+      };
+
+      var btn = document.getElementById('submitBookingBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing & Blocking Slot...';
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.withSuccessHandler(function(res) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-lock"></i> Confirm Reservation & Block Slot';
+          if (res.success) {
+            closeModal();
+            showToast('🎉 Reservation Confirmed! Pass ID: ' + res.bookingId);
+            switchTab('passTab');
+            document.getElementById('lookupQuery').value = res.bookingId;
+            lookupPass();
+          } else {
+            showToast(res.error || 'Booking error', true);
+          }
+        }).createMarketplaceBooking(payload);
+      } else {
+        setTimeout(function() {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-lock"></i> Confirm Reservation & Block Slot';
+          closeModal();
+          showToast('Demo Booking Confirmed! Pass ID: PHC-DEMO88');
+          switchTab('passTab');
+          document.getElementById('lookupQuery').value = 'PHC-DEMO88';
+          lookupPass();
+        }, 800);
+      }
+    }
+
+    function lookupPass() {
+      var query = document.getElementById('lookupQuery').value.trim();
+      if (!query) { showToast('Please enter Booking ID or Phone', true); return; }
+      var area = document.getElementById('passResultArea');
+      area.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Searching reservation...</div>';
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.withSuccessHandler(function(res) {
+          renderPass(res);
+        }).lookupBooking(query);
+      } else {
+        renderPass({
+          success: true,
+          booking: {
+            bookingId: 'PHC-DEMO88',
+            screenName: 'Dolby Atmos Gold Lounge',
+            customerName: 'Rahul Sharma',
+            customerPhone: '+91 99622 79790',
+            bookingDate: '2026-08-20',
+            timeSlot: 'Prime Evening (06:00 PM - 09:00 PM)',
+            guests: 5,
+            occasion: 'Birthday Celebration',
+            totalAmount: 4999,
+            govtIdType: 'Aadhaar Card'
+          }
+        });
+      }
+    }
+
+    function renderPass(res) {
+      var area = document.getElementById('passResultArea');
+      if (!res || !res.success || !res.booking) {
+        area.innerHTML = '<div style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#fca5a5; padding:14px; border-radius:8px; text-align:center;">No reservation found.</div>';
+        return;
+      }
+      var b = res.booking;
+      area.innerHTML = '<div style="background:#090d16; border:2px solid var(--gold-main); border-radius:12px; padding:20px; margin-top:10px;">'
+        + '<div style="text-align:center; border-bottom:2px dashed var(--gold-main); padding-bottom:12px; margin-bottom:14px;">'
+        + '  <span class="compliance-pill">✓ OFFICIAL ADMISSION PASS</span>'
+        + '  <div style="font-size:1.6rem; font-weight:900; color:var(--gold-light); font-family:monospace; margin:6px 0;">' + b.bookingId + '</div>'
+        + '  <h3 style="color:#ffffff;">' + b.screenName + '</h3>'
+        + '</div>'
+        + '<div style="font-size:0.85rem; color:#cbd5e1; line-height:1.8;">'
+        + '  <div><strong>Guest:</strong> ' + b.customerName + ' (' + b.customerPhone + ')</div>'
+        + '  <div><strong>Date & Slot:</strong> ' + b.bookingDate + ' | ' + b.timeSlot + '</div>'
+        + '  <div><strong>Guests & Occasion:</strong> ' + b.guests + ' Guests (' + b.occasion + ')</div>'
+        + '  <div><strong>Total Paid (SAC 997312):</strong> <span style="color:var(--green-main); font-weight:bold; font-size:1rem;">₹' + b.totalAmount + '</span></div>'
+        + '  <div style="background:rgba(0,0,0,0.4); padding:10px; border-radius:6px; margin-top:10px; font-size:0.78rem;">'
+        + '    <i class="fa-solid fa-id-card" style="color:var(--green-main);"></i> Check-in KYC: Carry Original <strong>' + (b.govtIdType || 'Govt Photo ID') + '</strong>.<br/>'
+        + '    <i class="fa-solid fa-scale-balanced" style="color:var(--gold-main);"></i> Private Space Rental under Indian Copyright Act 1957.'
+        + '  </div>'
+        + '</div>'
+        + '</div>';
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-pane').forEach(function(tp) { tp.classList.remove('active'); });
+      document.querySelectorAll('.nav-tab-btn').forEach(function(tb) { tb.classList.remove('active'); });
+      document.getElementById(tabId).classList.add('active');
+      var buttons = document.querySelectorAll('.nav-tab-btn');
+      if (tabId === 'marketplaceTab') buttons[0].classList.add('active');
+      if (tabId === 'passTab') buttons[1].classList.add('active');
+      if (tabId === 'adminTab') buttons[2].classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showToast(msg, isError) {
+      var toast = document.getElementById('toast');
+      var toastMsg = document.getElementById('toastMsg');
+      toastMsg.innerText = msg;
+      toast.style.borderLeftColor = isError ? 'var(--red-main)' : 'var(--gold-main)';
+      toast.style.display = 'block';
+      setTimeout(function() { toast.style.display = 'none'; }, 4000);
+    }
+  </script>
+</body>
+</html>
