@@ -569,8 +569,94 @@
         <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="legalCheckbox" checked required style="accent-color:var(--gold-main);"><span>I accept 100% equipment damage liability & space rental terms.</span></label>
       </div>
 
-      <div style="text-align:center; margin-top:16px;">
-        <button class="btn-primary" style="width:100%; justify-content:center;" id="payRazorpayBtn" onclick="proceedToRazorpayPayment()"><i class="fa-solid fa-lock"></i> Pay Securely via Razorpay</button>
+      <!-- PAYMENT MODE SELECTOR -->
+      <div style="margin-top:16px;">
+        <label class="form-label" style="font-weight:600;"><i class="fa-solid fa-credit-card" style="color:var(--gold-main);"></i> Select Payment Method:</label>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
+          <button type="button" id="tabModeUpiQr" class="btn-primary" style="font-size:0.84rem; padding:8px; justify-content:center; background:linear-gradient(135deg, #d97706, #b45309);" onclick="switchPaymentMode('UPI_QR')">
+            <i class="fa-solid fa-qrcode"></i> Scan UPI QR & UTR
+          </button>
+          <button type="button" id="tabModeGateway" class="btn-outline" style="font-size:0.84rem; padding:8px; justify-content:center;" onclick="switchPaymentMode('GATEWAY')">
+            <i class="fa-solid fa-bolt"></i> Instant Checkout
+          </button>
+        </div>
+
+        <!-- 1. DYNAMIC UPI QR & UTR BOX -->
+        <div id="paymentBoxUpiQr" style="background:#ffffff; border:1px solid #d97706; border-radius:12px; padding:16px; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,0.04);">
+          <div style="font-size:0.8rem; color:#d97706; font-weight:700; text-transform:uppercase; letter-spacing:1px;">
+            SCAN & PAY VIA ANY UPI APP (GPAY / PHONEPE / PAYTM)
+          </div>
+          <img id="modalUpiQrCodeImg" style="width:160px; height:160px; margin:10px auto; display:block; border-radius:10px; border:1px solid #e2e8f0; padding:6px; background:#fff;" src="" alt="UPI QR Code">
+          <div style="font-size:0.88rem; color:#0f172a; font-family:monospace;">
+            UPI ID: <strong id="modalUpiIdDisplay" style="color:#d97706;">8667708711@upi</strong>
+          </div>
+          <div style="margin:10px 0;">
+            <a href="#" id="modalBtnPayUpiApp" class="btn-outline" style="font-size:0.8rem; padding:6px 14px; display:inline-flex; align-items:center; gap:6px;">
+              <i class="fa-solid fa-mobile-screen"></i> Open in UPI App
+            </a>
+          </div>
+
+          <div style="text-align:left; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0; margin-top:12px;">
+            <label class="form-label" style="color:#d97706; font-weight:700; margin-bottom:4px;">
+              <i class="fa-solid fa-receipt"></i> Enter 12-Digit UPI UTR / Transaction ID *
+            </label>
+            <input type="text" id="modalUtrInput" class="input-control" placeholder="e.g. 428193810293" style="text-transform:uppercase; font-family:monospace; font-size:1.05rem; font-weight:bold; border-color:#d97706;">
+            <small style="color:var(--text-muted); font-size:0.74rem; margin-top:4px; display:block;">
+              Found in your UPI payment receipt. Submitting will immediately block your slot.
+            </small>
+          </div>
+
+          <button class="btn-primary" style="width:100%; justify-content:center; margin-top:12px; background:linear-gradient(135deg, #10b981, #059669);" id="btnSubmitUtrBooking" onclick="submitUtrBooking()">
+            <i class="fa-solid fa-lock"></i> Submit UTR & Block Slot
+          </button>
+        </div>
+
+        <!-- 2. INSTANT GATEWAY CHECKOUT -->
+        <div id="paymentBoxGateway" style="display:none; text-align:center; padding:10px 0;">
+          <button class="btn-primary" style="width:100%; justify-content:center;" id="payRazorpayBtn" onclick="proceedToRazorpayPayment()">
+            <i class="fa-solid fa-lock"></i> Pay Securely via Razorpay (Instant VIP Pass)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLOT BLOCKED SUCCESS MODAL -->
+  <div class="modal-overlay" id="slotBlockedModal">
+    <div class="modal-card" style="max-width:560px; padding:0; overflow:hidden; border:1px solid #d97706; border-radius:16px;">
+      <div style="background:linear-gradient(135deg, #d97706, #b45309); padding:20px; text-align:center; color:#fff;">
+        <div style="font-size:2rem; margin-bottom:4px;">⏳</div>
+        <h3 style="margin:0; font-size:1.4rem; color:#fff;">Slot Temporarily Blocked!</h3>
+        <p style="margin:4px 0 0 0; font-size:0.78rem; text-transform:uppercase; letter-spacing:1.5px; opacity:0.9;">Payment Verification in Progress</p>
+      </div>
+      <div style="padding:22px;">
+        <div style="text-align:center; background:#f8fafc; border-radius:8px; padding:12px; margin-bottom:14px; border:1px solid #e2e8f0;">
+          <div style="font-size:0.72rem; color:#d97706; letter-spacing:2px; font-weight:700;">BOOKING REFERENCE ID</div>
+          <div style="font-size:1.8rem; font-weight:800; color:#0f172a;" id="blockedModalBookingId">PHC-0000</div>
+        </div>
+
+        <div style="background:rgba(217, 119, 6, 0.08); border:1px solid #d97706; border-radius:8px; padding:12px; margin-bottom:14px; font-size:0.85rem; color:#0f172a; line-height:1.5;">
+          <i class="fa-solid fa-circle-info" style="color:#d97706;"></i> 
+          Your theater slot has been <strong>temporarily blocked</strong>. Once the host verifies your UTR, you will receive the final <strong>VIP Booking Confirmation Pass</strong> with your Check-in PIN!
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; font-size:0.88rem;">
+          <div><span style="font-size:0.72rem; color:var(--text-muted); display:block;">Guest Name:</span><strong id="blockedModalGuestName">-</strong></div>
+          <div><span style="font-size:0.72rem; color:var(--text-muted); display:block;">Auditorium:</span><strong id="blockedModalVenueName">-</strong></div>
+          <div><span style="font-size:0.72rem; color:var(--text-muted); display:block;">Date & Slot:</span><strong id="blockedModalDateSlot">-</strong></div>
+          <div><span style="font-size:0.72rem; color:var(--text-muted); display:block;">Total Amount:</span><strong id="blockedModalTotal" style="color:#059669;">-</strong></div>
+          <div style="grid-column:1/-1;"><span style="font-size:0.72rem; color:var(--text-muted); display:block;">Submitted UTR:</span><strong id="blockedModalUtr" style="color:#d97706; font-family:monospace; font-size:1rem;">-</strong></div>
+        </div>
+
+        <div style="margin:16px 0;">
+          <a href="#" id="modalBtnWhatsAppAdmin" class="btn-primary" style="width:100%; justify-content:center; font-size:0.95rem; padding:12px; background:linear-gradient(135deg, #25D366, #128C7E);" target="_blank">
+            <i class="fa-brands fa-whatsapp" style="font-size:1.2rem;"></i> Share UTR via WhatsApp for Instant Approval
+          </a>
+        </div>
+
+        <div style="text-align:center;">
+          <button class="btn-outline" style="width:100%; justify-content:center;" onclick="closeSlotBlockedModal()">Close & Return to Marketplace</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1195,24 +1281,153 @@
       recalculateModalBill();
     }
 
-    function recalculateModalBill() {
-      var base = appState.selectedVenue ? appState.selectedVenue.basePrice : 4999;
-      
-      var occasionCharge = 0;
-      var occSelect = document.getElementById('modalOccasionSelect');
-      if (occSelect && occSelect.selectedOptions && occSelect.selectedOptions[0]) {
-        occasionCharge = parseFloat(occSelect.selectedOptions[0].dataset.price) || 0;
-      }
-
-      var sum = 0;
-      for (var k in appState.selectedAddons) sum += appState.selectedAddons[k];
-
+      var total = base + occasionCharge + sum;
       document.getElementById('billBase').innerText = '₹' + base;
       if (document.getElementById('billOccasion')) {
         document.getElementById('billOccasion').innerText = (occasionCharge > 0) ? '+ ₹' + occasionCharge : 'Included (₹0)';
       }
       document.getElementById('billAddons').innerText = '₹' + sum;
-      document.getElementById('billTotal').innerText = '₹' + (base + occasionCharge + sum);
+      document.getElementById('billTotal').innerText = '₹' + total;
+
+      // Dynamic UPI QR Code & GPay Deep Link Generator
+      var upiId = '8667708711@upi';
+      var cinemaName = encodeURIComponent(appState.selectedVenue ? appState.selectedVenue.name : 'CineSpace Private Theaters');
+      var note = encodeURIComponent('Booking_' + (appState.selectedVenue ? appState.selectedVenue.name : 'VIP'));
+      var upiString = 'upi://pay?pa=' + upiId + '&pn=' + cinemaName + '&am=' + total + '&tn=' + note + '&cu=INR';
+      
+      var qrImg = document.getElementById('modalUpiQrCodeImg');
+      if (qrImg) {
+        qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(upiString);
+      }
+      var payLink = document.getElementById('modalBtnPayUpiApp');
+      if (payLink) {
+        payLink.href = upiString;
+      }
+    }
+
+    function switchPaymentMode(mode) {
+      var boxUpi = document.getElementById('paymentBoxUpiQr');
+      var boxGw = document.getElementById('paymentBoxGateway');
+      var btnUpi = document.getElementById('tabModeUpiQr');
+      var btnGw = document.getElementById('tabModeGateway');
+
+      if (mode === 'UPI_QR') {
+        boxUpi.style.display = 'block';
+        boxGw.style.display = 'none';
+        btnUpi.className = 'btn-primary';
+        btnUpi.style.background = 'linear-gradient(135deg, #d97706, #b45309)';
+        btnGw.className = 'btn-outline';
+        btnGw.style.background = 'transparent';
+      } else {
+        boxUpi.style.display = 'none';
+        boxGw.style.display = 'block';
+        btnGw.className = 'btn-primary';
+        btnGw.style.background = 'linear-gradient(135deg, #d97706, #b45309)';
+        btnUpi.className = 'btn-outline';
+        btnUpi.style.background = 'transparent';
+      }
+    }
+
+    async function submitUtrBooking() {
+      if (!appState.selectedSlot) {
+        appState.selectedSlot = { name: 'Prime Evening (06:00 PM - 09:00 PM)' };
+      }
+      var name = document.getElementById('modalCustName').value.trim();
+      var phone = document.getElementById('modalCustPhone').value.trim();
+      var email = document.getElementById('modalCustEmail').value.trim();
+      var adults = document.getElementById('modalAdultsInput').value;
+      var minors = document.getElementById('modalMinorsInput').value;
+      var occSelect = document.getElementById('modalOccasionSelect');
+      var occasion = occSelect ? occSelect.value : 'Movie Screening';
+      var utr = document.getElementById('modalUtrInput').value.trim();
+      var isLegal = document.getElementById('legalCheckbox').checked;
+
+      if (!name || !phone || !email || !isLegal) {
+        showToast('Please enter your Name, Phone, Email and accept damage terms', true);
+        return;
+      }
+      if (!utr || utr.length < 6) {
+        showToast('Please enter your 12-digit UPI UTR / Transaction Reference Number', true);
+        return;
+      }
+
+      var btn = document.getElementById('btnSubmitUtrBooking');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Blocking Slot Concurrency...';
+
+      var basePrice = appState.selectedVenue ? appState.selectedVenue.basePrice : 4999;
+      var occasionCharge = 0;
+      var occasionInclusions = '';
+      if (occSelect && occSelect.selectedOptions && occSelect.selectedOptions[0]) {
+        occasionCharge = parseFloat(occSelect.selectedOptions[0].dataset.price) || 0;
+        occasionInclusions = occSelect.selectedOptions[0].dataset.inclusions || '';
+      }
+
+      var addonsSum = 0;
+      var selectedAddonsList = [];
+      for (var k in appState.selectedAddons) {
+        addonsSum += appState.selectedAddons[k];
+        selectedAddonsList.push(k);
+      }
+      var totalAmount = basePrice + occasionCharge + addonsSum;
+
+      var payload = {
+        venueId: appState.selectedVenue ? appState.selectedVenue.id : 'VEN-001',
+        venueName: appState.selectedVenue ? appState.selectedVenue.name : 'Dolby Atmos Gold Lounge',
+        bookingDate: appState.selectedDate,
+        timeSlot: appState.selectedSlot.name,
+        guests: parseInt(adults) + parseInt(minors),
+        adultsCount: adults,
+        minorsCount: minors,
+        occasion: occasion,
+        occasionCharge: occasionCharge,
+        occasionInclusions: occasionInclusions,
+        addonsTotal: addonsSum,
+        addonsSummary: selectedAddonsList.join(', ') || 'None',
+        basePrice: basePrice,
+        totalAmount: totalAmount,
+        customerName: name,
+        customerPhone: phone,
+        customerEmail: email,
+        utrNumber: utr
+      };
+
+      try {
+        var res = await fetch('/api/bookings/block-utr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        var data = await res.json();
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-lock"></i> Submit UTR & Block Slot';
+
+        if (data.success) {
+          closeModal();
+          document.getElementById('blockedModalBookingId').innerText = data.bookingId;
+          document.getElementById('blockedModalGuestName').innerText = name;
+          document.getElementById('blockedModalVenueName').innerText = payload.venueName;
+          document.getElementById('blockedModalDateSlot').innerText = payload.bookingDate + ' (' + payload.timeSlot + ')';
+          document.getElementById('blockedModalTotal').innerText = '₹' + totalAmount.toLocaleString('en-IN');
+          document.getElementById('blockedModalUtr').innerText = utr;
+
+          if (data.whatsAppUrl) {
+            document.getElementById('modalBtnWhatsAppAdmin').href = data.whatsAppUrl;
+          }
+          document.getElementById('slotBlockedModal').style.display = 'flex';
+          showToast('Slot temporarily blocked! Please share UTR via WhatsApp.');
+        } else {
+          showToast(data.message || 'Slot blocking failed. Please try again.', true);
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-lock"></i> Submit UTR & Block Slot';
+        showToast('Network error submitting UTR: ' + err.message, true);
+      }
+    }
+
+    function closeSlotBlockedModal() {
+      document.getElementById('slotBlockedModal').style.display = 'none';
     }
 
     async function proceedToRazorpayPayment() {

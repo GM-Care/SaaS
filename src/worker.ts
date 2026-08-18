@@ -374,10 +374,35 @@ async function sendEdgeEmail(
     port: globalAdminSmtpConfig.port || 465,
     user: globalAdminSmtpConfig.user || 'support@gm-care.in',
     pass: globalAdminSmtpConfig.pass || '',
-    fromName: fromName || globalAdminSmtpConfig.fromName || 'CineSpace Concierge'
+    fromName: fromName || globalAdminSmtpConfig.fromName || 'CineSpace Concierge',
+    googleScriptUrl: globalAdminSmtpConfig.googleScriptUrl || ''
   };
 
-  // If Google App Password is provided, send directly via Google TLS SMTP!
+  // Option 1: Google Apps Script Webhook Dispatch (100% Google Infrastructure MailApp)
+  const scriptUrl = creds.googleScriptUrl || globalAdminSmtpConfig.googleScriptUrl;
+  if (scriptUrl && scriptUrl.startsWith('https://script.google.com/')) {
+    try {
+      console.log(`[Edge Email] Dispatching via Google Apps Script MailApp: ${scriptUrl}`);
+      const gasRes = await fetch(scriptUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: to.trim(),
+          subject: subject,
+          html: html,
+          fromName: creds.fromName || fromName
+        })
+      });
+      if (gasRes.ok) {
+        console.log(`[Google Apps Script Relay OK] Delivered to ${to}`);
+        return { success: true };
+      }
+    } catch (gErr: any) {
+      console.warn(`[Google Apps Script Relay Notice]`, gErr.message);
+    }
+  }
+
+  // Option 2: Direct Google SMTP TLS Socket
   if (creds.pass && creds.pass.trim().length >= 8) {
     console.log(`[Edge Email] Attempting direct Google SMTP for ${to}...`);
     const smtpRes = await sendDirectGoogleSmtp(creds, to, subject, html);
@@ -387,7 +412,7 @@ async function sendEdgeEmail(
     console.warn(`[Edge Email] Direct Gmail SMTP failed (${smtpRes.error}). Falling back to MailChannels...`);
   }
 
-  // Fallback: MailChannels
+  // Option 3: Fallback MailChannels
   try {
     const payload = {
       personalizations: [{ to: [{ email: to.trim() }] }],
@@ -879,6 +904,222 @@ export default {
             confirmedBookings: globalBookings.length
           },
           settlements: [...globalSettlements],
+          bookings: [...globalBookings]
+        }), { headers: JSON_HEADERS });
+      }
+
+      // ----------------------------------------------------------------------
+      // 5C. CUSTOMER UPI QR & UTR SUBMISSION (SLOT BLOCKING FLOW)
+      // ----------------------------------------------------------------------
+      if (path === '/api/bookings/block-utr' && request.method === 'POST') {
+        const body: any = await request.json();
+        const customerName = body.customerName || 'Guest';
+        const customerPhone = body.customerPhone || '+91 99622 79790';
+        const customerEmail = body.customerEmail || 'guest@example.com';
+        const venueId = body.venueId || 'VEN-001';
+        const venueName = body.venueName || 'Dolby Atmos Gold Lounge';
+        const bookingDate = body.bookingDate || new Date().toISOString().split('T')[0];
+        const timeSlot = body.timeSlot || 'Prime Evening (06:00 PM - 09:00 PM)';
+        const guests = body.guests || 2;
+        const occasion = body.occasion || 'Movie Screening';
+        const addonsSummary = body.addonsSummary || 'None';
+        const totalAmount = Number(body.totalAmount) || 4999;
+        const utrNumber = (body.utrNumber || '').trim();
+
+        if (!utrNumber || utrNumber.length < 6) {
+          return new Response(JSON.stringify({
+            success: false,
+            message: 'Please provide a valid 12-digit UPI UTR / Transaction Reference Number.'
+          }), { status: 400, headers: JSON_HEADERS });
+        }
+
+        // Concurrency protection: Check if slot is already confirmed
+        const isConflict = globalBookings.some(b => 
+          b.bookingDate === bookingDate && 
+          b.timeSlot === timeSlot && 
+          b.bookingStatus === 'Confirmed'
+        );
+
+        if (isConflict) {
+          return new Response(JSON.stringify({
+            success: false,
+            message: `The slot ${timeSlot} on ${bookingDate} is already reserved by another guest. Please select an alternate timing.`
+          }), { status: 409, headers: JSON_HEADERS });
+        }
+
+        const bookingId = `PHC-${Math.floor(1000 + Math.random() * 9000)}`;
+        const checkinOtp = Math.floor(1000 + Math.random() * 9000).toString();
+
+        const grossTotal = totalAmount;
+        const commissionRatePercent = 3.0;
+        const platformFee = Math.round(grossTotal * (commissionRatePercent / 100));
+        const pgFee = 0; // Manual UPI transfer has 0% gateway fee
+        const merchantNetPayout = grossTotal - platformFee;
+
+        const newBooking = {
+          bookingId: bookingId,
+          checkinOtp: checkinOtp,
+          venueId: venueId,
+          venueName: venueName,
+          merchantId: 'MERCH-001',
+          customerName: customerName,
+          customerPhone: customerPhone,
+          customerEmail: customerEmail,
+          bookingDate: bookingDate,
+          timeSlot: timeSlot,
+          guests: guests,
+          adultsCount: body.adultsCount || guests,
+          minorsCount: body.minorsCount || 0,
+          occasion: occasion,
+          occasionCharge: body.occasionCharge || 0,
+          occasionInclusions: body.occasionInclusions || '',
+          addonsTotal: body.addonsTotal || 0,
+          addonsSummary: addonsSummary,
+          basePrice: body.basePrice || grossTotal,
+          grossTotal: grossTotal,
+          platformFee: platformFee,
+          pgFee: pgFee,
+          merchantNetPayout: merchantNetPayout,
+          commissionRatePercent: commissionRatePercent,
+          bookingStatus: 'Slot Blocked (Pending Verification)',
+          paymentStatus: 'Pending Verification',
+          paymentMode: 'UPI QR Transfer',
+          utrNumber: utrNumber,
+          checkinStatus: 'Pending Verification',
+          settlementStatus: 'Pending Verification',
+          createdAt: new Date().toISOString()
+        };
+
+        globalBookings.unshift(newBooking);
+
+        // 1. Send Slot Blocked Email to Customer
+        const blockedEmailHtml = `
+          <div style="font-family: Arial, sans-serif; max-width: 580px; margin: auto; background: #12141e; color: #f8fafc; padding: 25px; border-radius: 12px; border: 1px solid #f59e0b;">
+            <h2 style="color: #f59e0b; margin-top:0;">🍿 CineSpace Private Theaters</h2>
+            <p style="font-size: 15px;">Dear <strong>${customerName}</strong>,</p>
+            <p style="color: #cbd5e1; font-size: 14px; line-height: 1.6;">
+              Your private theater slot has been <strong>temporarily blocked</strong>. We have received your payment UTR reference and our management is verifying the transaction.
+            </p>
+            <div style="background: rgba(245, 158, 11, 0.08); padding: 16px; border-radius: 8px; border: 1px dashed #f59e0b; margin: 15px 0;">
+              <p style="margin: 4px 0;"><strong>Booking Reference:</strong> <span style="color:#fff; font-size:16px; font-weight:bold;">${bookingId}</span></p>
+              <p style="margin: 4px 0;"><strong>Auditorium:</strong> ${venueName}</p>
+              <p style="margin: 4px 0;"><strong>Date & Show:</strong> ${bookingDate} (${timeSlot})</p>
+              <p style="margin: 4px 0;"><strong>UTR / Transaction ID:</strong> <span style="font-family:monospace; color:#f59e0b;">${utrNumber}</span></p>
+              <p style="margin: 4px 0;"><strong>Total Amount:</strong> ₹${grossTotal.toLocaleString('en-IN')}</p>
+              <p style="margin: 4px 0;"><strong>Status:</strong> <span style="color:#f59e0b; font-weight:bold;">⏳ Slot Blocked (Verification in Progress)</span></p>
+            </div>
+            <p style="color: #94a3b8; font-size: 13px; line-height: 1.5;">
+              ⚡ <em>Once verified by our manager, your final VIP Admission Pass and Door Check-in PIN will be sent automatically.</em>
+            </p>
+            <hr style="border: 0; border-top: 1px solid #2d3748; margin: 15px 0;">
+            <p style="font-size: 12px; color: #64748b; margin: 0;">CineSpace India • Support: +91 99622 79790</p>
+          </div>
+        `;
+        ctx.waitUntil(sendEdgeEmail(customerEmail, `⏳ Slot Temporarily Blocked [${bookingId}] - CineSpace India`, blockedEmailHtml, 'CineSpace Reservations'));
+
+        // 2. Send Alert Email to Admin / Host
+        const adminAlertHtml = `
+          <div style="font-family: Arial, sans-serif; padding: 20px; background: #0f1117; color: #fff;">
+            <h3 style="color:#10b981;">New Slot Blocked - Verification Required</h3>
+            <p><strong>Booking ID:</strong> ${bookingId}</p>
+            <p><strong>Guest Name:</strong> ${customerName} (${customerPhone}, ${customerEmail})</p>
+            <p><strong>Auditorium:</strong> ${venueName}</p>
+            <p><strong>Date & Slot:</strong> ${bookingDate} - ${timeSlot}</p>
+            <p><strong>Amount:</strong> ₹${grossTotal}</p>
+            <p><strong>Customer UTR:</strong> <span style="background:#222; padding:4px 8px; color:#f59e0b; font-family:monospace; font-size:16px;">${utrNumber}</span></p>
+            <p style="margin-top:15px;"><a href="https://cinespace.gm-care.in/merchant" style="background:#10b981; color:#fff; padding:10px 20px; text-decoration:none; border-radius:6px; font-weight:bold;">Open Merchant Portal to Verify</a></p>
+          </div>
+        `;
+        ctx.waitUntil(sendEdgeEmail(globalAdminSmtpConfig.user || 'rranjith92@gmail.com', `🔔 NEW BOOKING ALERT: [${bookingId}] - UTR: ${utrNumber} (₹${grossTotal})`, adminAlertHtml, 'CineSpace Host Alerts'));
+
+        // Format WhatsApp Share Link
+        const waText = encodeURIComponent(
+          `🎬 *CineSpace Booking Verification Request*\n\n` +
+          `*Booking ID:* ${bookingId}\n` +
+          `*Guest Name:* ${customerName}\n` +
+          `*Phone:* ${customerPhone}\n` +
+          `*Auditorium:* ${venueName}\n` +
+          `*Date & Slot:* ${bookingDate} (${timeSlot})\n` +
+          `*Total Amount:* ₹${grossTotal}\n` +
+          `*Payment UTR / Ref No:* ${utrNumber}\n\n` +
+          `Please verify and confirm my private screening!`
+        );
+        const waUrl = `https://api.whatsapp.com/send?phone=919962279790&text=${waText}`;
+
+        return new Response(JSON.stringify({
+          success: true,
+          bookingId: bookingId,
+          checkinOtp: checkinOtp,
+          booking: newBooking,
+          whatsAppUrl: waUrl,
+          message: 'Slot temporarily blocked! Please share your UTR with the host via WhatsApp for instant approval.'
+        }), { headers: JSON_HEADERS });
+      }
+
+      // ----------------------------------------------------------------------
+      // 5D. MERCHANT / ADMIN VERIFY UTR PAYMENT
+      // ----------------------------------------------------------------------
+      if (path === '/api/merchant/verify-utr' && request.method === 'POST') {
+        const body: any = await request.json();
+        const bookingId = body.bookingId;
+        const b = globalBookings.find(x => x.bookingId === bookingId);
+
+        if (!b) {
+          return new Response(JSON.stringify({ success: false, message: 'Booking not found' }), {
+            status: 404,
+            headers: JSON_HEADERS
+          });
+        }
+
+        b.bookingStatus = 'Confirmed';
+        b.paymentStatus = 'Verified';
+        b.checkinStatus = 'Ready for Check-in';
+
+        // Dispatch VIP Confirmed Email
+        const confirmedHtml = `
+          <div style="max-width: 600px; margin: 20px auto; background-color: #12141e; border-radius: 12px; overflow: hidden; border: 1px solid #f59e0b; font-family: Arial, sans-serif; color: #f8fafc;">
+            <div style="background: linear-gradient(135deg, #e50914 0%, #8b0000 100%); padding: 25px; text-align: center; color: white;">
+              <h1 style="margin: 0 0 6px; font-size: 24px;">🍿 CineSpace Private Theaters</h1>
+              <p style="margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 2px;">Luxury Private Screening VIP Pass</p>
+            </div>
+            <div style="padding: 25px;">
+              <p style="font-size: 15px; margin-top:0;">Dear <strong>${b.customerName}</strong>,</p>
+              <p style="color: #10b981; font-weight: bold; font-size: 15px;">
+                ✅ Payment Verified! Your private screening reservation is 100% CONFIRMED.
+              </p>
+              <div style="background: #181c2b; border-radius: 10px; border: 1px dashed #f59e0b; padding: 20px; margin: 20px 0;">
+                <div style="text-align: center; border-bottom: 1px solid #2d3748; padding-bottom: 12px; margin-bottom: 12px;">
+                  <div style="font-size: 11px; color: #f59e0b; letter-spacing: 2px;">VIP BOOKING REFERENCE ID</div>
+                  <div style="font-size: 26px; font-weight: 800; color: #fff; letter-spacing: 2px;">${b.bookingId}</div>
+                  <div style="font-size: 14px; color: #10b981; margin-top: 4px;">Door Check-in PIN: <strong>${b.checkinOtp}</strong></div>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                  <tr><td style="padding: 6px 0; color: #94a3b8;">Auditorium Lounge:</td><td style="padding: 6px 0; color: #fff; font-weight: 600;">${b.venueName}</td></tr>
+                  <tr><td style="padding: 6px 0; color: #94a3b8;">Date of Show:</td><td style="padding: 6px 0; color: #fff; font-weight: 600;">${b.bookingDate}</td></tr>
+                  <tr><td style="padding: 6px 0; color: #94a3b8;">Show Timing:</td><td style="padding: 6px 0; color: #fff; font-weight: 600;">${b.timeSlot}</td></tr>
+                  <tr><td style="padding: 6px 0; color: #94a3b8;">Party Size:</td><td style="padding: 6px 0; color: #fff; font-weight: 600;">${b.guests} Guests (${b.occasion})</td></tr>
+                  <tr><td style="padding: 6px 0; color: #94a3b8;">Add-ons & Packages:</td><td style="padding: 6px 0; color: #fff; font-weight: 600;">${b.addonsSummary || 'None'}</td></tr>
+                  <tr><td style="padding: 6px 0; color: #94a3b8;">Payment Reference (UTR):</td><td style="padding: 6px 0; color: #f59e0b; font-family: monospace;">${b.utrNumber}</td></tr>
+                  <tr><td style="padding: 6px 0; color: #94a3b8;">Total Amount Paid:</td><td style="padding: 6px 0; color: #10b981; font-size: 16px; font-weight: bold;">₹${b.grossTotal.toLocaleString('en-IN')} (Verified)</td></tr>
+                </table>
+              </div>
+              <div style="background: #181c2b; border-radius: 8px; padding: 12px; font-size: 13px; color: #94a3b8; line-height: 1.5;">
+                📍 <strong>Venue Address:</strong> CineSpace India, Chennai, Tamil Nadu.<br>
+                ⏰ <strong>Check-in:</strong> Please arrive 15 minutes before your scheduled slot.<br>
+                📞 <strong>Direct Helpline:</strong> +91 99622 79790
+              </div>
+            </div>
+            <div style="background-color: #0b0d13; padding: 14px; text-align: center; font-size: 11px; color: #64748b;">
+              © 2026 CineSpace India • Luxury Private Theater Experience
+            </div>
+          </div>
+        `;
+        ctx.waitUntil(sendEdgeEmail(b.customerEmail, `🎬 BOOKING CONFIRMED! [${b.bookingId}] - CineSpace India`, confirmedHtml, 'CineSpace Reservations'));
+
+        return new Response(JSON.stringify({
+          success: true,
+          message: `Booking ${bookingId} verified! VIP Confirmation Pass email dispatched to ${b.customerEmail}.`,
+          booking: b,
           bookings: [...globalBookings]
         }), { headers: JSON_HEADERS });
       }
