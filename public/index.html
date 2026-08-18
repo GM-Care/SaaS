@@ -504,20 +504,25 @@
       </div>
 
       <!-- 3 & 4. OCCASION & GUESTS -->
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px;">
-        <div class="form-group"><label class="form-label">3. Occasion:</label>
-          <select class="input-control" id="modalOccasionSelect">
-            <option value="Movie Screening">🎬 Movie Screening</option>
-            <option value="Birthday Celebration">🎂 Birthday Celebration</option>
-            <option value="Anniversary Surprise">💍 Anniversary Surprise</option>
-            <option value="Romantic Couple Date">✨ Romantic Date</option>
-            <option value="PS5 4K Gaming Session">🎮 PS5 Gaming</option>
-          </select>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
+        <div class="form-group">
+          <label class="form-label"><i class="fa-solid fa-champagne-glasses" style="color:var(--gold-main);"></i> 3. Occasion / Celebration Type:</label>
+          <select class="input-control" id="modalOccasionSelect" onchange="onModalOccasionChange()"></select>
+          <div id="modalOccasionInclusionsNotice" style="margin-top:6px; font-size:0.78rem; color:#92400e; background:#fffbeb; padding:6px 10px; border-radius:6px; border:1px solid #fde68a; display:none;">
+            <i class="fa-solid fa-sparkles"></i> <span id="modalOccasionInclusionsText"></span>
+          </div>
         </div>
-        <div class="form-group"><label class="form-label">4. Number of Guests (Max <span id="modalMaxCapacity">9</span>):</label>
+        <div class="form-group">
+          <label class="form-label"><i class="fa-solid fa-users" style="color:var(--gold-main);"></i> 4. Number of Guests (Max <span id="modalMaxCapacity">9</span>):</label>
           <div style="display:flex; gap:8px;">
-            <input type="number" min="1" max="9" class="input-control" id="modalAdultsInput" placeholder="Adults" value="5" onchange="updateGuestTotal()">
-            <input type="number" min="0" max="8" class="input-control" id="modalMinorsInput" placeholder="Kids" value="0" onchange="updateGuestTotal()">
+            <div style="flex:1;">
+              <span style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:2px;">Adults</span>
+              <input type="number" min="1" max="9" class="input-control" id="modalAdultsInput" placeholder="Adults" value="5" onchange="updateGuestTotal()">
+            </div>
+            <div style="flex:1;">
+              <span style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:2px;">Kids</span>
+              <input type="number" min="0" max="8" class="input-control" id="modalMinorsInput" placeholder="Kids" value="0" onchange="updateGuestTotal()">
+            </div>
           </div>
         </div>
       </div>
@@ -547,6 +552,7 @@
 
       <div class="split-bill-card">
         <div class="bill-row"><span>Short-Term Space & AV Lease (SAC 997312):</span><span id="billBase">₹0</span></div>
+        <div class="bill-row" id="billOccasionRow"><span>Celebration Setup (Helium Balloons / Big Screen AV):</span><span id="billOccasion" style="color:var(--green-main); font-weight:bold;">Included (₹0)</span></div>
         <div class="bill-row"><span>Add-ons & Gourmet Packages:</span><span id="billAddons">₹0</span></div>
         <div class="bill-row"><span>Platform Facilitation (SAC 998314):</span><span>Included</span></div>
         <div class="bill-row total"><span>Total Payable Amount:</span><span id="billTotal">₹0</span></div>
@@ -1040,11 +1046,11 @@
       if (!select) return;
 
       var occasions = [
-        { id: 'OCC-01', name: 'Movie Screening', label: '🎬 Movie Screening', icon: '🎬' },
-        { id: 'OCC-02', name: 'Birthday Celebration', label: '🎂 Birthday Celebration', icon: '🎂' },
-        { id: 'OCC-03', name: 'Anniversary Surprise', label: '💍 Anniversary Surprise', icon: '💍' },
-        { id: 'OCC-04', name: 'Romantic Couple Date', label: '✨ Romantic Date', icon: '✨' },
-        { id: 'OCC-05', name: 'PS5 4K Gaming Session', label: '🎮 PS5 Gaming', icon: '🎮' }
+        { id: 'OCC-01', name: 'Movie Screening', label: '🎬 Movie Screening (Standard - Included)', icon: '🎬', price: 0, inclusions: 'Standard cinema screening in private suite with 4K laser projection & Dolby Atmos audio.' },
+        { id: 'OCC-02', name: 'Birthday Celebration', label: '🎂 Birthday Celebration (+ ₹499 - Helium Balloons & AV Screen Presentation)', icon: '🎂', price: 499, inclusions: 'Metallic helium balloon decor, celebration banner, party lighting & custom photo/video AV presentation on 180" screen.' },
+        { id: 'OCC-03', name: 'Anniversary Surprise', label: '💍 Anniversary Surprise (+ ₹499 - Romantic Decor & Big Screen Slideshow)', icon: '💍', price: 499, inclusions: 'Romantic ambient fairy lighting, celebratory banner, flower petals & personalized photo slideshow on big screen.' },
+        { id: 'OCC-04', name: 'Romantic Couple Date', label: '✨ Romantic Date (+ ₹399 - Rose Petals & Ambient Lighting)', icon: '✨', price: 399, inclusions: 'Candlelight ambient illumination, romantic rose petal pathway & custom love song AV montage on screen.' },
+        { id: 'OCC-05', name: 'PS5 4K Gaming Session', label: '🎮 PS5 Gaming (+ ₹599 - PS5 Console & 4K AV Setup)', icon: '🎮', price: 599, inclusions: 'PlayStation 5 console setup with dual DualSense wireless controllers & gaming audio optimization.' }
       ];
 
       try {
@@ -1068,9 +1074,32 @@
         if (occ.isActive === false) return;
         var opt = document.createElement('option');
         opt.value = occ.name;
-        opt.innerText = occ.label || (occ.icon ? occ.icon + ' ' + occ.name : occ.name);
+        opt.dataset.price = occ.price || 0;
+        opt.dataset.inclusions = occ.inclusions || '';
+        opt.innerText = occ.label || (occ.price && occ.price > 0 ? (occ.icon + ' ' + occ.name + ' (+ ₹' + occ.price + ')') : (occ.icon + ' ' + occ.name + ' (Standard - Included)'));
         select.appendChild(opt);
       });
+
+      onModalOccasionChange();
+    }
+
+    function onModalOccasionChange() {
+      var select = document.getElementById('modalOccasionSelect');
+      var notice = document.getElementById('modalOccasionInclusionsNotice');
+      var text = document.getElementById('modalOccasionInclusionsText');
+      if (!select) return;
+
+      var selectedOpt = select.selectedOptions ? select.selectedOptions[0] : null;
+      if (selectedOpt && notice && text) {
+        var inc = selectedOpt.dataset.inclusions;
+        if (inc) {
+          text.innerText = 'Includes: ' + inc;
+          notice.style.display = 'block';
+        } else {
+          notice.style.display = 'none';
+        }
+      }
+      recalculateModalBill();
     }
 
     async function loadModalAddons() {
@@ -1124,11 +1153,22 @@
 
     function recalculateModalBill() {
       var base = appState.selectedVenue ? appState.selectedVenue.basePrice : 4999;
+      
+      var occasionCharge = 0;
+      var occSelect = document.getElementById('modalOccasionSelect');
+      if (occSelect && occSelect.selectedOptions && occSelect.selectedOptions[0]) {
+        occasionCharge = parseFloat(occSelect.selectedOptions[0].dataset.price) || 0;
+      }
+
       var sum = 0;
       for (var k in appState.selectedAddons) sum += appState.selectedAddons[k];
+
       document.getElementById('billBase').innerText = '₹' + base;
+      if (document.getElementById('billOccasion')) {
+        document.getElementById('billOccasion').innerText = (occasionCharge > 0) ? '+ ₹' + occasionCharge : 'Included (₹0)';
+      }
       document.getElementById('billAddons').innerText = '₹' + sum;
-      document.getElementById('billTotal').innerText = '₹' + (base + sum);
+      document.getElementById('billTotal').innerText = '₹' + (base + occasionCharge + sum);
     }
 
     async function proceedToRazorpayPayment() {

@@ -638,16 +638,31 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
           </div>
         </div>
 
-        <!-- 2. BOOKING OCCASIONS & EVENT THEMES MANAGER -->
+        <!-- 2. BOOKING OCCASIONS, CELEBRATION THEMES & AV PRESENTATION MANAGER -->
         <div class="glass-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
             <div>
-              <h3 style="color:#0f172a;"><i class="fa-solid fa-champagne-glasses" style="color:var(--gold-main);"></i> Booking Occasions & Event Themes</h3>
-              <p class="card-subtitle">Customize celebration event types offered in Step 3 of checkout (e.g. Movie Screening, Birthday, Anniversary, PS5 Gaming).</p>
+              <h3 style="color:#0f172a; margin-bottom:2px;"><i class="fa-solid fa-champagne-glasses" style="color:var(--gold-main);"></i> Booking Occasion Setups, Helium Balloons & Big Screen AV Presentations</h3>
+              <p class="card-subtitle">Except standard Movie Screening, set custom celebration setup charges (e.g. helium balloons, banner decoration, cake table lighting, and personalized big screen AV slideshow).</p>
             </div>
+            <button class="btn-primary" onclick="openHostOccasionModal()"><i class="fa-solid fa-plus"></i> + Add Custom Occasion Setup</button>
           </div>
 
-          <div id="hostOccasionsChipsContainer" style="display:flex; flex-wrap:wrap; gap:10px; margin:14px 0;"></div>
+          <!-- Occasions Data Table -->
+          <div class="table-responsive" style="margin:14px 0;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Occasion & Service Details</th>
+                  <th>Setup Inclusions (Big Screen AV / Decor)</th>
+                  <th>Setup Charge (₹)</th>
+                  <th>Status</th>
+                  <th style="text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="hostOccasionsTableBody"></tbody>
+            </table>
+          </div>
 
           <!-- Quick Add Occasion Bar -->
           <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
@@ -662,13 +677,20 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
                 <option value="👥">👥</option>
                 <option value="🍾">🍾</option>
                 <option value="🎉">🎉</option>
-                <option value="🍿">🍿</option>
+                <option value="🌹">🌹</option>
+                <option value="🎈">🎈</option>
               </select>
             </div>
-            <div style="flex:1; min-width:200px;">
-              <input type="text" class="input-control" id="hostNewOccasionName" placeholder="e.g. Live Sports Screening, Kids Birthday, Family Gathering">
+            <div style="flex:1; min-width:180px;">
+              <input type="text" class="input-control" id="hostNewOccasionName" placeholder="Occasion Title (e.g. Kids Birthday Party, Live Sports Screening)">
             </div>
-            <button class="btn-primary" onclick="addHostOccasion()" style="padding:9px 18px; font-size:0.86rem;"><i class="fa-solid fa-plus"></i> Add Occasion</button>
+            <div style="width:130px;">
+              <input type="number" min="0" step="50" class="input-control" id="hostNewOccasionPrice" placeholder="Setup ₹ (e.g. 499)">
+            </div>
+            <div style="flex:2; min-width:220px;">
+              <input type="text" class="input-control" id="hostNewOccasionInclusions" placeholder="Inclusions (e.g. Helium balloons, welcome banner & AV montage on 180&quot; screen)">
+            </div>
+            <button class="btn-primary" onclick="addHostOccasionQuick()" style="padding:9px 18px; font-size:0.86rem; white-space:nowrap;"><i class="fa-solid fa-plus"></i> Add Occasion</button>
           </div>
         </div>
 
@@ -677,7 +699,7 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
             <div>
               <h3 style="color:#0f172a;"><i class="fa-solid fa-mobile-screen-button" style="color:var(--gold-main);"></i> Live Guest Booking Checkout Simulator</h3>
-              <p class="card-subtitle">Real-time simulation of how your suite rent, celebration occasions, and add-on snacks are presented to your guests with live bill calculation.</p>
+              <p class="card-subtitle">Real-time simulation of how your suite rent, celebration occasions (with AV/balloon charges), and add-on snacks are presented to your guests with live bill calculation.</p>
             </div>
             <span class="compliance-pill" style="background:#ecfdf5; color:#047857; border:1px solid #a7f3d0;"><i class="fa-solid fa-circle-check"></i> Live Interactive Demo</span>
           </div>
@@ -697,7 +719,10 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
             <!-- Step 3: Occasion Dropdown -->
             <div class="form-group" style="margin-bottom:12px;">
               <label class="form-label" style="font-size:0.84rem;">3. Occasion / Celebration Type:</label>
-              <select class="input-control" id="hostSimOccasionSelect" style="font-size:0.88rem; padding:8px 12px;" onchange="updateHostSimCalculation()"></select>
+              <select class="input-control" id="hostSimOccasionSelect" style="font-size:0.88rem; padding:8px 12px;" onchange="onHostSimOccasionChange()"></select>
+              <div id="hostSimOccasionInclusionsNotice" style="margin-top:6px; font-size:0.78rem; color:#92400e; background:#fffbeb; padding:8px 12px; border-radius:6px; border:1px solid #fde68a; display:none;">
+                <i class="fa-solid fa-sparkles"></i> <strong id="hostSimOccasionInclusionsText">Inclusions: Standard cinema screening</strong>
+              </div>
             </div>
 
             <!-- Step 4: Number of Guests -->
@@ -726,6 +751,10 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
               <div style="display:flex; justify-content:space-between; margin-bottom:4px; color:#64748b;">
                 <span>Auditorium Suite Base Rent:</span>
                 <strong style="color:#0f172a;" id="hostSimBillBase">₹4999</strong>
+              </div>
+              <div style="display:flex; justify-content:space-between; margin-bottom:4px; color:#64748b;" id="hostSimBillOccasionRow">
+                <span>Occasion Celebration Setup:</span>
+                <strong style="color:var(--green-main);" id="hostSimBillOccasion">Included (₹0)</strong>
               </div>
               <div style="display:flex; justify-content:space-between; margin-bottom:6px; color:#64748b;">
                 <span>Selected Add-on Delights:</span>
@@ -903,6 +932,71 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
       <div style="display:flex; justify-content:flex-end; gap:10px;">
         <button class="btn-secondary" onclick="closeHostAddonModal()">Cancel</button>
         <button class="btn-primary" onclick="saveHostAddon()"><i class="fa-solid fa-floppy-disk"></i> Save Delight</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOST OCCASION CELEBRATION SETUP EDIT MODAL -->
+  <div class="modal-overlay" id="hostOccasionEditModal" style="display:none;">
+    <div class="modal-card" style="max-width:520px; background:#ffffff; color:#0f172a;">
+      <button class="close-modal-btn" onclick="closeHostOccasionModal()"><i class="fa-solid fa-xmark"></i></button>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+        <span style="font-size:2rem; background:#fffbeb; padding:6px 10px; border-radius:10px; border:1px solid #fde68a;" id="hostOccasionModalEmojiBadge">🎂</span>
+        <div>
+          <h3 style="color:#0f172a; font-size:1.2rem;" id="hostOccasionModalTitle">Configure Occasion Celebration Setup</h3>
+          <p style="color:#64748b; font-size:0.8rem; margin:0;">Set custom setup charges for helium balloons, banners & big screen AV presentations.</p>
+        </div>
+      </div>
+
+      <input type="hidden" id="hostEditOccasionId" value="">
+
+      <div style="display:grid; grid-template-columns:110px 1fr; gap:12px; margin-bottom:12px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size:0.84rem;">Emoji Icon *</label>
+          <select class="input-control" id="hostEditOccasionIcon" onchange="document.getElementById('hostOccasionModalEmojiBadge').innerText = this.value">
+            <option value="🎬">🎬 Movie</option>
+            <option value="🎂">🎂 Birthday</option>
+            <option value="💍">💍 Anniversary</option>
+            <option value="✨">✨ Romantic</option>
+            <option value="🎮">🎮 Gaming</option>
+            <option value="🏆">🏆 Sports</option>
+            <option value="👥">👥 Reunion</option>
+            <option value="🍾">🍾 Party</option>
+            <option value="🎉">🎉 Festival</option>
+            <option value="🌹">🌹 Romance</option>
+            <option value="🎈">🎈 Balloons</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size:0.84rem;">Occasion / Event Title *</label>
+          <input type="text" class="input-control" id="hostEditOccasionName" placeholder="e.g. Birthday Celebration">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:12px;">
+        <label class="form-label" style="font-size:0.84rem;">Celebration Setup Charge (₹) * (Set 0 for Standard Free Screening)</label>
+        <div style="position:relative;">
+          <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); font-weight:bold; color:var(--gold-main);">₹</span>
+          <input type="number" min="0" step="50" class="input-control" id="hostEditOccasionPrice" placeholder="499" style="padding-left:30px; font-weight:bold; color:var(--green-main);">
+        </div>
+        <small style="color:#64748b; font-size:0.75rem; display:block; margin-top:3px;">Covers custom helium balloons, decor setup, and customized video presentation on big screen.</small>
+      </div>
+
+      <div class="form-group" style="margin-bottom:14px;">
+        <label class="form-label" style="font-size:0.84rem;">Setup Inclusions & Experience Services *</label>
+        <textarea class="input-control" id="hostEditOccasionInclusions" rows="3" placeholder="e.g. Metallic helium balloon decor, celebration banner, party lighting & custom photo/video AV presentation on 180&quot; screen."></textarea>
+      </div>
+
+      <div class="form-group" style="margin-bottom:16px;">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:bold; font-size:0.88rem; color:#334155;">
+          <input type="checkbox" id="hostEditOccasionActive" checked style="accent-color:var(--gold-main); width:18px; height:18px;">
+          <span>Active (Visible in Step 3 of Guest Checkout)</span>
+        </label>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <button class="btn-secondary" onclick="closeHostOccasionModal()">Cancel</button>
+        <button class="btn-primary" onclick="saveHostOccasionModal()"><i class="fa-solid fa-floppy-disk"></i> Save Occasion Setup</button>
       </div>
     </div>
   </div>
@@ -1837,36 +1931,186 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
     }
 
     function renderHostOccasionsList() {
-      var container = document.getElementById('hostOccasionsChipsContainer');
-      if (!container) return;
+      var tbody = document.getElementById('hostOccasionsTableBody');
+      if (!tbody) return;
       var occasions = getHostOccasionsList();
-      container.innerHTML = '';
+      tbody.innerHTML = '';
+
+      var activeCount = 0;
 
       occasions.forEach(function(occ) {
-        var chip = document.createElement('div');
-        chip.style.cssText = 'background:#ffffff; border:1.5px solid #cbd5e1; border-radius:20px; padding:6px 14px; font-size:0.86rem; font-weight:bold; color:#0f172a; display:inline-flex; align-items:center; gap:8px; box-shadow:0 1px 4px rgba(0,0,0,0.03);';
-        chip.innerHTML = '<span>' + (occ.label || (occ.icon + ' ' + occ.name)) + '</span><a href="javascript:void(0)" onclick="deleteHostOccasion(\'' + occ.id + '\')" style="color:#94a3b8; font-size:0.85rem; text-decoration:none; margin-left:4px;" title="Delete Occasion"><i class="fa-solid fa-circle-xmark"></i></a>';
-        container.appendChild(chip);
+        if (occ.isActive !== false) activeCount++;
+
+        var tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid #f1f5f9';
+
+        var statusBadge = (occ.isActive !== false)
+          ? '<span class="badge-green" style="background:#ecfdf5; border:1px solid #10b981;"><i class="fa-solid fa-circle-check"></i> Active</span>'
+          : '<span class="badge-gold" style="background:#fef2f2; color:#991b1b; border:1px solid #fecaca;"><i class="fa-solid fa-circle-xmark"></i> Disabled</span>';
+
+        var priceDisplay = (occ.price && occ.price > 0)
+          ? '<strong style="color:var(--gold-dark); font-size:1.05rem;">+ ₹' + occ.price + '</strong>'
+          : '<span style="color:#059669; font-weight:bold; font-size:0.9rem;"><i class="fa-solid fa-check"></i> Included (₹0)</span>';
+
+        tr.innerHTML = ''
+          + '<td style="padding:12px;">'
+          + '  <div style="display:flex; align-items:center; gap:10px;">'
+          + '    <span style="font-size:1.6rem; background:#fffbeb; padding:4px 8px; border-radius:8px; border:1px solid #fde68a;">' + (occ.icon || '🎬') + '</span>'
+          + '    <div>'
+          + '      <strong style="color:#0f172a; font-size:0.94rem;">' + occ.name + '</strong>'
+          + '    </div>'
+          + '  </div>'
+          + '</td>'
+          + '<td style="padding:12px; font-size:0.8rem; color:#475569; max-width:320px; line-height:1.4;">' + (occ.inclusions || 'Standard private suite screening setup.') + '</td>'
+          + '<td style="padding:12px;">' + priceDisplay + '</td>'
+          + '<td style="padding:12px;">' + statusBadge + '</td>'
+          + '<td style="padding:12px; text-align:right;">'
+          + '  <div style="display:inline-flex; gap:6px;">'
+          + '    <button class="btn-secondary" style="padding:5px 10px; font-size:0.78rem;" onclick="openHostOccasionModal(\'' + occ.id + '\')"><i class="fa-solid fa-pen-to-square"></i> Edit</button>'
+          + '    <button class="btn-secondary" style="padding:5px 10px; font-size:0.78rem;" onclick="toggleHostOccasionStatus(\'' + occ.id + '\', ' + (occ.isActive !== false) + ')">' + (occ.isActive !== false ? '<i class="fa-solid fa-eye-slash"></i>' : '<i class="fa-solid fa-eye"></i>') + '</button>'
+          + '    <button class="btn-secondary" style="padding:5px 10px; font-size:0.78rem; color:#dc2626; border-color:#fecaca;" onclick="deleteHostOccasion(\'' + occ.id + '\')"><i class="fa-solid fa-trash-can"></i></button>'
+          + '  </div>'
+          + '</td>';
+
+        tbody.appendChild(tr);
       });
 
       if (document.getElementById('hostActiveOccasionsCount')) {
-        document.getElementById('hostActiveOccasionsCount').innerText = occasions.length;
+        document.getElementById('hostActiveOccasionsCount').innerText = activeCount;
       }
 
       updateHostAddonOccasionPreview();
     }
 
-    async function addHostOccasion() {
-      var emoji = document.getElementById('hostNewOccasionEmoji').value;
-      var name = document.getElementById('hostNewOccasionName').value.trim();
-      if (!name) { showToast('Please enter an occasion title', true); return; }
+    function openHostOccasionModal(occId) {
+      var modal = document.getElementById('hostOccasionEditModal');
+      if (!modal) return;
+
+      if (occId) {
+        var occasions = getHostOccasionsList();
+        var target = occasions.find(function(o) { return o.id === occId; });
+        if (target) {
+          document.getElementById('hostOccasionModalTitle').innerText = 'Edit Occasion Celebration Setup';
+          document.getElementById('hostEditOccasionId').value = target.id;
+          document.getElementById('hostEditOccasionIcon').value = target.icon || '🎂';
+          document.getElementById('hostOccasionModalEmojiBadge').innerText = target.icon || '🎂';
+          document.getElementById('hostEditOccasionName').value = target.name || '';
+          document.getElementById('hostEditOccasionPrice').value = target.price !== undefined ? target.price : 499;
+          document.getElementById('hostEditOccasionInclusions').value = target.inclusions || '';
+          document.getElementById('hostEditOccasionActive').checked = target.isActive !== false;
+        }
+      } else {
+        document.getElementById('hostOccasionModalTitle').innerText = 'Add Custom Occasion Celebration Setup';
+        document.getElementById('hostEditOccasionId').value = '';
+        document.getElementById('hostEditOccasionIcon').value = '🎂';
+        document.getElementById('hostOccasionModalEmojiBadge').innerText = '🎂';
+        document.getElementById('hostEditOccasionName').value = '';
+        document.getElementById('hostEditOccasionPrice').value = '499';
+        document.getElementById('hostEditOccasionInclusions').value = 'Metallic helium balloon decor, celebration banner, party lighting & custom photo/video AV presentation on 180" screen.';
+        document.getElementById('hostEditOccasionActive').checked = true;
+      }
+
+      modal.style.display = 'flex';
+    }
+
+    function closeHostOccasionModal() {
+      var modal = document.getElementById('hostOccasionEditModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    async function saveHostOccasionModal() {
+      var id = document.getElementById('hostEditOccasionId').value.trim();
+      var icon = document.getElementById('hostEditOccasionIcon').value.trim();
+      var name = document.getElementById('hostEditOccasionName').value.trim();
+      var price = parseFloat(document.getElementById('hostEditOccasionPrice').value);
+      var inclusions = document.getElementById('hostEditOccasionInclusions').value.trim();
+      var isActive = document.getElementById('hostEditOccasionActive').checked;
+
+      if (!name || isNaN(price) || price < 0) {
+        showToast('Please enter an occasion title and valid price in ₹ (0 for included)', true);
+        return;
+      }
 
       var occasions = getHostOccasionsList();
+      var label = (price > 0) ? (icon + ' ' + name + ' (+ ₹' + price + ')') : (icon + ' ' + name + ' (Standard - Included)');
+
+      if (id) {
+        var target = occasions.find(function(o) { return o.id === id; });
+        if (target) {
+          target.icon = icon;
+          target.name = name;
+          target.price = price;
+          target.inclusions = inclusions;
+          target.label = label;
+          target.isActive = isActive;
+        }
+      } else {
+        var newId = 'OCC-' + ('00' + (occasions.length + 1)).slice(-2);
+        occasions.push({
+          id: newId,
+          name: name,
+          label: label,
+          icon: icon,
+          price: price,
+          inclusions: inclusions,
+          isActive: isActive
+        });
+      }
+
+      var payload = {
+        merchantId: (currentMerchantData && currentMerchantData.merchant) ? currentMerchantData.merchant.id : 'MERCH-001',
+        pin: currentMerchantSecret || '1234',
+        occasions: occasions
+      };
+
+      try {
+        var res = await fetch('/api/merchant/occasions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          var data = await res.json();
+          if (data.success && data.occasions) {
+            if (currentMerchantData) currentMerchantData.occasions = data.occasions;
+            localStorage.setItem('cinespace_occasions', JSON.stringify(data.occasions));
+            closeHostOccasionModal();
+            renderHostOccasionsList();
+            showToast('✓ Occasion celebration setup saved!');
+            return;
+          }
+        }
+      } catch (err) {}
+
+      if (currentMerchantData) currentMerchantData.occasions = occasions;
+      localStorage.setItem('cinespace_occasions', JSON.stringify(occasions));
+      closeHostOccasionModal();
+      renderHostOccasionsList();
+      showToast('✓ Occasion celebration setup saved!');
+    }
+
+    async function addHostOccasionQuick() {
+      var emoji = document.getElementById('hostNewOccasionEmoji').value;
+      var name = document.getElementById('hostNewOccasionName').value.trim();
+      var price = parseFloat(document.getElementById('hostNewOccasionPrice').value);
+      var inclusions = document.getElementById('hostNewOccasionInclusions').value.trim();
+
+      if (!name) {
+        showToast('Please enter an occasion title', true);
+        return;
+      }
+      if (isNaN(price) || price < 0) price = 499;
+
+      var occasions = getHostOccasionsList();
+      var label = (price > 0) ? (emoji + ' ' + name + ' (+ ₹' + price + ')') : (emoji + ' ' + name + ' (Standard - Included)');
+
       var newOcc = {
         id: 'OCC-' + ('00' + (occasions.length + 1)).slice(-2),
         name: name,
-        label: emoji + ' ' + name,
+        label: label,
         icon: emoji,
+        price: price,
+        inclusions: inclusions || (name + ' celebration setup with decor & big screen presentation.'),
         isActive: true
       };
       occasions.push(newOcc);
@@ -1889,6 +2133,8 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
             if (currentMerchantData) currentMerchantData.occasions = data.occasions;
             localStorage.setItem('cinespace_occasions', JSON.stringify(data.occasions));
             document.getElementById('hostNewOccasionName').value = '';
+            document.getElementById('hostNewOccasionPrice').value = '';
+            document.getElementById('hostNewOccasionInclusions').value = '';
             renderHostOccasionsList();
             showToast('✓ New occasion added!');
             return;
@@ -1899,8 +2145,46 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
       if (currentMerchantData) currentMerchantData.occasions = occasions;
       localStorage.setItem('cinespace_occasions', JSON.stringify(occasions));
       document.getElementById('hostNewOccasionName').value = '';
+      document.getElementById('hostNewOccasionPrice').value = '';
+      document.getElementById('hostNewOccasionInclusions').value = '';
       renderHostOccasionsList();
       showToast('✓ New occasion added!');
+    }
+
+    async function toggleHostOccasionStatus(occId, currentActive) {
+      var occasions = getHostOccasionsList();
+      var target = occasions.find(function(o) { return o.id === occId; });
+      if (!target) return;
+      target.isActive = !currentActive;
+
+      var payload = {
+        merchantId: (currentMerchantData && currentMerchantData.merchant) ? currentMerchantData.merchant.id : 'MERCH-001',
+        pin: currentMerchantSecret || '1234',
+        occasions: occasions
+      };
+
+      try {
+        var res = await fetch('/api/merchant/occasions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          var data = await res.json();
+          if (data.success && data.occasions) {
+            if (currentMerchantData) currentMerchantData.occasions = data.occasions;
+            localStorage.setItem('cinespace_occasions', JSON.stringify(data.occasions));
+            renderHostOccasionsList();
+            showToast('✓ Occasion status updated!');
+            return;
+          }
+        }
+      } catch (err) {}
+
+      if (currentMerchantData) currentMerchantData.occasions = occasions;
+      localStorage.setItem('cinespace_occasions', JSON.stringify(occasions));
+      renderHostOccasionsList();
+      showToast('✓ Occasion status updated!');
     }
 
     async function deleteHostOccasion(occId) {
@@ -1978,10 +2262,14 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
           if (occ.isActive === false) return;
           var opt = document.createElement('option');
           opt.value = occ.name;
-          opt.innerText = occ.label || (occ.icon + ' ' + occ.name);
+          opt.dataset.price = occ.price || 0;
+          opt.dataset.inclusions = occ.inclusions || '';
+          opt.innerText = occ.label || (occ.price && occ.price > 0 ? (occ.icon + ' ' + occ.name + ' (+ ₹' + occ.price + ')') : (occ.icon + ' ' + occ.name + ' (Included)'));
           occSelect.appendChild(opt);
         });
       }
+
+      onHostSimOccasionChange();
 
       // 3. Populate Step 5 Add-ons List
       var addonsContainer = document.getElementById('hostSimAddonsList');
@@ -2000,6 +2288,25 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
       updateHostSimCalculation();
     }
 
+    function onHostSimOccasionChange() {
+      var occSelect = document.getElementById('hostSimOccasionSelect');
+      var inclusionsBox = document.getElementById('hostSimOccasionInclusionsNotice');
+      var inclusionsText = document.getElementById('hostSimOccasionInclusionsText');
+      if (!occSelect) return;
+
+      var selectedOpt = occSelect.selectedOptions ? occSelect.selectedOptions[0] : null;
+      if (selectedOpt && inclusionsBox && inclusionsText) {
+        var inc = selectedOpt.dataset.inclusions;
+        if (inc) {
+          inclusionsText.innerText = 'Inclusions: ' + inc;
+          inclusionsBox.style.display = 'block';
+        } else {
+          inclusionsBox.style.display = 'none';
+        }
+      }
+      updateHostSimCalculation();
+    }
+
     function toggleHostSimAddon(id, price, isChecked) {
       if (isChecked) hostSimState.selectedAddons[id] = price;
       else delete hostSimState.selectedAddons[id];
@@ -2008,12 +2315,23 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
 
     function updateHostSimCalculation() {
       var base = (hostSimState.selectedSuite && hostSimState.selectedSuite.basePrice) ? hostSimState.selectedSuite.basePrice : 4999;
-      var sum = 0;
-      for (var k in hostSimState.selectedAddons) sum += hostSimState.selectedAddons[k];
+      
+      // Calculate Occasion charge
+      var occasionCharge = 0;
+      var occSelect = document.getElementById('hostSimOccasionSelect');
+      if (occSelect && occSelect.selectedOptions && occSelect.selectedOptions[0]) {
+        occasionCharge = parseFloat(occSelect.selectedOptions[0].dataset.price) || 0;
+      }
+
+      var addonsSum = 0;
+      for (var k in hostSimState.selectedAddons) addonsSum += hostSimState.selectedAddons[k];
 
       if (document.getElementById('hostSimBillBase')) document.getElementById('hostSimBillBase').innerText = '₹' + base;
-      if (document.getElementById('hostSimBillAddons')) document.getElementById('hostSimBillAddons').innerText = '₹' + sum;
-      if (document.getElementById('hostSimBillTotal')) document.getElementById('hostSimBillTotal').innerText = '₹' + (base + sum);
+      if (document.getElementById('hostSimBillOccasion')) {
+        document.getElementById('hostSimBillOccasion').innerText = (occasionCharge > 0) ? '+ ₹' + occasionCharge : 'Included (₹0)';
+      }
+      if (document.getElementById('hostSimBillAddons')) document.getElementById('hostSimBillAddons').innerText = '₹' + addonsSum;
+      if (document.getElementById('hostSimBillTotal')) document.getElementById('hostSimBillTotal').innerText = '₹' + (base + occasionCharge + addonsSum);
     }
 
     function renderMerchantBookings(bookings) {

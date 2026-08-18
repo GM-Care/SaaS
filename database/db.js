@@ -218,11 +218,51 @@ const DEFAULT_SEED_DATA = {
   ],
 
   occasions: [
-    { id: 'OCC-01', name: 'Movie Screening', label: '🎬 Movie Screening', icon: '🎬', isActive: true },
-    { id: 'OCC-02', name: 'Birthday Celebration', label: '🎂 Birthday Celebration', icon: '🎂', isActive: true },
-    { id: 'OCC-03', name: 'Anniversary Surprise', label: '💍 Anniversary Surprise', icon: '💍', isActive: true },
-    { id: 'OCC-04', name: 'Romantic Couple Date', label: '✨ Romantic Date', icon: '✨', isActive: true },
-    { id: 'OCC-05', name: 'PS5 4K Gaming Session', label: '🎮 PS5 Gaming', icon: '🎮', isActive: true }
+    {
+      id: 'OCC-01',
+      name: 'Movie Screening',
+      label: '🎬 Movie Screening (Standard - Included)',
+      icon: '🎬',
+      price: 0,
+      inclusions: 'Standard cinema screening in private suite with 4K laser projection & Dolby Atmos audio.',
+      isActive: true
+    },
+    {
+      id: 'OCC-02',
+      name: 'Birthday Celebration',
+      label: '🎂 Birthday Celebration (+ ₹499 - Helium Balloons & AV Screen Presentation)',
+      icon: '🎂',
+      price: 499,
+      inclusions: 'Metallic helium balloon decor, celebration banner, party lighting & custom photo/video AV presentation on 180" screen.',
+      isActive: true
+    },
+    {
+      id: 'OCC-03',
+      name: 'Anniversary Surprise',
+      label: '💍 Anniversary Surprise (+ ₹499 - Romantic Decor & Big Screen Slideshow)',
+      icon: '💍',
+      price: 499,
+      inclusions: 'Romantic ambient fairy lighting, celebratory banner, flower petals & personalized photo slideshow on big screen.',
+      isActive: true
+    },
+    {
+      id: 'OCC-04',
+      name: 'Romantic Couple Date',
+      label: '✨ Romantic Date (+ ₹399 - Rose Petals & Ambient Lighting)',
+      icon: '✨',
+      price: 399,
+      inclusions: 'Candlelight ambient illumination, romantic rose petal pathway & custom love song AV montage on screen.',
+      isActive: true
+    },
+    {
+      id: 'OCC-05',
+      name: 'PS5 4K Gaming Session',
+      label: '🎮 PS5 Gaming (+ ₹599 - PS5 Console & 4K AV Setup)',
+      icon: '🎮',
+      price: 599,
+      inclusions: 'PlayStation 5 console setup with dual DualSense wireless controllers & gaming audio optimization.',
+      isActive: true
+    }
   ],
 
   bookings: [],
@@ -494,8 +534,10 @@ const dbService = {
       db.occasions = occasionsList.map((o, idx) => ({
         id: o.id || ('OCC-' + ('00' + (idx + 1)).slice(-2)),
         name: o.name || 'Occasion',
-        label: o.label || o.name || 'Occasion',
+        label: o.label || (o.price && o.price > 0 ? `${o.icon || '🎉'} ${o.name} (+ ₹${o.price})` : `${o.icon || '🎬'} ${o.name}`),
         icon: o.icon || '🎉',
+        price: o.price !== undefined ? Math.max(0, Number(o.price)) : 0,
+        inclusions: o.inclusions || '',
         isActive: o.isActive !== undefined ? Boolean(o.isActive) : true
       }));
       saveDb();

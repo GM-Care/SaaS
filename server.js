@@ -389,10 +389,21 @@ app.post('/api/payments/create-order', async (req, res) => {
       }
     });
 
+    const allOccasions = db.getOccasions(true);
+    let occasionCharge = 0;
+    const targetOccasion = allOccasions.find(o => 
+      o.name.toLowerCase() === String(occasion || '').toLowerCase() || 
+      (o.label && o.label.toLowerCase() === String(occasion || '').toLowerCase()) || 
+      o.id === occasion
+    );
+    if (targetOccasion && targetOccasion.price) {
+      occasionCharge = Number(targetOccasion.price);
+    }
+
     const merchantCommissionRate = merchant.commissionRatePercent || 10.0;
 
     const financialSplit = razorpayService.calculateFinancialSplit(
-      venue.basePrice,
+      venue.basePrice + occasionCharge,
       addonsTotal,
       merchantCommissionRate
     );
@@ -425,8 +436,9 @@ app.post('/api/payments/create-order', async (req, res) => {
       minorsCount,
       bookingDate,
       timeSlot,
-      guests: Number(guests) || 1,
+      guests: Number(guests) || 2,
       occasion: occasion || 'Movie Screening',
+      occasionCharge: occasionCharge,
       addons: selectedAddons,
       addonsSummary: addonsSummaryList.join(', ') || 'None',
       
