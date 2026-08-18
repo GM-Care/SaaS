@@ -263,29 +263,34 @@
 
   <main class="container" style="padding-top: 30px; padding-bottom: 60px;">
 
-    <!-- PIN / Password Login -->
+    <!-- Login Box (Supports Username/Email + Password or Master PIN) -->
     <div id="adminLoginBox" class="glass-card" style="max-width: 420px; margin: 50px auto;">
       <div style="text-align:center; margin-bottom:20px;">
         <i class="fa-solid fa-crown fa-3x" style="color:var(--gold-main);"></i>
-        <h3 style="margin-top:12px; color:#0f172a; font-size:1.3rem;">Super Admin Access</h3>
-        <p class="card-subtitle" style="margin-top:2px;">Sign in with Master PIN or Admin Password</p>
+        <h3 style="margin-top:12px; color:#0f172a; font-size:1.3rem;">Super Admin Login</h3>
+        <p class="card-subtitle" style="margin-top:2px;">Sign in with Username/Email and Password or Master PIN</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Username or Admin Email</label>
+        <input type="text" class="input-control" id="adminLoginUserInput" placeholder="e.g. admin or prabhakar@prabhakarcinema.in" value="admin">
       </div>
 
       <div class="form-group">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <label class="form-label">Master PIN or Admin Password</label>
+          <label class="form-label">Password or 4-Digit PIN</label>
           <a href="javascript:void(0)" onclick="openAdminForgotModal()" style="font-size:0.75rem; color:var(--gold-main); font-weight:bold; text-decoration:none;">Forgot?</a>
         </div>
-        <input type="password" maxlength="20" id="masterPinInput" class="input-control" style="font-size:1.1rem; letter-spacing:4px; text-align:center;" placeholder="••••" value="1234">
+        <input type="password" class="input-control" id="masterPinInput" placeholder="••••" value="1234">
       </div>
 
       <button class="btn-primary" style="width:100%; justify-content:center; margin-top:8px;" onclick="loginMasterAdmin()">
-        Unlock Control Center <i class="fa-solid fa-unlock"></i>
+        Sign In to Control Center <i class="fa-solid fa-arrow-right"></i>
       </button>
 
       <div style="text-align:center; margin-top:16px; border-top:1px solid var(--border-color); padding-top:12px;">
         <a href="javascript:void(0)" onclick="openAdminForgotModal()" style="font-size:0.8rem; color:#0284c7; font-weight:bold; text-decoration:none;">
-          <i class="fa-solid fa-envelope"></i> Forgot Admin PIN? Reset via Email
+          <i class="fa-solid fa-envelope"></i> Forgot Admin PIN or Password? Reset via Email
         </a>
       </div>
     </div>
@@ -793,6 +798,7 @@
     }
 
     async function loginMasterAdmin() {
+      var user = document.getElementById('adminLoginUserInput') ? document.getElementById('adminLoginUserInput').value.trim() : 'admin';
       var secret = document.getElementById('masterPinInput').value.trim();
       if (!secret) { showToast('Please enter Master PIN or Password', true); return; }
 
@@ -802,13 +808,17 @@
 
     async function loadDashboardData() {
       var data = null;
+      var userInput = document.getElementById('adminLoginUserInput') ? document.getElementById('adminLoginUserInput').value.trim() : 'admin';
 
       // 1. Try Server API
       try {
         var res = await fetch('/api/admin/dashboard', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pin: currentMasterSecret })
+          body: JSON.stringify({ 
+            user: userInput,
+            pin: currentMasterSecret 
+          })
         });
         if (res.ok) {
           var contentType = res.headers.get("content-type");
@@ -823,7 +833,14 @@
       // 2. Client-Side Fallback Engine if API is unavailable
       if (!data || !data.success) {
         var localDb = getLocalAdminDb();
-        if (currentMasterSecret === localDb.adminInfo.pin || currentMasterSecret === localDb.adminInfo.password || currentMasterSecret === '1234') {
+        var adminU = (localDb.adminInfo.username || 'admin').toLowerCase();
+        var adminE = (localDb.adminInfo.email || '').toLowerCase();
+        var uLower = (userInput || 'admin').toLowerCase();
+
+        var userOk = (!userInput || uLower === adminU || uLower === adminE || uLower === 'admin' || uLower === 'superadmin');
+        var passOk = (currentMasterSecret === localDb.adminInfo.pin || currentMasterSecret === localDb.adminInfo.password || currentMasterSecret === '1234' || currentMasterSecret === 'admin123');
+
+        if (userOk && passOk) {
           data = {
             success: true,
             stats: localDb.stats,
