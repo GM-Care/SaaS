@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Merchant Portal | CineSpace Host Dashboard</title>
   
-  <!-- Google Fonts -->
+  <!-- Google Fonts: Luxury Serif & Clean Modern Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- FontAwesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -17,14 +17,15 @@
     :root {
       --bg-page: #f8fafc;
       --bg-card: #ffffff;
-      --bg-glass: rgba(255, 255, 255, 0.95);
+      --bg-glass: rgba(255, 255, 255, 0.98);
       --border-color: #e2e8f0;
-      --border-gold: rgba(217, 119, 6, 0.35);
+      --border-gold: rgba(217, 119, 6, 0.4);
       --gold-main: #d97706;
+      --gold-dark: #b45309;
       --gold-light: #f59e0b;
-      --gold-gradient: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+      --gold-gradient: linear-gradient(135deg, #d97706 0%, #b45309 100%);
       --text-main: #0f172a;
-      --text-body: #334155;
+      --text-body: #1e293b;
       --text-muted: #64748b;
       --green-main: #059669;
       --green-bg: #ecfdf5;
@@ -35,19 +36,19 @@
       --radius-lg: 20px;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
 
     body {
       background-color: var(--bg-page);
       color: var(--text-body);
       min-height: 100vh;
       background-image: 
-        radial-gradient(circle at 15% 15%, rgba(217, 119, 6, 0.05) 0%, transparent 40%),
-        radial-gradient(circle at 85% 85%, rgba(245, 158, 11, 0.04) 0%, transparent 40%),
+        radial-gradient(circle at 15% 15%, rgba(217, 119, 6, 0.06) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(245, 158, 11, 0.05) 0%, transparent 40%),
         linear-gradient(180deg, #fdfbf7 0%, #f8fafc 100%);
     }
 
-    h1, h2, h3, h4 { font-family: 'Cinzel', serif; letter-spacing: 0.5px; color: var(--text-main); }
+    h1, h2, h3, h4 { font-family: 'Cinzel', serif; letter-spacing: 0.5px; color: var(--text-main); font-weight: 700; }
     .container { width: 100%; max-width: 1140px; margin: 0 auto; padding: 0 16px; }
 
     header {
@@ -79,48 +80,54 @@
     }
 
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .stat-card { background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 18px; text-align: center; }
+    .stat-card { background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 18px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
     .stat-val { font-size: 1.8rem; font-weight: 800; color: #0f172a; margin: 6px 0; }
     .stat-lbl { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
 
     .input-control {
       width: 100%;
       background: #ffffff;
-      border: 1px solid #cbd5e1;
+      border: 1.5px solid #cbd5e1;
       border-radius: var(--radius-sm);
-      padding: 10px 14px;
+      padding: 11px 14px;
       color: #0f172a;
       font-size: 0.9rem;
+      font-weight: 500;
       outline: none;
+      transition: all 0.2s ease;
     }
-    .input-control:focus { border-color: var(--gold-main); box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12); }
+    .input-control:focus { border-color: var(--gold-main); box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15); }
 
     .form-group { margin-bottom: 16px; }
     .form-label { display: block; font-size: 0.85rem; font-weight: 700; color: #1e293b; margin-bottom: 6px; }
 
-    .btn-primary { background: var(--gold-gradient); border: none; color: #ffffff; padding: 11px 24px; border-radius: 30px; font-size: 0.9rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 10px rgba(217, 119, 6, 0.3); }
-    .btn-secondary { background: #f1f5f9; border: 1px solid #e2e8f0; color: #334155; padding: 10px 20px; border-radius: 30px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
-    .btn-checkin { background: #059669; border: none; color: #ffffff; padding: 7px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary { background: var(--gold-gradient); border: none; color: #ffffff; padding: 11px 24px; border-radius: 30px; font-size: 0.9rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 3px 12px rgba(217, 119, 6, 0.35); transition: all 0.2s ease; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(217, 119, 6, 0.45); }
+    .btn-secondary { background: #f1f5f9; border: 1.5px solid #e2e8f0; color: #1e293b; padding: 10px 20px; border-radius: 30px; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
+    .btn-secondary:hover { background: #e2e8f0; }
+    .btn-checkin { background: #059669; border: none; color: #ffffff; padding: 9px 18px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3); transition: all 0.2s ease; }
+    .btn-checkin:hover { background: #047857; transform: translateY(-1px); }
 
-    .badge-green { background: var(--green-bg); color: var(--green-main); border: 1px solid rgba(5, 150, 105, 0.3); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
-    .badge-gold { background: #fffbeb; color: var(--gold-main); border: 1px solid #fde68a; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+    .badge-green { background: var(--green-bg); color: var(--green-main); border: 1px solid rgba(5, 150, 105, 0.3); padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; }
+    .badge-gold { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; }
 
     .booking-row-card {
-      background: #f8fafc;
-      border: 1px solid var(--border-color);
+      background: #ffffff;
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 18px;
+      margin-bottom: 14px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+    .booking-row-card:hover { border-color: var(--gold-main); box-shadow: 0 4px 14px rgba(217, 119, 6, 0.1); }
+
+    .review-row-card {
+      background: #ffffff;
+      border: 1.5px solid var(--border-color);
       border-radius: var(--radius-sm);
       padding: 16px;
       margin-bottom: 12px;
-      transition: all 0.2s ease;
-    }
-    .booking-row-card:hover { border-color: var(--gold-main); }
-
-    .review-row-card {
-      background: #f8fafc;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      padding: 14px;
-      margin-bottom: 10px;
     }
 
     .photos-preview-strip {
@@ -139,33 +146,43 @@
       flex-shrink: 0;
     }
 
-    /* Merchant Sub-Navigation Tabs */
+    /* High-Contrast Luxury Sub-Navigation Tabs */
     .merchant-tab-btn {
-      padding: 10px 18px;
-      border-radius: 10px;
-      border: 1px solid var(--border-color);
+      padding: 12px 20px;
+      border-radius: 12px;
+      border: 1.5px solid #cbd5e1;
       background: #ffffff;
-      color: var(--text-muted);
-      font-size: 0.86rem;
+      color: #1e293b;
+      font-size: 0.88rem;
       font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 8px;
       white-space: nowrap;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+    }
+    .merchant-tab-btn i {
+      color: var(--gold-main);
+      font-size: 1rem;
       transition: all 0.2s ease;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
     }
     .merchant-tab-btn:hover {
       background: #f8fafc;
       color: #0f172a;
-      border-color: #cbd5e1;
+      border-color: #94a3b8;
+      transform: translateY(-1px);
     }
     .merchant-tab-btn.active {
-      background: linear-gradient(135deg, var(--gold-main) 0%, var(--gold-dark) 100%);
-      color: #ffffff;
-      border-color: var(--gold-main);
-      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.25);
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+      color: #ffffff !important;
+      border-color: #0f172a !important;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.3) !important;
+      transform: translateY(-2px);
+    }
+    .merchant-tab-btn.active i {
+      color: #fbbf24 !important;
     }
 
     /* Modal */
@@ -213,11 +230,11 @@
   <main class="container" style="padding-top: 30px; padding-bottom: 60px;">
 
     <!-- Login Box (Supports Username + Password or PIN) -->
-    <div id="merchantLoginBox" class="glass-card" style="max-width: 400px; margin: 50px auto;">
-      <div style="text-align:center; margin-bottom:16px;">
+    <div id="merchantLoginBox" class="glass-card" style="max-width: 420px; margin: 50px auto;">
+      <div style="text-align:center; margin-bottom:20px;">
         <i class="fa-solid fa-user-tie fa-3x" style="color:var(--gold-main);"></i>
-        <h3 style="margin-top:12px; color:#ffffff;">Cinema Host Login</h3>
-        <p style="color:var(--text-muted); font-size:0.8rem; margin-top:2px;">Sign in with Username/Email and Password or PIN</p>
+        <h3 style="margin-top:12px; color:#0f172a; font-size:1.3rem;">Cinema Host Login</h3>
+        <p style="color:var(--text-muted); font-size:0.84rem; margin-top:2px;">Sign in with Username/Email and Password or PIN</p>
       </div>
 
       <div class="form-group">
@@ -227,7 +244,7 @@
       <div class="form-group">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <label class="form-label">Password or 4-Digit PIN</label>
-          <a href="javascript:void(0)" onclick="openForgotModal()" style="font-size:0.75rem; color:var(--gold-light); text-decoration:none;">Forgot?</a>
+          <a href="javascript:void(0)" onclick="openForgotModal()" style="font-size:0.75rem; color:var(--gold-main); font-weight:700; text-decoration:none;">Forgot?</a>
         </div>
         <input type="password" class="input-control" id="merchantLoginPassInput" placeholder="••••" value="1234">
       </div>
@@ -236,8 +253,8 @@
         Sign In to Host Dashboard <i class="fa-solid fa-arrow-right"></i>
       </button>
       
-      <div style="text-align:center; margin-top:16px; border-top:1px solid var(--border-light); padding-top:12px;">
-        <a href="javascript:void(0)" onclick="openForgotModal()" style="font-size:0.8rem; color:#38bdf8; text-decoration:none;">
+      <div style="text-align:center; margin-top:16px; border-top:1px solid var(--border-color); padding-top:12px;">
+        <a href="javascript:void(0)" onclick="openForgotModal()" style="font-size:0.8rem; color:#0284c7; font-weight:600; text-decoration:none;">
           <i class="fa-solid fa-envelope"></i> Forgot Username or Password? Reset via Email
         </a>
       </div>
@@ -255,14 +272,14 @@
               <span class="badge-gold" id="merchantCommissionBadge">Commission Rate: 3%</span>
               <span id="merchantVerificationBadge"></span>
             </div>
-            <h2 style="color:#ffffff;" id="merchantNameHeader">Prabhakar Home Cinema</h2>
+            <h2 style="color:#0f172a; font-size:1.35rem;" id="merchantNameHeader">Prabhakar Home Cinema</h2>
             <p style="color:var(--text-muted); font-size:0.85rem;" id="merchantAddressDisplay">Anna Nagar, Chennai</p>
-            <p style="color:#38bdf8; font-size:0.78rem; margin-top:4px;" id="inspectionNotesDisplay"></p>
+            <p style="color:#0284c7; font-size:0.78rem; font-weight:600; margin-top:4px;" id="inspectionNotesDisplay"></p>
           </div>
         </div>
         <div>
-          <span style="font-size:0.8rem; color:var(--text-muted); display:block;">Bank & Settlement Account:</span>
-          <strong style="color:var(--green-main); font-family:monospace; font-size:1.1rem;" id="merchantUpiDisplay">8667708711@upi</strong>
+          <span style="font-size:0.8rem; color:var(--text-muted); display:block; font-weight:600;">Bank & Settlement Account:</span>
+          <strong style="color:var(--green-main); font-family:monospace; font-size:1.15rem;" id="merchantUpiDisplay">9962279790@upi (HDFC Bank Ltd)</strong>
         </div>
       </div>
 
@@ -274,7 +291,7 @@
         </div>
         <div class="stat-card">
           <div class="stat-lbl">GUEST RATING</div>
-          <div class="stat-val" id="guestRatingVal" style="color:var(--gold-light);">⭐ 5.0</div>
+          <div class="stat-val" id="guestRatingVal" style="color:var(--gold-main);">⭐ 5.0 (48)</div>
         </div>
         <div class="stat-card">
           <div class="stat-lbl">TOTAL NET EARNINGS</div>
@@ -282,12 +299,12 @@
         </div>
         <div class="stat-card">
           <div class="stat-lbl">PENDING PAYOUTS</div>
-          <div class="stat-val" id="pendingPayoutsVal" style="color:#38bdf8;">₹0</div>
+          <div class="stat-val" id="pendingPayoutsVal" style="color:#0284c7;">₹0</div>
         </div>
       </div>
 
       <!-- Navigation Tabs Strip for Merchant Portal -->
-      <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:8px; margin: 20px 0 16px 0; border-bottom: 2px solid var(--border-color); -webkit-overflow-scrolling:touch;">
+      <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:8px; margin: 20px 0 14px 0; border-bottom: 2px solid var(--border-color); -webkit-overflow-scrolling:touch;">
         <button class="merchant-tab-btn active" id="tabBtn_reception" onclick="switchMerchantTab('reception')">
           <i class="fa-solid fa-door-open"></i> 1. Door Reception & Bookings
         </button>
@@ -306,6 +323,15 @@
         <button class="merchant-tab-btn" id="tabBtn_settings" onclick="switchMerchantTab('settings')">
           <i class="fa-solid fa-gear"></i> 6. Security & Email
         </button>
+      </div>
+
+      <!-- Prominent Active View Breadcrumb Indicator -->
+      <div id="activeTabIndicator" style="display:flex; align-items:center; justify-content:space-between; background: #ffffff; border: 1.5px solid var(--border-color); border-left: 4px solid var(--gold-main); border-radius: 8px; padding: 10px 16px; margin-bottom: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+        <div style="font-size: 0.88rem; font-weight: 700; color: #0f172a; display:flex; align-items:center; gap: 8px;">
+          <span style="background:var(--gold-main); color:#ffffff; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; text-transform: uppercase; letter-spacing:0.5px;">ACTIVE VIEW</span>
+          <span id="activeTabNameDisplay">🚪 1. Door Reception & Bookings (Front-Desk Check-In)</span>
+        </div>
+        <span style="font-size: 0.76rem; color: var(--text-muted); font-weight: 600;">Host Management Suite</span>
       </div>
 
       <!-- TAB 1: DOOR RECEPTION & UPCOMING BOOKINGS -->
@@ -1127,6 +1153,15 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
       document.getElementById('newHostPassInput').value = '';
     }
 
+    var tabTitlesMap = {
+      'reception': '🚪 1. Door Reception & Bookings (Front-Desk Check-In)',
+      'profile': '🏢 2. Space Profile, Media & Location Details',
+      'payouts': '💳 3. Bank Settlement & Mandatory KYC Details',
+      'settlements': '💰 4. Payout Settlements Ledger & Guest Reviews',
+      'analytics': '📊 5. Data Export & CA Accounting Hub',
+      'settings': '⚙️ 6. Security Credentials & Host Gmail SMTP Setup'
+    };
+
     function switchMerchantTab(tabName) {
       var tabs = ['reception', 'profile', 'payouts', 'settlements', 'analytics', 'settings'];
       tabs.forEach(function(t) {
@@ -1140,6 +1175,10 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
           content.style.display = (t === tabName) ? 'block' : 'none';
         }
       });
+      var indicator = document.getElementById('activeTabNameDisplay');
+      if (indicator && tabTitlesMap[tabName]) {
+        indicator.innerText = tabTitlesMap[tabName];
+      }
     }
 
     function renderMerchantBookings(bookings) {
