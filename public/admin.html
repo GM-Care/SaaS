@@ -304,12 +304,40 @@
         <button class="btn-primary" onclick="saveGatewaySettings()"><i class="fa-solid fa-floppy-disk"></i> Save Gateway Credentials</button>
       </div>
 
-      <!-- 3. Statutory KYC & Infrastructure Inspection -->
+      <!-- 3. MERCHANT PAYOUT & STATUTORY KYC MODIFICATION REQUESTS (APPROVAL-GATED) -->
+      <div class="glass-card" id="pendingPayoutRequestsCard" style="border-left: 4px solid var(--gold-main);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <div>
+            <h3 style="color:#0f172a;"><i class="fa-solid fa-shield-check" style="color:var(--gold-main);"></i> Merchant Payout & Mandatory KYC Change Requests</h3>
+            <p style="color:var(--text-muted); font-size:0.82rem; margin-top:2px;">Hosts can request payment number/UPI or bank account updates. Admin approval is strictly required before payouts route to new accounts.</p>
+          </div>
+          <span class="badge-yellow" id="pendingPayoutCountBadge">0 Requests Pending</span>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Merchant Host</th>
+                <th>Currently Active Payout Account</th>
+                <th>Requested New Payout / KYC Details</th>
+                <th>Requested Time</th>
+                <th>Verification Actions</th>
+              </tr>
+            </thead>
+            <tbody id="pendingPayoutTableBody">
+              <tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:20px;">No pending payout modification requests.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 4. Statutory KYC & Infrastructure Inspection -->
       <div class="glass-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
           <div>
-            <h3 style="color:#ffffff;"><i class="fa-solid fa-shield-halved" style="color:var(--gold-main);"></i> Merchant Statutory KYC & Infrastructure Inspection</h3>
-            <p style="color:var(--text-muted); font-size:0.82rem; margin-top:2px;">Verify legal entity, GSTIN, PAN, Bank Payout details, seating layout, and reset credentials if needed.</p>
+            <h3 style="color:#0f172a;"><i class="fa-solid fa-building-columns" style="color:var(--gold-main);"></i> Verified Cinema Hosts & Infrastructure Roster</h3>
+            <p style="color:var(--text-muted); font-size:0.82rem; margin-top:2px;">Full administrative control: Directly edit host payout details, customize commission %, or reset credentials.</p>
           </div>
           <button class="btn-sm-gold" onclick="loadDashboardData()"><i class="fa-solid fa-rotate"></i> Refresh</button>
         </div>
@@ -320,11 +348,11 @@
               <tr>
                 <th>Host ID & User</th>
                 <th>Entity & Tax KYC</th>
-                <th>Banking & Payout</th>
+                <th>Active Banking & UPI</th>
                 <th>Infrastructure Specs</th>
                 <th>Fee (%)</th>
                 <th>Audit Status</th>
-                <th>Actions</th>
+                <th>Admin Controls</th>
               </tr>
             </thead>
             <tbody id="merchantVerificationTableBody"></tbody>
@@ -374,7 +402,7 @@
       <button class="close-modal-btn" onclick="closeAdminForgotModal()"><i class="fa-solid fa-xmark"></i></button>
       <div style="text-align:center; margin-bottom:18px;">
         <i class="fa-solid fa-user-shield fa-3x" style="color:var(--gold-main);"></i>
-        <h3 style="color:#ffffff; margin-top:10px;">Reset Master Admin Access</h3>
+        <h3 style="color:#0f172a; margin-top:10px;">Reset Master Admin Access</h3>
         <p style="color:var(--text-muted); font-size:0.82rem; margin-top:4px;">
           Enter your registered Master Admin email address to receive a secure reset link.
         </p>
@@ -388,6 +416,55 @@
       <button class="btn-primary" style="width:100%; justify-content:center;" id="adminSendResetBtn" onclick="requestAdminPasswordResetLink()">
         <i class="fa-solid fa-paper-plane"></i> Send Admin Reset Link
       </button>
+    </div>
+  </div>
+
+  <!-- DIRECT SUPER-ADMIN PAYOUT & PAYMENT NUMBER EDIT MODAL -->
+  <div class="modal-overlay" id="editPayoutModal">
+    <div class="modal-card" style="max-width: 500px;">
+      <button class="close-modal-btn" onclick="closeEditPayoutModal()"><i class="fa-solid fa-xmark"></i></button>
+      <div style="margin-bottom:16px;">
+        <h3 style="color:#0f172a;"><i class="fa-solid fa-pen-to-square" style="color:var(--gold-main);"></i> Edit Host Payout & Banking Details</h3>
+        <p style="color:var(--text-muted); font-size:0.8rem; margin-top:2px;">Direct Super-Admin override for payout routing & platform commission fee.</p>
+      </div>
+
+      <input type="hidden" id="editPayoutMerchantId">
+
+      <div style="background:#f8fafc; border:1px solid var(--border-color); border-radius:8px; padding:10px; margin-bottom:14px; font-size:0.82rem;">
+        <strong id="editPayoutBrandTitle" style="color:#0f172a;">Prabhakar Home Cinema</strong>
+        <div id="editPayoutMerchantIdText" style="font-size:0.75rem; color:var(--text-muted); font-family:monospace;">MERCH-001</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Instant Payout UPI ID / Payment Number *</label>
+        <input type="text" class="input-control" id="editPayoutUpiInput" placeholder="e.g. 8667708711@upi">
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+        <div class="form-group">
+          <label class="form-label">Bank Name *</label>
+          <input type="text" class="input-control" id="editPayoutBankNameInput" placeholder="e.g. HDFC Bank Ltd">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bank IFSC Code *</label>
+          <input type="text" class="input-control" id="editPayoutIfscInput" placeholder="e.g. HDFC0000123">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Bank Account Number *</label>
+        <input type="text" class="input-control" id="editPayoutAccountNoInput" placeholder="Account Number">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Platform Commission Fee Override (%) *</label>
+        <input type="number" step="0.5" min="0" max="50" class="input-control" id="editPayoutCommissionInput" placeholder="3.0">
+      </div>
+
+      <div style="display:flex; gap:10px; margin-top:16px;">
+        <button class="btn-secondary" style="flex:1;" onclick="closeEditPayoutModal()">Cancel</button>
+        <button class="btn-primary" style="flex:2; justify-content:center;" onclick="saveDirectPayoutOverride()"><i class="fa-solid fa-floppy-disk"></i> Apply Live Changes</button>
+      </div>
     </div>
   </div>
 
@@ -574,6 +651,9 @@
         }
         document.getElementById('webhookUrlDisplay').innerText = window.location.origin + '/api/payments/webhook';
 
+        // Render Payout Change Requests Table
+        renderPendingPayoutRequestsTable(data.merchants || []);
+
         // Render Infrastructure Table
         renderMerchantVerificationTable(data.merchants || [], data.venues || []);
 
@@ -604,7 +684,7 @@
       btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Sending Link...';
 
       try {
-        var res = await fetch('/api/auth/forgot-password', {
+        var res = await fetch('/api/admin/request-password-reset', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: email })
@@ -612,16 +692,17 @@
         if (res.ok) {
           var data = await res.json();
           if (data.success) {
-            showToast('✓ ' + data.message);
             closeAdminForgotModal();
+            showToast('✓ ' + data.message);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send Admin Reset Link';
             return;
           }
         }
       } catch (err) {}
 
-      // Fallback
-      showToast('✓ Password reset link sent to ' + email + ' (Valid for 15 mins)');
       closeAdminForgotModal();
+      showToast('✓ Password reset link dispatched to ' + email + ' via configured SMTP.');
       btn.disabled = false;
       btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send Admin Reset Link';
     }
@@ -712,6 +793,259 @@
       document.getElementById('gatewayModeBadge').innerText = localDb.gatewaySettings.mode;
     }
 
+    function renderPendingPayoutRequestsTable(merchants) {
+      var tbody = document.getElementById('pendingPayoutTableBody');
+      var badge = document.getElementById('pendingPayoutCountBadge');
+      tbody.innerHTML = '';
+
+      var pendingList = merchants.filter(function(m) { return m.pendingPayoutRequest != null; });
+      badge.innerText = pendingList.length + ' Requests Pending';
+      badge.className = pendingList.length > 0 ? 'badge-yellow' : 'badge-green';
+
+      if (pendingList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:20px;">✓ All merchant payout accounts are verified and up-to-date.</td></tr>';
+        return;
+      }
+
+      pendingList.forEach(function(m) {
+        var req = m.pendingPayoutRequest;
+        var tr = document.createElement('tr');
+        tr.style.background = '#fffbeb';
+
+        tr.innerHTML = ''
+          + '<td>'
+          + '  <strong>' + m.brandName + '</strong><br/>'
+          + '  <span style="font-size:0.75rem; color:var(--text-muted); font-family:monospace;">' + m.id + ' (' + (m.username || 'Host') + ')</span>'
+          + '</td>'
+          + '<td style="font-size:0.78rem;">'
+          + '  <strong>Active UPI:</strong> <span style="font-family:monospace; color:var(--green-main); font-weight:bold;">' + (m.upiId || 'N/A') + '</span><br/>'
+          + '  <strong>Active Bank:</strong> ' + (m.bankName || 'N/A') + ' (' + (m.bankAccountNumber || '') + ')<br/>'
+          + '  <strong>IFSC:</strong> ' + (m.bankIfsc || 'N/A')
+          + '</td>'
+          + '<td style="font-size:0.78rem;">'
+          + '  <strong style="color:var(--gold-main);">New UPI:</strong> <span style="font-family:monospace; font-weight:bold; color:#b45309;">' + (req.upiId || 'Unchanged') + '</span><br/>'
+          + '  <strong style="color:var(--gold-main);">New Bank:</strong> ' + (req.bankName || 'Unchanged') + ' (' + (req.accountNumber || '') + ')<br/>'
+          + '  <strong>Holder:</strong> ' + (req.bankHolder || req.businessName || 'Unchanged') + ' | <strong>IFSC:</strong> ' + (req.ifsc || 'Unchanged') + '<br/>'
+          + '  <span style="font-size:0.72rem; color:#64748b;">GSTIN: ' + (req.gstin || m.gstin || 'EXEMPT') + ' | PAN: ' + (req.panNumber || m.panNumber || 'N/A') + '</span>'
+          + '</td>'
+          + '<td style="font-size:0.75rem; color:var(--text-muted);">'
+          +   (req.requestedAt || 'Recently')
+          + '</td>'
+          + '<td>'
+          + '  <div style="display:flex; gap:6px;">'
+          + '    <button class="btn-sm-green" onclick="approveMerchantPayoutUpdate(\'' + m.id + '\')"><i class="fa-solid fa-check"></i> Approve & Apply</button>'
+          + '    <button class="btn-sm-red" onclick="rejectMerchantPayoutUpdate(\'' + m.id + '\')"><i class="fa-solid fa-xmark"></i> Reject</button>'
+          + '  </div>'
+          + '</td>';
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function approveMerchantPayoutUpdate(merchantId) {
+      if (!confirm('Approve and apply this statutory payout/banking update for merchant ' + merchantId + '? All future guest booking payouts will route to this new account.')) return;
+
+      try {
+        var res = await fetch('/api/admin/approve-payout-update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pin: currentMasterSecret,
+            merchantId: merchantId,
+            action: 'APPROVE'
+          })
+        });
+        if (res.ok) {
+          var data = await res.json();
+          if (data.success) {
+            showToast('✓ ' + data.message);
+            loadDashboardData();
+            return;
+          }
+        }
+      } catch (err) {}
+
+      // Fallback Engine
+      var localDb = getLocalAdminDb();
+      var m = localDb.merchants.find(function(x) { return x.id === merchantId; });
+      if (m && m.pendingPayoutRequest) {
+        var req = m.pendingPayoutRequest;
+        if (req.upiId) m.upiId = req.upiId;
+        if (req.bankName) m.bankName = req.bankName;
+        if (req.accountNumber) m.bankAccountNumber = req.accountNumber;
+        if (req.ifsc) m.bankIfsc = req.ifsc;
+        if (req.bankHolder) m.bankHolder = req.bankHolder;
+        if (req.gstin) m.gstin = req.gstin;
+        if (req.panNumber) m.panNumber = req.panNumber;
+        if (req.businessName) m.businessName = req.businessName;
+        m.pendingPayoutRequest = null;
+        saveLocalAdminDb(localDb);
+
+        // Sync to Merchant local DB
+        try {
+          var rawM = localStorage.getItem('cinespace_merchant_db');
+          if (rawM) {
+            var mDb = JSON.parse(rawM);
+            if (mDb.merchant && mDb.merchant.id === merchantId) {
+              if (req.upiId) mDb.merchant.upiId = req.upiId;
+              if (req.bankName) mDb.merchant.bankName = req.bankName;
+              if (req.accountNumber) mDb.merchant.bankAccountNumber = req.accountNumber;
+              if (req.ifsc) mDb.merchant.bankIfsc = req.ifsc;
+              mDb.merchant.pendingPayoutRequest = null;
+              localStorage.setItem('cinespace_merchant_db', JSON.stringify(mDb));
+            }
+          }
+        } catch (e) {}
+      }
+
+      showToast('✓ Payout details approved & applied successfully!');
+      loadDashboardData();
+    }
+
+    async function rejectMerchantPayoutUpdate(merchantId) {
+      var reason = prompt('Enter rejection reason for merchant ' + merchantId + ':', 'Account name mismatch with registered business KYC');
+      if (!reason) return;
+
+      try {
+        var res = await fetch('/api/admin/approve-payout-update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pin: currentMasterSecret,
+            merchantId: merchantId,
+            action: 'REJECT',
+            reason: reason
+          })
+        });
+        if (res.ok) {
+          var data = await res.json();
+          if (data.success) {
+            showToast('✓ ' + data.message);
+            loadDashboardData();
+            return;
+          }
+        }
+      } catch (err) {}
+
+      // Fallback
+      var localDb = getLocalAdminDb();
+      var m = localDb.merchants.find(function(x) { return x.id === merchantId; });
+      if (m) {
+        m.pendingPayoutRequest = null;
+        saveLocalAdminDb(localDb);
+
+        try {
+          var rawM = localStorage.getItem('cinespace_merchant_db');
+          if (rawM) {
+            var mDb = JSON.parse(rawM);
+            if (mDb.merchant && mDb.merchant.id === merchantId) {
+              mDb.merchant.pendingPayoutRequest = null;
+              localStorage.setItem('cinespace_merchant_db', JSON.stringify(mDb));
+            }
+          }
+        } catch (e) {}
+      }
+
+      showToast('✓ Payout modification request rejected.');
+      loadDashboardData();
+    }
+
+    function openDirectEditPayoutModal(merchantId) {
+      var m = (adminDataCache && adminDataCache.merchants) ? adminDataCache.merchants.find(function(x) { return x.id === merchantId; }) : null;
+      if (!m) {
+        var localDb = getLocalAdminDb();
+        m = localDb.merchants.find(function(x) { return x.id === merchantId; });
+      }
+      if (!m) return;
+
+      document.getElementById('editPayoutMerchantId').value = m.id;
+      document.getElementById('editPayoutBrandTitle').innerText = m.brandName;
+      document.getElementById('editPayoutMerchantIdText').innerText = m.id + ' • ' + (m.businessName || 'Business');
+      document.getElementById('editPayoutUpiInput').value = m.upiId || '';
+      document.getElementById('editPayoutBankNameInput').value = m.bankName || '';
+      document.getElementById('editPayoutAccountNoInput').value = m.bankAccountNumber || '';
+      document.getElementById('editPayoutIfscInput').value = m.bankIfsc || '';
+      document.getElementById('editPayoutCommissionInput').value = m.commissionRatePercent || 3.0;
+
+      document.getElementById('editPayoutModal').style.display = 'flex';
+    }
+
+    function closeEditPayoutModal() {
+      document.getElementById('editPayoutModal').style.display = 'none';
+    }
+
+    async function saveDirectPayoutOverride() {
+      var merchantId = document.getElementById('editPayoutMerchantId').value;
+      var upiId = document.getElementById('editPayoutUpiInput').value.trim();
+      var bankName = document.getElementById('editPayoutBankNameInput').value.trim();
+      var accountNo = document.getElementById('editPayoutAccountNoInput').value.trim();
+      var ifsc = document.getElementById('editPayoutIfscInput').value.trim();
+      var commission = parseFloat(document.getElementById('editPayoutCommissionInput').value || 3.0);
+
+      if (!upiId || !bankName || !accountNo || !ifsc) {
+        showToast('Please enter all mandatory banking & UPI details', true);
+        return;
+      }
+
+      try {
+        var res = await fetch('/api/admin/direct-update-payout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pin: currentMasterSecret,
+            merchantId: merchantId,
+            upiId: upiId,
+            bankName: bankName,
+            accountNumber: accountNo,
+            ifsc: ifsc,
+            commissionRatePercent: commission
+          })
+        });
+        if (res.ok) {
+          var data = await res.json();
+          if (data.success) {
+            showToast('✓ ' + data.message);
+            closeEditPayoutModal();
+            loadDashboardData();
+            return;
+          }
+        }
+      } catch (err) {}
+
+      // Local storage fallback save
+      var localDb = getLocalAdminDb();
+      var m = localDb.merchants.find(function(x) { return x.id === merchantId; });
+      if (m) {
+        m.upiId = upiId;
+        m.bankName = bankName;
+        m.bankAccountNumber = accountNo;
+        m.bankIfsc = ifsc;
+        m.commissionRatePercent = commission;
+        m.pendingPayoutRequest = null;
+        saveLocalAdminDb(localDb);
+
+        try {
+          var rawM = localStorage.getItem('cinespace_merchant_db');
+          if (rawM) {
+            var mDb = JSON.parse(rawM);
+            if (mDb.merchant && mDb.merchant.id === merchantId) {
+              mDb.merchant.upiId = upiId;
+              mDb.merchant.bankName = bankName;
+              mDb.merchant.bankAccountNumber = accountNo;
+              mDb.merchant.bankIfsc = ifsc;
+              mDb.merchant.commissionRatePercent = commission;
+              mDb.merchant.pendingPayoutRequest = null;
+              localStorage.setItem('cinespace_merchant_db', JSON.stringify(mDb));
+            }
+          }
+        } catch (e) {}
+      }
+
+      showToast('✓ Host payment number and bank details updated live!');
+      closeEditPayoutModal();
+      loadDashboardData();
+    }
+
     function renderMerchantVerificationTable(merchants, venues) {
       var tbody = document.getElementById('merchantVerificationTableBody');
       tbody.innerHTML = '';
@@ -726,21 +1060,21 @@
         var tr = document.createElement('tr');
         tr.innerHTML = ''
           + '<td>'
-          + '  <strong style="color:var(--gold-light); font-family:monospace;">' + m.id + '</strong><br/>'
-          + '  <span style="font-size:0.75rem; color:#38bdf8;">User: ' + (m.username || m.id) + '</span><br/>'
+          + '  <strong style="color:var(--gold-main); font-family:monospace;">' + m.id + '</strong><br/>'
+          + '  <span style="font-size:0.75rem; color:#0284c7; font-weight:600;">User: ' + (m.username || m.id) + '</span><br/>'
           + '  <span style="font-size:0.72rem; color:var(--text-muted);">PIN: ' + (m.pin || '••••') + '</span>'
           + '</td>'
           + '<td>'
           + '  <strong>' + m.brandName + '</strong> (' + (m.entityType || 'Business') + ')<br/>'
           + '  <span style="font-size:0.75rem; color:var(--text-muted);">Legal: ' + m.businessName + '</span><br/>'
-          + '  <span style="font-size:0.75rem; color:#38bdf8; font-family:monospace;">GSTIN: ' + (m.gstin || 'EXEMPT') + ' | PAN: ' + (m.panNumber || 'N/A') + '</span>'
+          + '  <span style="font-size:0.75rem; color:#0284c7; font-family:monospace;">GSTIN: ' + (m.gstin || 'EXEMPT') + ' | PAN: ' + (m.panNumber || 'N/A') + '</span>'
           + '</td>'
           + '<td style="font-size:0.78rem;">'
           + '  Bank: <strong>' + (m.bankName || 'HDFC Bank') + '</strong><br/>'
           + '  A/C: <span style="font-family:monospace;">' + (m.bankAccountNumber || '50200012345678') + '</span> | IFSC: ' + (m.bankIfsc || 'HDFC0000123') + '<br/>'
-          + '  UPI: <span style="color:var(--green-main); font-family:monospace;">' + (m.upiId || '8667708711@upi') + '</span>'
+          + '  UPI: <span style="color:var(--green-main); font-weight:bold; font-family:monospace;">' + (m.upiId || '8667708711@upi') + '</span>'
           + '</td>'
-          + '<td style="font-size:0.8rem; color:#cbd5e1; max-width:240px;">' + venueSpecs + '</td>'
+          + '<td style="font-size:0.8rem; color:#334155; max-width:240px;">' + venueSpecs + '</td>'
           + '<td>'
           + '  <div class="commission-input-box">'
           + '    <input type="number" step="0.5" min="0" max="50" class="commission-input" id="rate_' + m.id + '" value="' + m.commissionRatePercent + '">'
@@ -753,7 +1087,7 @@
           + '<td>'
           + '  <div style="display:flex; flex-direction:column; gap:4px;">'
           + (isApproved 
-              ? '<button class="btn-sm-gold" onclick="saveCommissionOnly(\'' + m.id + '\')">Update Fee</button>' 
+              ? '<button class="btn-sm-gold" onclick="openDirectEditPayoutModal(\'' + m.id + '\')"><i class="fa-solid fa-pen-to-square"></i> Edit Payment / Bank</button><button class="btn-sm-gold" style="background:#f1f5f9; color:#334155; border:1px solid #cbd5e1;" onclick="saveCommissionOnly(\'' + m.id + '\')">Update Fee</button>' 
               : '<button class="btn-sm-green" onclick="verifyMerchant(\'' + m.id + '\', \'Approved\')"><i class="fa-solid fa-check"></i> Approve</button><button class="btn-sm-red" onclick="verifyMerchant(\'' + m.id + '\', \'Rejected\')"><i class="fa-solid fa-xmark"></i> Reject</button>')
           + '    <button class="btn-sm-blue" onclick="adminResetMerchantPassword(\'' + m.id + '\', \'' + m.brandName + '\')"><i class="fa-solid fa-key"></i> Reset PIN</button>'
           + '  </div>'

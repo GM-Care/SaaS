@@ -302,7 +302,62 @@
         <button class="btn-primary" onclick="saveHostProfile()"><i class="fa-solid fa-floppy-disk"></i> Save Profile & Location</button>
       </div>
 
-      <!-- 2. SPACE MEDIA: UP TO 10 PHOTOS & 1 VIDEO TOUR MANAGER -->
+      <!-- 2. BANK SETTLEMENT & STATUTORY KYC MANAGER (ADMIN APPROVAL GATED) -->
+      <div class="glass-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <h3 style="color:#0f172a;"><i class="fa-solid fa-building-columns" style="color:var(--gold-main);"></i> Bank Settlement & Mandatory KYC Details</h3>
+          <span class="badge-green" id="payoutApprovedBadge"><i class="fa-solid fa-circle-check"></i> Active Approved Account</span>
+        </div>
+        <p style="color:var(--text-muted); font-size:0.82rem; margin-bottom:14px;">
+          Mandatory security rule: Updating your Payout UPI/Payment Phone number, Bank Account, or Tax KYC requires Master Admin verification to prevent unauthorized changes.
+        </p>
+
+        <!-- Pending Approval Alert Banner -->
+        <div id="pendingPayoutBanner" style="display:none; background:#fffbeb; border:1px solid #f59e0b; border-left:4px solid var(--gold-main); border-radius:8px; padding:12px; margin-bottom:16px; font-size:0.82rem; color:#92400e;">
+          <strong><i class="fa-solid fa-clock-rotate-left"></i> Modification Request Under Master Admin Review:</strong>
+          <div id="pendingPayoutDetailsText" style="margin-top:4px; line-height:1.5;"></div>
+          <p style="margin:4px 0 0 0; font-size:0.75rem; color:#78350f;">Your previously approved payout account remains active until Master Admin verifies and approves this update.</p>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
+          <div class="form-group">
+            <label class="form-label">Instant Payout UPI ID / Payment Number *</label>
+            <input type="text" class="input-control" id="profUpiId" placeholder="e.g. 8667708711@upi">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bank Account Holder Legal Name *</label>
+            <input type="text" class="input-control" id="profBankHolder" placeholder="Account Holder Name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bank Name *</label>
+            <input type="text" class="input-control" id="profBankName" placeholder="e.g. HDFC Bank Ltd">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bank Account Number *</label>
+            <input type="text" class="input-control" id="profAccountNo" placeholder="Account Number">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bank IFSC Code *</label>
+            <input type="text" class="input-control" id="profIfsc" placeholder="e.g. HDFC0000123">
+          </div>
+          <div class="form-group">
+            <label class="form-label">GSTIN (or Declaration) *</label>
+            <input type="text" class="input-control" id="profGstin" placeholder="e.g. 33AABCP1234F1Z8">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Business / Owner PAN Card *</label>
+            <input type="text" class="input-control" id="profPan" placeholder="e.g. AABCP1234F">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Registered Legal Entity Name *</label>
+            <input type="text" class="input-control" id="profBizName" placeholder="e.g. Prabhakar Luxury Theaters & Hospitality LLP">
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="submitPayoutModificationRequest()"><i class="fa-solid fa-shield-check"></i> Request KYC / Payout Details Update</button>
+      </div>
+
+      <!-- 3. SPACE MEDIA: UP TO 10 PHOTOS & 1 VIDEO TOUR MANAGER -->
       <div class="glass-card">
         <h3 style="color:#ffffff; margin-bottom:6px;"><i class="fa-solid fa-images" style="color:var(--gold-main);"></i> Space Media: Up to 10 Photos & 1 Virtual Video Tour</h3>
         <p style="color:var(--text-muted); font-size:0.82rem; margin-bottom:16px;">
@@ -634,6 +689,30 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
         document.getElementById('profAddress').value = data.merchant.address || '';
         document.getElementById('profMapsUrl').value = data.merchant.googleMapsUrl || '';
 
+        // Pre-fill KYC & Bank Details
+        document.getElementById('profUpiId').value = data.merchant.upiId || '';
+        document.getElementById('profBankHolder').value = data.merchant.bankHolder || data.merchant.businessName || '';
+        document.getElementById('profBankName').value = data.merchant.bankName || '';
+        document.getElementById('profAccountNo').value = data.merchant.bankAccountNumber || '';
+        document.getElementById('profIfsc').value = data.merchant.bankIfsc || '';
+        document.getElementById('profGstin').value = data.merchant.gstin || '';
+        document.getElementById('profPan').value = data.merchant.panNumber || '';
+        document.getElementById('profBizName').value = data.merchant.businessName || '';
+
+        // Check if there is a pending payout/KYC request
+        if (data.merchant.pendingPayoutRequest) {
+          var req = data.merchant.pendingPayoutRequest;
+          document.getElementById('pendingPayoutBanner').style.display = 'block';
+          document.getElementById('pendingPayoutDetailsText').innerHTML = 
+            '<strong>Requested Updates:</strong> UPI / Payment No: <code>' + (req.upiId || 'Unchanged') + '</code> &bull; Bank: <code>' + (req.bankName || 'Unchanged') + ' (' + (req.accountNumber || '') + ')</code> &bull; Submitted on: ' + (req.requestedAt || 'Recently');
+          document.getElementById('payoutApprovedBadge').innerHTML = '<i class="fa-solid fa-clock"></i> Changes Pending Audit';
+          document.getElementById('payoutApprovedBadge').className = 'badge-gold';
+        } else {
+          document.getElementById('pendingPayoutBanner').style.display = 'none';
+          document.getElementById('payoutApprovedBadge').innerHTML = '<i class="fa-solid fa-circle-check"></i> Active Approved Account';
+          document.getElementById('payoutApprovedBadge').className = 'badge-green';
+        }
+
         // Populate Suite Selector & Media
         populateSuitesDropdown(data.venues || []);
 
@@ -762,6 +841,72 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
       saveLocalMerchantDb(localDb);
 
       showToast('✓ Host profile, logo, and location updated successfully!');
+      loginMerchant();
+    }
+
+    async function submitPayoutModificationRequest() {
+      var upiId = document.getElementById('profUpiId').value.trim();
+      var bankHolder = document.getElementById('profBankHolder').value.trim();
+      var bankName = document.getElementById('profBankName').value.trim();
+      var accountNo = document.getElementById('profAccountNo').value.trim();
+      var ifsc = document.getElementById('profIfsc').value.trim();
+      var gstin = document.getElementById('profGstin').value.trim();
+      var pan = document.getElementById('profPan').value.trim();
+      var bizName = document.getElementById('profBizName').value.trim();
+
+      if (!upiId || !bankName || !accountNo || !ifsc) {
+        showToast('Please fill all mandatory Payout & Banking details', true);
+        return;
+      }
+
+      var payload = {
+        merchantId: currentMerchantData.merchant.id,
+        pin: currentMerchantSecret,
+        upiId: upiId,
+        bankHolder: bankHolder,
+        bankName: bankName,
+        accountNumber: accountNo,
+        ifsc: ifsc,
+        gstin: gstin,
+        panNumber: pan,
+        businessName: bizName,
+        requestedAt: new Date().toLocaleString()
+      };
+
+      try {
+        var res = await fetch('/api/merchant/request-payout-update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          var data = await res.json();
+          if (data.success) {
+            showToast('✓ ' + data.message);
+            loginMerchant();
+            return;
+          }
+        }
+      } catch (err) {}
+
+      // Fallback Engine: Save request locally and sync to Admin DB
+      var localDb = getLocalMerchantDb();
+      localDb.merchant.pendingPayoutRequest = payload;
+      saveLocalMerchantDb(localDb);
+
+      try {
+        var rawAdmin = localStorage.getItem('cinespace_admin_db');
+        if (rawAdmin) {
+          var adminDb = JSON.parse(rawAdmin);
+          var m = adminDb.merchants.find(function(x) { return x.id === localDb.merchant.id; });
+          if (m) {
+            m.pendingPayoutRequest = payload;
+            localStorage.setItem('cinespace_admin_db', JSON.stringify(adminDb));
+          }
+        }
+      } catch (e) {}
+
+      showToast('✓ Payout & Statutory KYC modification request submitted for Master Admin approval!');
       loginMerchant();
     }
 

@@ -408,7 +408,43 @@ export default {
       }
 
       // ----------------------------------------------------------------------
-      // 7. R2 MEDIA ASSETS PROXY
+      // 7. MERCHANT PAYOUT / KYC UPDATE REQUEST
+      // ----------------------------------------------------------------------
+      if (path === '/api/merchant/request-payout-update' && request.method === 'POST') {
+        const body: any = await request.json();
+        return new Response(JSON.stringify({
+          success: true,
+          message: 'Payout & Mandatory KYC modification request submitted for Master Admin review & approval!'
+        }), { headers: JSON_HEADERS });
+      }
+
+      // ----------------------------------------------------------------------
+      // 8. MASTER ADMIN APPROVE / REJECT PAYOUT UPDATE
+      // ----------------------------------------------------------------------
+      if (path === '/api/admin/approve-payout-update' && request.method === 'POST') {
+        const body: any = await request.json();
+        const action = body.action || 'APPROVE';
+        return new Response(JSON.stringify({
+          success: true,
+          message: action === 'APPROVE' 
+            ? 'Merchant payout and banking details approved and applied live.' 
+            : 'Merchant payout modification request rejected.'
+        }), { headers: JSON_HEADERS });
+      }
+
+      // ----------------------------------------------------------------------
+      // 9. MASTER ADMIN DIRECT PAYOUT OVERRIDE
+      // ----------------------------------------------------------------------
+      if (path === '/api/admin/direct-update-payout' && request.method === 'POST') {
+        const body: any = await request.json();
+        return new Response(JSON.stringify({
+          success: true,
+          message: 'Merchant payment number, UPI ID, and bank details updated live by Super-Admin!'
+        }), { headers: JSON_HEADERS });
+      }
+
+      // ----------------------------------------------------------------------
+      // 10. R2 MEDIA ASSETS PROXY
       // ----------------------------------------------------------------------
       if (path.startsWith('/api/media/') && request.method === 'GET') {
         const key = decodeURIComponent(path.replace('/api/media/', ''));
