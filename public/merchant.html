@@ -468,8 +468,34 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
 
       <!-- 7. Settlement Payout Ledger -->
       <div class="glass-card">
-        <h3 style="color:#ffffff; margin-bottom:14px;"><i class="fa-solid fa-money-bill-transfer" style="color:var(--green-main);"></i> Payout Settlements Ledger</h3>
+        <h3 style="color:#0f172a; margin-bottom:14px;"><i class="fa-solid fa-money-bill-transfer" style="color:var(--green-main);"></i> Payout Settlements Ledger</h3>
         <div id="merchantSettlementsContainer"></div>
+      </div>
+
+      <!-- 8. Host Analytics & Accounting Data Export Center -->
+      <div class="glass-card" style="border: 2px solid rgba(217, 119, 6, 0.35);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <div>
+            <h3 style="color:#0f172a;"><i class="fa-solid fa-file-export" style="color:var(--gold-main);"></i> Accounting & Analytics Data Export</h3>
+            <p style="color:var(--text-muted); font-size:0.82rem; margin-top:2px;">Download clean tabular CSV datasets for your CA accounting, GST filing, and business analytics.</p>
+          </div>
+          <span class="compliance-pill"><i class="fa-solid fa-file-csv"></i> CA & Excel Ready</span>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:12px; margin-top:14px;">
+          <button class="btn-primary" style="justify-content:center; padding:10px 14px; font-size:0.84rem;" onclick="exportMerchantCsv('bookings')">
+            <i class="fa-solid fa-file-csv"></i> Export Bookings (CSV)
+          </button>
+          <button class="btn-secondary" style="background:#ffffff; justify-content:center; padding:10px 14px; font-size:0.84rem; display:inline-flex; align-items:center; gap:6px; font-weight:700; color:#0f172a;" onclick="exportMerchantCsv('settlements')">
+            <i class="fa-solid fa-file-invoice-dollar" style="color:#059669;"></i> Export Settlements (CSV)
+          </button>
+          <button class="btn-secondary" style="background:#ffffff; justify-content:center; padding:10px 14px; font-size:0.84rem; display:inline-flex; align-items:center; gap:6px; font-weight:700; color:#0f172a;" onclick="exportMerchantCsv('reviews')">
+            <i class="fa-solid fa-star" style="color:var(--gold-main);"></i> Export Guest Reviews (CSV)
+          </button>
+          <button class="btn-secondary" style="background:#ffffff; justify-content:center; padding:10px 14px; font-size:0.84rem; display:inline-flex; align-items:center; gap:6px; font-weight:700; color:#0f172a;" onclick="exportMerchantJsonBackup()">
+            <i class="fa-solid fa-file-code" style="color:#0284c7;"></i> Host Backup (JSON)
+          </button>
+        </div>
       </div>
 
     </div>
@@ -1182,6 +1208,99 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
       if (!user || !pass) { showToast('Please enter Gmail and App Password to test', true); return; }
 
       showToast('✓ Host SMTP verified with Google Mail servers!');
+    }
+
+    // ========================================================================
+    // HOST ACCOUNTING & ANALYTICS DATA EXPORT ENGINE
+    // ========================================================================
+    function downloadMerchantFile(content, fileName, mimeType) {
+      var blob = new Blob([content], { type: mimeType });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function() {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 300);
+    }
+
+    function csvHostEscape(val) {
+      if (val === null || val === undefined) return '""';
+      var str = String(val).replace(/"/g, '""');
+      return '"' + str + '"';
+    }
+
+    function exportMerchantCsv(type) {
+      var db = currentMerchantData || getLocalMerchantDb();
+      var csvRows = [];
+      var timestamp = new Date().toISOString().slice(0, 10);
+      var brandPrefix = (db.merchant && db.merchant.brandName ? db.merchant.brandName.replace(/[^a-zA-Z0-9]/g, '_') : 'Host');
+
+      if (type === 'bookings') {
+        var bookings = db.bookings || [];
+        csvRows.push(['Booking ID', 'Guest Name', 'Phone', 'Email', 'Show Date', 'Time Slot', 'Guests', 'Occasion', 'Add-ons Package', 'Govt ID Type', 'Govt ID Number', 'Gross Total (INR)', 'Net Host Payout (INR)', 'Door PIN', 'Booking Status', 'Check-In Status'].map(csvHostEscape).join(','));
+
+        bookings.forEach(function(b) {
+          csvRows.push([
+            b.bookingId, b.customerName, b.customerPhone, b.customerEmail,
+            b.bookingDate, b.timeSlot, b.guests, b.occasion, b.addonsSummary || '',
+            b.govtIdType || 'Aadhaar', b.govtIdNumber || '', b.grossTotal || 4999, b.merchantNetPayout,
+            b.checkinOtp || b.doorOtp || '8492', b.bookingStatus, b.checkinStatus
+          ].map(csvHostEscape).join(','));
+        });
+
+        downloadMerchantFile('\uFEFF' + csvRows.join('\r\n'), brandPrefix + '_Bookings_' + timestamp + '.csv', 'text/csv;charset=utf-8;');
+        showToast('✓ Bookings ledger exported as CSV!');
+      } else if (type === 'settlements') {
+        var settlements = db.settlements || [];
+        csvRows.push(['Settlement ID', 'Booking ID', 'Show Date', 'Gross Booking Total (INR)', 'Platform Fee Deducted (INR)', 'Net Amount Payable (INR)', 'Settlement Status'].map(csvHostEscape).join(','));
+
+        settlements.forEach(function(s) {
+          csvRows.push([
+            s.settlementId, s.bookingId, s.showDate, s.grossTotal, s.platformFeeDeducted, s.netPayableToMerchant, s.settlementStatus
+          ].map(csvHostEscape).join(','));
+        });
+
+        downloadMerchantFile('\uFEFF' + csvRows.join('\r\n'), brandPrefix + '_Settlements_' + timestamp + '.csv', 'text/csv;charset=utf-8;');
+        showToast('✓ Payout settlements ledger exported as CSV!');
+      } else if (type === 'reviews') {
+        var reviews = db.reviews || [];
+        csvRows.push(['Customer Name', 'Overall Rating (1-5)', 'Feedback & Experience Comments', 'Review Date'].map(csvHostEscape).join(','));
+
+        reviews.forEach(function(r) {
+          csvRows.push([
+            r.customerName, r.rating, r.comment, r.createdAt
+          ].map(csvHostEscape).join(','));
+        });
+
+        downloadMerchantFile('\uFEFF' + csvRows.join('\r\n'), brandPrefix + '_GuestReviews_' + timestamp + '.csv', 'text/csv;charset=utf-8;');
+        showToast('✓ Guest reviews dataset exported as CSV!');
+      }
+    }
+
+    function exportMerchantJsonBackup() {
+      var db = currentMerchantData || getLocalMerchantDb();
+      var exportData = {
+        exportMetadata: {
+          system: "CineSpace Host Edge Terminal",
+          merchantId: db.merchant.id,
+          brandName: db.merchant.brandName,
+          exportedAt: new Date().toISOString()
+        },
+        merchant: db.merchant,
+        venues: db.venues || [],
+        bookings: db.bookings || [],
+        reviews: db.reviews || [],
+        settlements: db.settlements || []
+      };
+
+      var jsonStr = JSON.stringify(exportData, null, 2);
+      var timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      downloadMerchantFile(jsonStr, 'Host_Backup_' + (db.merchant.id || 'MERCH') + '_' + timestamp + '.json', 'application/json');
+      showToast('✓ Complete Host JSON Backup downloaded successfully!');
     }
 
     function showToast(msg, isError) {
