@@ -140,6 +140,27 @@ let globalAdminSmtpConfig = {
   fromName: 'CineSpace Concierge (Gadget Media Care)'
 };
 
+let globalBookings: any[] = [
+  {
+    bookingId: 'CS-7842',
+    checkinOtp: '8492',
+    venueName: 'Dolby Atmos Gold Lounge',
+    customerName: 'Ananya Deshmukh',
+    customerPhone: '+91 98765 43210',
+    customerEmail: 'ananya@example.com',
+    bookingDate: '2026-08-18',
+    timeSlot: 'Prime Evening (06:00 PM - 09:00 PM)',
+    guests: 7,
+    occasion: 'Birthday Celebration',
+    addonsSummary: 'Caramel Popcorn & Drinks (₹899), Birthday Decor (₹1299)',
+    govtIdType: 'Aadhaar Card',
+    govtIdNumber: '5678',
+    merchantNetPayout: 4731,
+    bookingStatus: 'Confirmed',
+    checkinStatus: 'Pending Check-In'
+  }
+];
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -310,15 +331,34 @@ export default {
           });
         }
 
+        const newBooking = {
+          bookingId: body.bookingId || `CS-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
+          checkinOtp: body.checkinOtp || Math.floor(1000 + Math.random() * 9000).toString(),
+          venueName: body.venueName || 'Dolby Atmos Gold Lounge',
+          customerName: body.customerName || 'VIP Guest',
+          customerPhone: body.customerPhone || '+91 86677 08711',
+          customerEmail: body.customerEmail || 'support@gm-care.in',
+          bookingDate: body.bookingDate || new Date().toISOString().split('T')[0],
+          timeSlot: body.timeSlot || 'Prime Evening (06:00 PM - 09:00 PM)',
+          guests: body.guests || 2,
+          occasion: body.occasion || 'Movie Screening',
+          addonsSummary: body.addonsSummary || 'None',
+          merchantNetPayout: body.merchantNetPayout || 4731,
+          bookingStatus: 'Confirmed',
+          checkinStatus: 'Pending Check-In'
+        };
+
+        const existIdx = globalBookings.findIndex(b => b.bookingId === newBooking.bookingId);
+        if (existIdx >= 0) {
+          globalBookings[existIdx] = { ...globalBookings[existIdx], ...newBooking };
+        } else {
+          globalBookings.unshift(newBooking);
+        }
+
         return new Response(JSON.stringify({
           success: true,
           message: 'Payment verified and reservation confirmed!',
-          booking: {
-            bookingId: body.bookingId || 'CS-7842',
-            checkinOtp: '8492',
-            paymentStatus: 'Paid',
-            checkinStatus: 'Pending Check-In'
-          }
+          booking: newBooking
         }), { headers: JSON_HEADERS });
       }
 
@@ -340,10 +380,10 @@ export default {
           success: true,
           merchant: { ...globalMerchantData },
           stats: {
-            confirmedBookings: 1,
+            confirmedBookings: globalBookings.length,
             averageRating: '5.0',
             totalReviewsCount: 48,
-            totalNetEarnings: 4731,
+            totalNetEarnings: globalBookings.reduce((sum, b) => sum + (b.merchantNetPayout || 4731), 0),
             pendingPayouts: 0
           },
           venues: [
@@ -362,26 +402,7 @@ export default {
               videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ'
             }
           ],
-          bookings: [
-            {
-              bookingId: 'CS-7842',
-              checkinOtp: '8492',
-              venueName: 'Dolby Atmos Gold Lounge',
-              customerName: 'Ananya Deshmukh',
-              customerPhone: '+91 98765 43210',
-              customerEmail: 'ananya@example.com',
-              bookingDate: '2026-08-18',
-              timeSlot: 'Prime Evening (06:00 PM - 09:00 PM)',
-              guests: 7,
-              occasion: 'Birthday Celebration',
-              addonsSummary: 'Caramel Popcorn & Drinks (₹899), Birthday Decor (₹1299)',
-              govtIdType: 'Aadhaar Card',
-              govtIdNumber: '5678',
-              merchantNetPayout: 4731,
-              bookingStatus: 'Confirmed',
-              checkinStatus: 'Pending Check-In'
-            }
-          ],
+          bookings: [...globalBookings],
           reviews: [
             {
               customerName: 'Ananya Deshmukh',
@@ -392,13 +413,17 @@ export default {
           ],
           settlements: [
             {
-              settlementId: 'SETT-8921',
+              settlementId: 'SETT-001',
               bookingId: 'CS-7842',
               showDate: '2026-08-18',
-              grossTotal: 4999,
-              platformFeeDeducted: 150,
-              netPayableToMerchant: 4731,
-              settlementStatus: 'Settled'
+              grossAmount: 4999,
+              commissionRate: 5.0,
+              commissionDeducted: 250,
+              pgFeeDeducted: 118,
+              netPayable: 4731,
+              settlementStatus: 'Settled',
+              payoutAccount: globalMerchantData.upiId || '8667708711@upi',
+              utrNumber: 'UTR-HDFC-99482103847'
             }
           ],
           addons: [...globalAddons],
@@ -406,6 +431,24 @@ export default {
         };
 
         return new Response(JSON.stringify(merchantData), { headers: JSON_HEADERS });
+      }
+
+      // ----------------------------------------------------------------------
+      // 5B. MERCHANT DOOR CHECK-IN VERIFICATION / MARK ARRIVED
+      // ----------------------------------------------------------------------
+      if (path === '/api/merchant/verify-checkin' && request.method === 'POST') {
+        const body: any = await request.json();
+        const bookingId = body.bookingId;
+        const b = globalBookings.find(x => x.bookingId === bookingId);
+        if (b) {
+          b.checkinStatus = 'Checked-In';
+          b.checkinTime = new Date().toISOString();
+        }
+        return new Response(JSON.stringify({
+          success: true,
+          message: 'Guest checked in successfully! Door PIN verified.',
+          booking: b || { bookingId, checkinStatus: 'Checked-In' }
+        }), { headers: JSON_HEADERS });
       }
 
       // ----------------------------------------------------------------------

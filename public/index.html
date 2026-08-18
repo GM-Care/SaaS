@@ -1238,16 +1238,28 @@
             bookingId = orderData.bookingId;
             checkinOtp = orderData.checkinOtp;
 
-            // Auto-verify / bypass payment for instant VIP pass creation
+            // Auto-verify / bypass payment for instant VIP pass creation & email dispatch
             try {
               await fetch('/api/payments/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   bookingId: bookingId,
+                  checkinOtp: checkinOtp,
                   razorpayOrderId: orderData.razorpayOrderId || ('order_mock_' + bookingId),
                   razorpayPaymentId: 'pay_test_' + Math.random().toString(36).substring(2, 10),
-                  razorpaySignature: 'sig_demo_valid'
+                  razorpaySignature: 'sig_demo_valid',
+                  venueId: appState.selectedVenue ? appState.selectedVenue.id : 'VEN-001',
+                  venueName: appState.selectedVenue ? appState.selectedVenue.name : 'Dolby Atmos Gold Lounge',
+                  customerName: name,
+                  customerPhone: phone,
+                  customerEmail: email,
+                  bookingDate: appState.selectedDate,
+                  timeSlot: appState.selectedSlot.name,
+                  guests: parseInt(adults) + parseInt(minors),
+                  occasion: occasion,
+                  addonsSummary: selectedAddonsList.join(', ') || 'None',
+                  merchantNetPayout: totalAmount - Math.round(totalAmount * 0.1)
                 })
               });
             } catch (verErr) {}

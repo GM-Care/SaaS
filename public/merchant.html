@@ -1259,8 +1259,13 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
           if (rawB) {
             var localB = JSON.parse(rawB);
             localB.forEach(function(lb) {
-              if (!allBookings.some(function(x) { return x.bookingId === lb.bookingId; })) {
+              var existing = allBookings.find(function(x) { return x.bookingId === lb.bookingId; });
+              if (!existing) {
                 allBookings.unshift(lb);
+              } else {
+                if (lb.checkinStatus === 'Checked-In') {
+                  existing.checkinStatus = 'Checked-In';
+                }
               }
             });
           }
@@ -2382,6 +2387,35 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
     }
 
     async function verifyCheckinPrompt(bookingId, custName) {
+      // 1. Update localStorage 'cinespace_bookings'
+      try {
+        var rawB = localStorage.getItem('cinespace_bookings');
+        if (rawB) {
+          var localB = JSON.parse(rawB);
+          var found = localB.find(function(x) { return x.bookingId === bookingId; });
+          if (found) {
+            found.checkinStatus = 'Checked-In';
+            localStorage.setItem('cinespace_bookings', JSON.stringify(localB));
+          }
+        }
+      } catch (e) {}
+
+      // 2. Update localStorage 'cinespace_merchant_db'
+      var localDb = getLocalMerchantDb();
+      if (localDb && localDb.bookings) {
+        var mb = localDb.bookings.find(function(x) { return x.bookingId === bookingId; });
+        if (mb) {
+          mb.checkinStatus = 'Checked-In';
+          saveLocalMerchantDb(localDb);
+        }
+      }
+
+      // 3. Update memory data if exists
+      if (currentMerchantData && currentMerchantData.bookings) {
+        var inMem = currentMerchantData.bookings.find(function(x) { return x.bookingId === bookingId; });
+        if (inMem) inMem.checkinStatus = 'Checked-In';
+      }
+
       try {
         var res = await fetch('/api/merchant/verify-checkin', {
           method: 'POST',
@@ -2391,18 +2425,12 @@ https://images.unsplash.com/photo-1595769816263-9b910be24d5f" oninput="updatePho
         if (res.ok) {
           var data = await res.json();
           if (data.success) {
-            showToast('✓ ' + custName + ' marked as Checked-In!');
+            showToast('✓ ' + custName + ' (Door PIN Verified) marked as Checked-In!');
             loginMerchant();
             return;
           }
         }
       } catch (err) {}
-
-      // Local storage fallback
-      var localDb = getLocalMerchantDb();
-      var b = localDb.bookings.find(function(x) { return x.bookingId === bookingId; });
-      if (b) b.checkinStatus = 'Checked-In';
-      saveLocalMerchantDb(localDb);
 
       showToast('✓ ' + custName + ' (Booking: ' + bookingId + ') marked as Checked-In!');
       loginMerchant();
