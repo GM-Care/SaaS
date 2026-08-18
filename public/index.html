@@ -925,7 +925,6 @@
       selectBookingDate(today);
 
       loadModalAddons();
-      loadModalSlots(venue.id, today);
       recalculateModalBill();
 
       document.getElementById('bookingModal').style.display = 'flex';
@@ -954,8 +953,6 @@
 
     async function loadModalSlots(venueId, dateStr) {
       var container = document.getElementById('modalSlotsGrid');
-      container.innerHTML = '';
-
       var slots = [
         { id: 'SLT-01', name: 'Morning Matinee (10:00 AM - 01:00 PM)', isAvailable: true },
         { id: 'SLT-02', name: 'Afternoon Screening (02:00 PM - 05:00 PM)', isAvailable: true },
@@ -971,6 +968,7 @@
         }
       } catch (e) {}
 
+      container.innerHTML = '';
       slots.forEach(function(slot, idx) {
         var item = document.createElement('div');
         item.className = 'slot-item ' + (slot.isAvailable ? 'available' : 'booked') + (idx === 2 ? ' selected' : '');
